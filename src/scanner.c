@@ -1,3 +1,20 @@
+/**
+ * Předmět:  IFJ
+ * Projekt:  Implementace překladače imperativního jazyka IFJ19
+ * Varianta: Tým 018, varianta II
+ * Soubor:   scanner.c
+ *
+ * Popis:
+ *
+ *
+ * Datum:    xx.xx.xxxx
+ *
+ * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
+ * 			 Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
+ *           Tomáš Kantor    <xkanto14@stud.fit.vutbr.cz>
+ *           Lukáš Kuchta	 <xkucht09@stud.fit.vutbr.cz>
+ */
+
 #include "scanner.h"
 
 int debug = 1; // debug výpisy - 1 = zapnuto, 0 = vypnuto
@@ -7,7 +24,7 @@ void setSourceFile(FILE *f)
 	source_f = f;
 }
 
-TokenPTR makeToken(TokenPTR* token)
+TokenPTR makeToken(TokenPTR* token) // vytvoří nový token a mallokuje základní prostor
 {
 	TokenPTR newToken = (TokenPTR) malloc(sizeof(struct Token));
 	
@@ -32,10 +49,10 @@ TokenPTR makeToken(TokenPTR* token)
 	return newToken;
 }
 
-void updateDynamicString(TokenPTR token) // TODO
+/*void updateDynamicString(TokenPTR token) // TODO
 {
 
-}
+}*/
 
 void IntegerConcatenate(char a, TokenPTR token) // #YOLO funkce (probably fix? :D)
 { 
@@ -56,7 +73,7 @@ void IntegerConcatenate(char a, TokenPTR token) // #YOLO funkce (probably fix? :
     token->integer = atoi(s2); 
 }
 
-int ExponentConcatenate(int number_Exponent , char b) 
+int ExponentConcatenate(int number_Exponent , char b) // možná bude lepší způsob :/
 { 
   
     char s1[2000000]; 

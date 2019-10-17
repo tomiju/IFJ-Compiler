@@ -1,3 +1,20 @@
+/**
+ * Předmět:  IFJ
+ * Projekt:  Implementace překladače imperativního jazyka IFJ19
+ * Varianta: Tým 018, varianta II
+ * Soubor:   scanner.h
+ *
+ * Popis:
+ *
+ *
+ * Datum:    xx.xx.xxxx
+ *
+ * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
+ * 			 Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
+ *           Tomáš Kantor    <xkanto14@stud.fit.vutbr.cz>
+ *           Lukáš Kuchta	 <xkucht09@stud.fit.vutbr.cz>
+ */
+
 #include <stdio.h>
 #include <ctype.h> // isalpha, isdigit...
 #include <stdlib.h>
@@ -87,8 +104,10 @@ typedef enum
 typedef struct Token
 {
 	char* dynamic_value; 
-	int integer;
-	double decimal; // float
+	int size; // velikost uloženého stringu
+	int allocated_size; // alokovaná velikost
+	int integer; // nepoužívat
+	double decimal; // nepoužívat
 	TokenTYPE type;
 	TokenKEYWORD keyword;
 }*TokenPTR;
