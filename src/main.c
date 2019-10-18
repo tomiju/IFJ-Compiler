@@ -47,24 +47,24 @@ int main(int argc, char const *argv[]) {
       printf("\n");
       printf("debug token values:\n");
       printf("value: %s\n", test->dynamic_value );
-      printf("integer: %d\n",test->integer );
-      printf("decimal (float):%f \n",test->decimal );
+      printf("length: %d\n",test->size );
+      printf("allocated_size:%d\n",test->allocated_size );
       printf("type: %d\n",test->type );
       printf("keyword: %d\n",test->keyword );
 
       printf("\n");
       printf("debug token2 values:\n");
       printf("value: %s\n", test2->dynamic_value );
-      printf("integer: %d\n",test2->integer );
-      printf("decimal (float):%f \n",test2->decimal );
+      printf("length: %d\n",test2->size );
+      printf("allocated_size:%d\n",test2->allocated_size );
       printf("type: %d\n",test2->type );
       printf("keyword: %d\n",test2->keyword );
 
       printf("\n");
       printf("debug token3 values:\n");
       printf("value: %s\n", test3->dynamic_value );
-      printf("integer: %d\n",test3->integer );
-      printf("decimal (float):%f \n",test3->decimal );
+      printf("length: %d\n",test3->size );
+      printf("allocated_size:%d\n",test3->allocated_size );
       printf("type: %d\n",test3->type );
       printf("keyword: %d\n",test3->keyword );
 

@@ -3,9 +3,7 @@
  * Projekt:  Implementace překladače imperativního jazyka IFJ19
  * Varianta: Tým 018, varianta II
  * Soubor:   scanner.c
- *
- * Popis:
- *
+ * 
  *
  * Datum:    xx.xx.xxxx
  *
@@ -45,54 +43,32 @@ TokenPTR makeToken(TokenPTR* token) // vytvoří nový token a mallokuje základ
 
 	newToken->integer = 0;
 	newToken->decimal = 0.0;
+	newToken->size = 0;
+	newToken->allocated_size = DYNAMIC_STRING_DEFAULT;
+	newToken->dynamic_value[newToken->size] = '\0';
 
 	return newToken;
 }
 
-/*void updateDynamicString(TokenPTR token) // TODO
+int updateDynamicString(char currentChar, TokenPTR token) // TODO
 {
+	if (token->size + 1 >= token->allocated_size)
+	{
+		int realloc_size = token->allocated_size + DYNAMIC_STRING_DEFAULT;
 
-}*/
+		token->dynamic_value = (char*) realloc(token->dynamic_value, realloc_size);
+		if (token->dynamic_value == NULL)
+		{
+			return 1;
+		}
+		token->allocated_size = realloc_size;
+	}
 
-void IntegerConcatenate(char a, TokenPTR token) // #YOLO funkce (probably fix? :D)
-{ 
-  
-    char s1[2000000]; 
-    char s2[2000000]; 
-  
-    // Convert both the integers to string 
-    sprintf(s1, "%c", a);
+	token->dynamic_value[token->size++] = currentChar;
+	token->dynamic_value[token->size] = '\0';
 
-    sprintf(s2, "%d", token->integer); 
-  
-    // Concatenate both strings 
-    strcat(s2, s1); 
-  
-    // Convert the concatenated string 
-    // to integer 
-    token->integer = atoi(s2); 
+	return 0;
 }
-
-int ExponentConcatenate(int number_Exponent , char b) // možná bude lepší způsob :/
-{ 
-  
-    char s1[2000000]; 
-    char s2[2000000]; 
-  
-    // Convert both the integers to string 
-    sprintf(s1, "%c", b); 
-    sprintf(s2, "%d", number_Exponent); 
-  
-    // Concatenate both strings 
-    strcat(s2, s1); 
-    // Convert the concatenated string 
-    // to integer 
-    
-    int vysledek = atoi(s2);
-
-    return vysledek;
- 
-}  
 
 void freeMemory(TokenPTR token)
 {
@@ -100,12 +76,103 @@ void freeMemory(TokenPTR token)
 	free(token);
 }
 
+int checkKeyword(TokenPTR token)
+{
+	int pom;
+	if ((pom = strcmp("if", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_IF; 
+	 	return 0;
+	}
+	if ((pom = strcmp("else", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_ELSE; 
+	 	return 0;
+	}
+	if ((pom = strcmp("return", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_RETURN; 
+	 	return 0;
+	}
+	if ((pom = strcmp("def", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_DEF; 
+	 	return 0;
+	}
+	if ((pom = strcmp("while", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_WHILE; 
+	 	return 0;
+	}
+	if ((pom = strcmp("inputs", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_INPUTS; 
+	 	return 0;
+	}
+	if ((pom = strcmp("inputi", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_INPUTI; 
+	 	return 0;
+	}
+	if ((pom = strcmp("inputf", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_INPUTF; 
+	 	return 0;
+	}
+	if ((pom = strcmp("print", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_PRINT; 
+	 	return 0;
+	}
+	if ((pom = strcmp("len", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_LEN; 
+	 	return 0;
+	}
+	if ((pom = strcmp("substr", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_SUBSTR; 
+	 	return 0;
+	}
+	if ((pom = strcmp("ord", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_ORD; 
+	 	return 0;
+	}
+	if ((pom = strcmp("chr", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_CHR; 
+	 	return 0;
+	}
+	if ((pom = strcmp("pass", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_PASS; 
+	 	return 0;
+	}
+
+	return -1;
+}
+
 int getToken(TokenPTR* token)
 {
 	int state = STATE_START;
 	int commentary_Counter;
-	int number_Exponent = 0;
 	char currentChar;
+	char previousChar;
 
 	TokenPTR newToken = makeToken(token);
 	
@@ -131,6 +198,10 @@ int getToken(TokenPTR* token)
 					newToken->type = TOKEN_EOL;
 					return TOKEN_OK;
 				}*/
+				else if (currentChar == '\'')
+				{
+					state = STATE_STRING;
+				}
 				else if (currentChar == '#')
 				{
 					state = STATE_COMMENTARY;
@@ -152,37 +223,130 @@ int getToken(TokenPTR* token)
 				else if (currentChar == '-')
 				{
 					newToken->type = TOKEN_MINUS;
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 					return TOKEN_OK;
 				}
 				else if (currentChar == '*')
 				{
 					newToken->type = TOKEN_MUL;
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 					return TOKEN_OK;
 				}
 				else if (currentChar == '<')
 				{
 					state = STATE_LESS_THAN;
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 				}
 				else if (currentChar == '>')
 				{
 					state = STATE_MORE_THAN;
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 				}
 				else if (currentChar == '!')
 				{
 					state = STATE_NOT_EQUAL;
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 				}
 				else if (currentChar == '=')
 				{
 					state = STATE_ASSIGN;
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 				}
 				else if (currentChar == '/')
 				{
 					state = STATE_DIV;
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+				}
+				else if (currentChar == '(')
+				{
+					newToken->type = TOKEN_LEFT_BRACKET;
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					return TOKEN_OK;
+				}
+				else if (currentChar == ')')
+				{
+					newToken->type = TOKEN_RIGHT_BRACKET;
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					return TOKEN_OK;
+				}
+				else if (currentChar == ',')
+				{
+					newToken->type = TOKEN_COMMA;
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					return TOKEN_OK;
+				}
+				else if (currentChar == ':')
+				{
+					newToken->type = TOKEN_COLON;
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					return TOKEN_OK;
+				}
+				else if (isalpha(currentChar))
+				{
+					state = STATE_IDENTIFIER;
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 				}
 				else if (isdigit(currentChar))
 				{
 					state = STATE_NUMBER_INT;
-					IntegerConcatenate(currentChar, newToken);
+					//IntegerConcatenate(currentChar, newToken);
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+				}
+				else if (currentChar == ' ' && previousChar == '\n') // přeskočit mezery
+				{
+					state = STATE_INDENT;
 				}
 				else // debug - smazat!!!
 				{
@@ -191,6 +355,7 @@ int getToken(TokenPTR* token)
 						printf("test znak: %c\n", currentChar); //debug
 					}				
 				}
+
 				break;
 
 			case(STATE_COMMENTARY):
@@ -219,13 +384,13 @@ int getToken(TokenPTR* token)
 						return LEX_ERROR;	
 					}
 
-						state = STATE_BLOCK_COMMENTARY_END;
-						commentary_Counter = 0;
-						if (debug)
-						{
-							printf("text komentáře\n"); //debug
-						}
-						break;
+					state = STATE_BLOCK_COMMENTARY_END;
+					commentary_Counter = 0;
+					if (debug)
+					{
+						printf("text komentáře\n"); //debug
+					}
+					break;
 				}
 				if (currentChar == '\"')
 				{
@@ -278,12 +443,22 @@ int getToken(TokenPTR* token)
 			case(STATE_LESS_THAN):
 				if (currentChar != '=')
 				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 					ungetc(currentChar, source_f); // tento znak už není součástí tohoto tokenu, tudíž se vrátím zpět a zpracuji ho znova
 					newToken->type = TOKEN_LESS_THAN;
 					return TOKEN_OK;
 				}
 				else if (currentChar == '=')
 				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 					newToken->type = TOKEN_LESS_THAN_OR_EQUAL;
 					return TOKEN_OK;
 				}
@@ -292,12 +467,21 @@ int getToken(TokenPTR* token)
 			case(STATE_MORE_THAN):
 				if (currentChar != '=')
 				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 					ungetc(currentChar, source_f); // tento znak už není součástí tohoto tokenu, tudíž se vrátím zpět a zpracuji ho znova
 					newToken->type = TOKEN_MORE_THAN;
 					return TOKEN_OK;
 				}
 				else if (currentChar == '=')
 				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						return LEX_ERROR;
+					}
 					newToken->type = TOKEN_MORE_THAN_OR_EQUAL;
 					return TOKEN_OK;
 				}
@@ -306,6 +490,11 @@ int getToken(TokenPTR* token)
 			case(STATE_NOT_EQUAL):
 				if (currentChar == '=')
 				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 					newToken->type = TOKEN_NOT_EQUAL;
 					return TOKEN_OK;
 				}
@@ -320,11 +509,21 @@ int getToken(TokenPTR* token)
 				
 				if (currentChar == '=')
 				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 					newToken->type = TOKEN_EQUAL;
 					return TOKEN_OK;
 				}
 				else
 				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 					ungetc(currentChar, source_f);
 					newToken->type = TOKEN_ASSIGN;
 					return TOKEN_OK;
@@ -334,11 +533,21 @@ int getToken(TokenPTR* token)
 			case(STATE_DIV):
 				if (currentChar == '/')
 				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 					newToken->type = TOKEN_IDIV;
 					return TOKEN_OK;
 				}
 				else
 				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 					ungetc(currentChar, source_f);
 					newToken->type = TOKEN_DIV;
 					return TOKEN_OK;
@@ -348,17 +557,32 @@ int getToken(TokenPTR* token)
 			case(STATE_NUMBER_INT):
 				if (isdigit(currentChar))
 				{
-					// na uložení funkce, která zkontroluje alokovaný prostor
-					IntegerConcatenate(currentChar, newToken);
-
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					break;
 				}
 				else if (currentChar == '.')
 				{
-					state = STATE_NUMBER_FLOAT;
+					state = STATE_NUMBER_DOUBLE;
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 					break;
-					/*ungetc(currentChar, source_f);
-					newToken->type = TOKEN_INT;
-					return TOKEN_OK;*/
+				}
+				if (currentChar == 'e' || currentChar == 'E')
+				{
+					if(updateDynamicString(currentChar, newToken)) // TODO: pak dodělat dopočítání přesné hodnoty
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					state = STATE_NUMBER_EXPONENT;
+					break;
 				}
 				else if (isalpha(currentChar))
 				{
@@ -372,30 +596,26 @@ int getToken(TokenPTR* token)
 				}
 			break;
 			
-			case(STATE_NUMBER_FLOAT): // TODO!!!
+			case(STATE_NUMBER_DOUBLE): // TODO!!!
 
 				if (currentChar == 'e' || currentChar == 'E')
 				{
-					//todo
-					/*if (currentChar == 'E')
+					if(updateDynamicString(currentChar, newToken)) // TODO: pak dodělat dopočítání přesné hodnoty
 					{
-						currentChar = 'e';
-					}*/
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
 					state = STATE_NUMBER_EXPONENT;
 					break;
 				}
-
-			break;
-			case(STATE_NUMBER_EXPONENT): // pouze pro desetinné čísla => TODO!!!
-				if (isdigit(currentChar))
+				else if (isdigit(currentChar))
 				{
-					
-					number_Exponent = ExponentConcatenate(number_Exponent, currentChar);
-					//printf("exponent1 %d\n",number_Exponent );
-				}
-				else if (currentChar == '+' || currentChar == '-')
-				{
-					// todo
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					break;
 				}
 				else if (isalpha(currentChar))
 				{
@@ -404,15 +624,79 @@ int getToken(TokenPTR* token)
 				}
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
 				{
-					newToken->type = TOKEN_INT;
-					printf("exponent %d\n",number_Exponent );
-					IntegerConcatenate(number_Exponent, newToken); // takto asi ne, uložím rovnou výlednou hodnotu... - zvlášť funkce
+					newToken->type = TOKEN_DOUBLE;
+					return TOKEN_OK;
+				}
+
+			break;
+			case(STATE_NUMBER_EXPONENT): 
+				if (currentChar == '+' || currentChar == '-')
+				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					break;
+				}
+				else if (isdigit(currentChar))
+				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+				}
+				else if (isalpha(currentChar))
+				{
+					freeMemory(newToken);
+					return LEX_ERROR;
+				}
+				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
+				{
+					newToken->type = TOKEN_DOUBLE;
 					return TOKEN_OK;
 				}
 			break;
 
+			case(STATE_IDENTIFIER):
+				if (isalpha(currentChar))
+				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					break;
+				}
+				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
+				{
+					if (!(checkKeyword(newToken)))
+					{
+						return TOKEN_OK;
+					}
+
+					newToken->type = TOKEN_IDENTIFIER;
+					return TOKEN_OK;
+				}
+			break;
+
+			case(STATE_STRING):
+				
+			break;
+
+			case(STATE_INDENT):
+			break;
+
+			case(STATE_DEDENT):
+			break;
+
 			break;
 		}
+		previousChar = currentChar;
 	}
+
+	printf("konec scanneru error\n");
+	return LEX_ERROR;
 
 }

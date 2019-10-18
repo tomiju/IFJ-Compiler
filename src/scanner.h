@@ -3,9 +3,7 @@
  * Projekt:  Implementace překladače imperativního jazyka IFJ19
  * Varianta: Tým 018, varianta II
  * Soubor:   scanner.h
- *
- * Popis:
- *
+ * 
  *
  * Datum:    xx.xx.xxxx
  *
@@ -34,9 +32,12 @@
 #define STATE_DIV 8
 #define STATE_NOT_EQUAL 9
 #define STATE_NUMBER_INT 10
-#define STATE_NUMBER_FLOAT 11
+#define STATE_NUMBER_DOUBLE 11
 #define STATE_NUMBER_EXPONENT 12
 #define STATE_STRING 13
+#define STATE_IDENTIFIER 14
+#define STATE_INDENT 15
+#define STATE_DEDENT 16
 
 
 
@@ -54,7 +55,7 @@ typedef enum
 
 	// datové typy
 	TOKEN_INT,
-	TOKEN_FLOAT,
+	TOKEN_DOUBLE,
 	TOKEN_STRING,
 	TOKEN_NONE,
 
@@ -85,6 +86,7 @@ typedef enum
 
 typedef enum
 {
+	KEYWORD_NOT_A_KEYWORD,
 	KEYWORD_IF,
 	KEYWORD_ELSE,
 	KEYWORD_RETURN,
@@ -101,15 +103,15 @@ typedef enum
 	KEYWORD_PASS,
 }TokenKEYWORD;
 
-typedef struct Token
+typedef struct Token // struktura tokenu
 {
 	char* dynamic_value; 
-	int size; // velikost uloženého stringu
+	int size; // délka uloženého stringu
 	int allocated_size; // alokovaná velikost
 	int integer; // nepoužívat
 	double decimal; // nepoužívat
-	TokenTYPE type;
-	TokenKEYWORD keyword;
+	TokenTYPE type; // informace o typu tokenu
+	TokenKEYWORD keyword; // typ keywordu
 }*TokenPTR;
 
 
@@ -118,8 +120,7 @@ FILE* source_f;
 // deklarace funkcí
 void setSourceFile(FILE *f);
 TokenPTR makeToken(TokenPTR* token);
-void updateDynamicString(TokenPTR token);
-void IntegerConcatenate(char a, TokenPTR token);
-int ExponentConcatenate(int number_Exponent , char b) ;
+int updateDynamicString(char currentChar, TokenPTR token);
 void freeMemory(TokenPTR token);
+int checkKeyword(TokenPTR token);
 int getToken(TokenPTR* token);
