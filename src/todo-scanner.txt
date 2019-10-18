@@ -1,7 +1,0 @@
-TODO-LIST:
-
-- konkatenace stringů (keyword / názvy / stringy / čísla)
-- desetinné číšla + exponent E, e !!!!!!!!!!!
-- INDENT + DEDENT (+ vytvořit k tomu stack)
-- funkce
-- 
