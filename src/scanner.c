@@ -42,7 +42,8 @@ TokenPTR makeToken(TokenPTR* token) // vytvoří nový token a mallokuje základ
 	}
 
 	newToken->integer = 0;
-	newToken->decimal = 0.0;
+	newToken->numberValueWithExponent = 0.0;
+	newToken->exponent_value = 0;
 	newToken->size = 0;
 	newToken->allocated_size = DYNAMIC_STRING_DEFAULT;
 	newToken->dynamic_value[newToken->size] = '\0';
@@ -70,6 +71,35 @@ int updateDynamicString(char currentChar, TokenPTR token) // TODO
 	token->dynamic_value[token->size] = '\0';
 
 	return 0;
+}
+
+/*int addStringToDynamicString(char* inputString, TokenPTR token)
+{
+	int inputStringLength = (int) strlen(inputString);
+
+	if (token->size + inputStringLength + 1 >= token->allocated_size)
+	{
+
+		int realloc_size = token->size + inputStringLength + 1;
+		token->dynamic_value = (char*) realloc(token->dynamic_value, realloc_size);
+
+		if (token->dynamic_value == NULL)
+		{
+			return 1;
+		}
+		token->allocated_size = realloc_size;
+	}
+
+	token->size += inputStringLength;
+	strcat(token->dynamic_value, inputString);
+	token->dynamic_value[token->size] = '\0';
+
+	return 0;
+}*/
+
+void computeNumberWithExponent(TokenPTR token)
+{
+	token->numberValueWithExponent = (atof(token->dynamic_value));
 }
 
 void freeMemory(TokenPTR token)
@@ -165,6 +195,12 @@ int checkKeyword(TokenPTR token)
 	 	token->keyword = KEYWORD_PASS; 
 	 	return 0;
 	}
+	if ((pom = strcmp("None", token->dynamic_value)) == 0)
+	{
+	 	token->type = TOKEN_KEYWORD;
+	 	token->keyword = KEYWORD_NONE; 
+	 	return 0;
+	}
 
 	return -1;
 }
@@ -173,6 +209,7 @@ int getToken(TokenPTR* token)
 {
 	int state = STATE_START;
 	int commentary_Counter;
+	//int exponent_Type = 1; // 1 kladné / 0 záporné
 	char currentChar;
 	char previousChar;
 
@@ -185,12 +222,15 @@ int getToken(TokenPTR* token)
 
 	while(42)
 	{
+		
 		currentChar = (char) getc(source_f);
 
 		switch(state)
 		{
 			case(STATE_START):
+				
 				previousChar = currentChar;
+
 				if (currentChar == EOF)
 				{
 					newToken->type = TOKEN_EOF;
@@ -592,6 +632,7 @@ int getToken(TokenPTR* token)
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
 				{
 					newToken->type = TOKEN_INT;
+					ungetc(currentChar, source_f);
 					return TOKEN_OK;
 				}
 			break;
@@ -625,6 +666,7 @@ int getToken(TokenPTR* token)
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
 				{
 					newToken->type = TOKEN_DOUBLE;
+					ungetc(currentChar, source_f);
 					return TOKEN_OK;
 				}
 
@@ -646,6 +688,7 @@ int getToken(TokenPTR* token)
 						freeMemory(newToken);
 						return LEX_ERROR;
 					}
+					//concatenateExponent(currentChar, newToken);
 				}
 				else if (isalpha(currentChar))
 				{
@@ -655,6 +698,8 @@ int getToken(TokenPTR* token)
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
 				{
 					newToken->type = TOKEN_DOUBLE;
+					ungetc(currentChar, source_f);
+					computeNumberWithExponent(newToken);
 					return TOKEN_OK;
 				}
 			break;
@@ -686,6 +731,7 @@ int getToken(TokenPTR* token)
 					}
 
 					newToken->type = TOKEN_IDENTIFIER;
+					ungetc(currentChar, source_f);
 					return TOKEN_OK;
 				}
 			break;
@@ -696,6 +742,9 @@ int getToken(TokenPTR* token)
 					newToken->type = TOKEN_STRING;
 					return TOKEN_OK;
 				}
+				else if (currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
+				{
+					return LEX_ERROR;				}
 				else
 				{
 					if(updateDynamicString(currentChar, newToken))
@@ -707,10 +756,10 @@ int getToken(TokenPTR* token)
 				}
 			break;
 
-			case(STATE_INDENT):
+			case(STATE_INDENT): // TODO
 			break;
 
-			case(STATE_DEDENT):
+			case(STATE_DEDENT): // TODO
 			break;
 
 			break;

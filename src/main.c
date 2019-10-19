@@ -43,11 +43,14 @@ int main(int argc, char const *argv[]) {
             printf("lex error 3\n");
             return 1;
       }
+   
 
       // DEBUG:
       printf("\n");
       printf("debug token values:\n");
       printf("value: %s\n", test->dynamic_value );
+      printf("number with exponent value: %lf\n",test->numberValueWithExponent );
+      printf("exponent_value: %d\n", test->exponent_value );
       printf("length: %d\n",test->size );
       printf("allocated_size:%d\n",test->allocated_size );
       printf("type: %d\n",test->type );
@@ -56,6 +59,8 @@ int main(int argc, char const *argv[]) {
       printf("\n");
       printf("debug token2 values:\n");
       printf("value: %s\n", test2->dynamic_value );
+      printf("number with exponent value: %lf\n",test2->numberValueWithExponent );
+      printf("exponent_value: %d\n", test2->exponent_value );
       printf("length: %d\n",test2->size );
       printf("allocated_size:%d\n",test2->allocated_size );
       printf("type: %d\n",test2->type );
@@ -64,6 +69,8 @@ int main(int argc, char const *argv[]) {
       printf("\n");
       printf("debug token3 values:\n");
       printf("value: %s\n", test3->dynamic_value );
+      printf("number with exponent value: %lf\n",test3->numberValueWithExponent );
+      printf("exponent_value: %d\n", test3->exponent_value );
       printf("length: %d\n",test3->size );
       printf("allocated_size:%d\n",test3->allocated_size );
       printf("type: %d\n",test3->type );

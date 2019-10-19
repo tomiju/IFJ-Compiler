@@ -92,6 +92,7 @@ typedef enum
 	KEYWORD_ELSE,
 	KEYWORD_RETURN,
 	KEYWORD_DEF, // def (definování funkce)
+	KEYWORD_NONE,
 	KEYWORD_WHILE,
 	KEYWORD_INPUTS,
 	KEYWORD_INPUTI,
@@ -110,7 +111,8 @@ typedef struct Token // struktura tokenu
 	int size; // délka uloženého stringu
 	int allocated_size; // alokovaná velikost
 	int integer; // nepoužívat
-	double decimal; // nepoužívat
+	double numberValueWithExponent; // nepoužívat
+	int exponent_value; 
 	TokenTYPE type; // informace o typu tokenu
 	TokenKEYWORD keyword; // typ keywordu
 	// + přidat úroveň zanoření? - kvůli kontrole duplicity identifikátoru????
@@ -123,6 +125,7 @@ FILE* source_f;
 void setSourceFile(FILE *f);
 TokenPTR makeToken(TokenPTR* token);
 int updateDynamicString(char currentChar, TokenPTR token);
+void computeNumberWithExponent(TokenPTR token);
 void freeMemory(TokenPTR token);
 int checkKeyword(TokenPTR token);
 int getToken(TokenPTR* token);
