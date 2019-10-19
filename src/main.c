@@ -22,6 +22,7 @@ int main(int argc, char const *argv[]) {
    setSourceFile(f);
 
 
+   /********** DEBUG SCANNER **********/
    if (debug)
    {
       TokenPTR test, test2, test3;
@@ -72,6 +73,7 @@ int main(int argc, char const *argv[]) {
       freeMemory(test2);
       freeMemory(test3);
    }
+   /**************************************************************************/
 
     return 0;
 }

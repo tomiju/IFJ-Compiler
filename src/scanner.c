@@ -46,6 +46,8 @@ TokenPTR makeToken(TokenPTR* token) // vytvoří nový token a mallokuje základ
 	newToken->size = 0;
 	newToken->allocated_size = DYNAMIC_STRING_DEFAULT;
 	newToken->dynamic_value[newToken->size] = '\0';
+	newToken->type = TOKEN_DEFAULT;
+	newToken->keyword = KEYWORD_DEFAULT;
 
 	return newToken;
 }
@@ -188,6 +190,7 @@ int getToken(TokenPTR* token)
 		switch(state)
 		{
 			case(STATE_START):
+				previousChar = currentChar;
 				if (currentChar == EOF)
 				{
 					newToken->type = TOKEN_EOF;
@@ -325,7 +328,7 @@ int getToken(TokenPTR* token)
 					}
 					return TOKEN_OK;
 				}
-				else if (isalpha(currentChar))
+				else if (isalpha(currentChar) || currentChar == '_')
 				{
 					state = STATE_IDENTIFIER;
 					if(updateDynamicString(currentChar, newToken))
@@ -348,12 +351,9 @@ int getToken(TokenPTR* token)
 				{
 					state = STATE_INDENT;
 				}
-				else // debug - smazat!!!
+				else // přeskočí zbytečné mezery
 				{
-					if (debug)
-					{
-						printf("test znak: %c\n", currentChar); //debug
-					}				
+					break;		
 				}
 
 				break;
@@ -660,7 +660,16 @@ int getToken(TokenPTR* token)
 			break;
 
 			case(STATE_IDENTIFIER):
-				if (isalpha(currentChar))
+				if (currentChar == '_')
+				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					break;
+				}
+				else if (isalnum(currentChar))
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
@@ -682,7 +691,20 @@ int getToken(TokenPTR* token)
 			break;
 
 			case(STATE_STRING):
-				
+				if (currentChar == '\'')
+				{
+					newToken->type = TOKEN_STRING;
+					return TOKEN_OK;
+				}
+				else
+				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					break;
+				}
 			break;
 
 			case(STATE_INDENT):

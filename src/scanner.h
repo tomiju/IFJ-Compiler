@@ -47,6 +47,7 @@
 
 typedef enum
 {
+	TOKEN_DEFAULT,
 	// global
 	TOKEN_EOF,
 	TOKEN_EOL,
@@ -86,7 +87,7 @@ typedef enum
 
 typedef enum
 {
-	KEYWORD_NOT_A_KEYWORD,
+	KEYWORD_DEFAULT,
 	KEYWORD_IF,
 	KEYWORD_ELSE,
 	KEYWORD_RETURN,
@@ -112,6 +113,7 @@ typedef struct Token // struktura tokenu
 	double decimal; // nepoužívat
 	TokenTYPE type; // informace o typu tokenu
 	TokenKEYWORD keyword; // typ keywordu
+	// + přidat úroveň zanoření? - kvůli kontrole duplicity identifikátoru????
 }*TokenPTR;
 
 
