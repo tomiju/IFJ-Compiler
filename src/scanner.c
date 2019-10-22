@@ -418,10 +418,16 @@ int getToken(TokenPTR* token)
 				}
 				if (commentary_Counter == 3)
 				{
-					if (currentChar != '\n' && currentChar != ' ' && currentChar != '\v' && currentChar != '\t' && currentChar != EOF && currentChar != '\r' && currentChar != '\f')
+					/*if (currentChar != '\n' && currentChar != ' ' && currentChar != '\v' && currentChar != '\t' && currentChar != EOF && currentChar != '\r' && currentChar != '\f')
 					{
 						freeMemory(newToken);
 						return LEX_ERROR;	
+					}*/
+
+					if (currentChar == EOF)
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
 					}
 
 					state = STATE_BLOCK_COMMENTARY_END;
@@ -450,11 +456,11 @@ int getToken(TokenPTR* token)
 			case(STATE_BLOCK_COMMENTARY_END):
 				if (commentary_Counter == 3)
 				{				
-					if (currentChar != '\n' && currentChar != ' ' && currentChar != '\v' && currentChar != '\t' && currentChar != EOF && currentChar != '\r' && currentChar != '\f')
+					/*if (currentChar != '\n' || currentChar != ' ' || currentChar != '\v' || currentChar != '\t' || currentChar != EOF || currentChar != '\r' || currentChar != '\f')
 					{
 						freeMemory(newToken);
 						return LEX_ERROR;	
-					}
+					}*/	
 					
 						state = STATE_START;
 						commentary_Counter = 0;

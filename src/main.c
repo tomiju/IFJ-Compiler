@@ -25,7 +25,7 @@ int main(int argc, char const *argv[]) {
    /********** DEBUG SCANNER **********/
    if (debug)
    {
-      TokenPTR test, test2, test3;
+      /*TokenPTR test, test2, test3;
       if (getToken(&test) == 1)
       {
    	   	printf("lex error\n");
@@ -42,10 +42,40 @@ int main(int argc, char const *argv[]) {
       {
             printf("lex error 3\n");
             return 1;
-      }
-   
+      }*/
+      
 
-      // DEBUG:
+
+      TokenPTR testPole[1000]; // jak určíme velikost pole tokenů????
+      int x = -1;
+
+      do
+      {
+        
+        x++;
+
+        if (getToken(&testPole[x]) == 1)
+         {
+            printf("lex error\n");
+            return 1;
+         }
+
+         printf("\n");
+         printf("debug token values:\n");
+         printf("value: %s\n", testPole[x]->dynamic_value );
+         printf("number with exponent value: %lf\n",testPole[x]->numberValueWithExponent );
+         printf("exponent_value: %d\n", testPole[x]->exponent_value );
+         printf("length: %d\n",testPole[x]->size );
+         printf("allocated_size:%d\n",testPole[x]->allocated_size );
+         printf("type: %d\n",testPole[x]->type );
+         printf("keyword: %d\n",testPole[x]->keyword );
+         
+         
+
+      } while (testPole[x]->type != 1);
+      
+
+     /* // DEBUG:
       printf("\n");
       printf("debug token values:\n");
       printf("value: %s\n", test->dynamic_value );
@@ -78,7 +108,12 @@ int main(int argc, char const *argv[]) {
 
       freeMemory(test);
       freeMemory(test2);
-      freeMemory(test3);
+      freeMemory(test3);*/
+
+      for (int i = 0; i < x; ++i)
+      {
+         freeMemory(testPole[i]);
+      }
    }
    /**************************************************************************/
 
