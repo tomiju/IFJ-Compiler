@@ -236,12 +236,16 @@ int getToken(TokenPTR* token)
 					newToken->type = TOKEN_EOF;
 					return TOKEN_OK;
 				}
+				else if (currentChar == '\\')
+				{
+					state = STATE_ESCAPE_SEQUENCE;
+				}
 				/*if (currentChar == '\n') // až bude hotové zpracování řetězců
 				{
 					newToken->type = TOKEN_EOL;
 					return TOKEN_OK;
 				}*/
-				else if (currentChar == '\'')
+				else if (currentChar == '\'' && previousChar != '\\')
 				{
 					state = STATE_STRING;
 				}
@@ -249,7 +253,7 @@ int getToken(TokenPTR* token)
 				{
 					state = STATE_COMMENTARY;
 				}
-				else if (currentChar == '\"')
+				else if (currentChar == '\"' && previousChar != '\\')
 				{
 					commentary_Counter = 1;
 					state = STATE_BLOCK_COMMENTARY;
@@ -416,6 +420,9 @@ int getToken(TokenPTR* token)
 					freeMemory(newToken);
 					return LEX_ERROR;
 				}
+				
+				previousChar = currentChar;
+				
 				if (commentary_Counter == 3)
 				{
 					/*if (currentChar != '\n' && currentChar != ' ' && currentChar != '\v' && currentChar != '\t' && currentChar != EOF && currentChar != '\r' && currentChar != '\f')
@@ -423,7 +430,6 @@ int getToken(TokenPTR* token)
 						freeMemory(newToken);
 						return LEX_ERROR;	
 					}*/
-
 					if (currentChar == EOF)
 					{
 						freeMemory(newToken);
@@ -438,7 +444,7 @@ int getToken(TokenPTR* token)
 					}
 					break;
 				}
-				if (currentChar == '\"')
+				if (currentChar == '\"' && previousChar != '\\')
 				{
 					if (commentary_Counter < 3)
 					{
@@ -454,6 +460,8 @@ int getToken(TokenPTR* token)
 				break;
 
 			case(STATE_BLOCK_COMMENTARY_END):
+				previousChar = currentChar;
+
 				if (commentary_Counter == 3)
 				{				
 					/*if (currentChar != '\n' || currentChar != ' ' || currentChar != '\v' || currentChar != '\t' || currentChar != EOF || currentChar != '\r' || currentChar != '\f')
@@ -475,7 +483,7 @@ int getToken(TokenPTR* token)
 					freeMemory(newToken);
 					return LEX_ERROR;
 				}
-				if (currentChar == '\"' && commentary_Counter < 3)
+				if (currentChar == '\"' && commentary_Counter < 3 && previousChar != '\\')
 				{
 					commentary_Counter++;
 				}
@@ -729,28 +737,38 @@ int getToken(TokenPTR* token)
 					}
 					break;
 				}
-				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
+				//else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
+				else
 				{
 					if (!(checkKeyword(newToken)))
 					{
+						ungetc(currentChar, source_f);
 						return TOKEN_OK;
 					}
-
-					newToken->type = TOKEN_IDENTIFIER;
+					
 					ungetc(currentChar, source_f);
+					newToken->type = TOKEN_IDENTIFIER;
 					return TOKEN_OK;
 				}
 			break;
 
 			case(STATE_STRING):
-				if (currentChar == '\'')
+
+
+				if (currentChar == '\'' && previousChar != '\\')
 				{
 					newToken->type = TOKEN_STRING;
 					return TOKEN_OK;
 				}
-				else if (currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
+				else if (currentChar == EOF)
 				{
-					return LEX_ERROR;				}
+					return LEX_ERROR;
+				}
+				else if (currentChar == '\\')
+				{
+					previousChar = currentChar;
+					break;
+				}
 				else
 				{
 					if(updateDynamicString(currentChar, newToken))
@@ -758,6 +776,66 @@ int getToken(TokenPTR* token)
 						freeMemory(newToken);
 						return LEX_ERROR;
 					}
+					previousChar = currentChar;
+					break;
+				}
+				previousChar = currentChar;
+			break;
+
+			case(STATE_ESCAPE_SEQUENCE): // TODO?
+				if (currentChar == '\"')
+				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					state = STATE_START;
+					break;
+				}
+				else if (currentChar == '\'')
+				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					state = STATE_START;
+					break;
+				}
+				else if (currentChar == '\n')
+				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					state = STATE_START;
+					break;
+				}
+				else if (currentChar == '\t')
+				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					state = STATE_START;
+					break;
+				}
+				else if (currentChar == '\\')
+				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+					state = STATE_START;
+					break;
+				}
+				else if (currentChar == 'x') // hexa TODO
+				{
+					state = STATE_START;
 					break;
 				}
 			break;
