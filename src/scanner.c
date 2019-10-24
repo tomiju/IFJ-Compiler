@@ -497,11 +497,11 @@ int getToken(TokenPTR* token)
 			case(STATE_LESS_THAN):
 				if (currentChar != '=')
 				{
-					if(updateDynamicString(currentChar, newToken))
+					/*if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken);
 						return LEX_ERROR;
-					}
+					}*/
 					ungetc(currentChar, source_f); // tento znak už není součástí tohoto tokenu, tudíž se vrátím zpět a zpracuji ho znova
 					newToken->type = TOKEN_LESS_THAN;
 					return TOKEN_OK;
@@ -521,11 +521,11 @@ int getToken(TokenPTR* token)
 			case(STATE_MORE_THAN):
 				if (currentChar != '=')
 				{
-					if(updateDynamicString(currentChar, newToken))
+					/*if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken);
 						return LEX_ERROR;
-					}
+					}*/
 					ungetc(currentChar, source_f); // tento znak už není součástí tohoto tokenu, tudíž se vrátím zpět a zpracuji ho znova
 					newToken->type = TOKEN_MORE_THAN;
 					return TOKEN_OK;
@@ -597,11 +597,11 @@ int getToken(TokenPTR* token)
 				}
 				else
 				{
-					if(updateDynamicString(currentChar, newToken))
+					/*if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken);
 						return LEX_ERROR;
-					}
+					}*/
 					ungetc(currentChar, source_f);
 					newToken->type = TOKEN_DIV;
 					return TOKEN_OK;
