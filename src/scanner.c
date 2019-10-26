@@ -42,8 +42,7 @@ TokenPTR makeToken(TokenPTR* token) // vytvoří nový token a mallokuje základ
 	}
 
 	newToken->integer = 0;
-	newToken->numberValueWithExponent = 0.0;
-	newToken->exponent_value = 0;
+	newToken->number_value = 0.0;
 	newToken->size = 0;
 	newToken->allocated_size = DYNAMIC_STRING_DEFAULT;
 	newToken->dynamic_value[newToken->size] = '\0';
@@ -51,6 +50,46 @@ TokenPTR makeToken(TokenPTR* token) // vytvoří nový token a mallokuje základ
 	newToken->keyword = KEYWORD_DEFAULT;
 
 	return newToken;
+}
+
+iStack initStack()
+{
+	iStack newStack = (iStack) malloc(sizeof(struct indentStack));
+	
+	if (newStack == NULL)
+	{
+		return NULL;
+	}
+
+	newStack->value = 0;
+	newStack->link = newStack;
+
+	return newStack;
+}
+
+void pushStack(iStack* indent_stack, int current_indent_value)
+{
+	iStack temp = (iStack) malloc(sizeof(struct indentStack));
+
+	temp->value = current_indent_value;
+	temp->link = *indent_stack;
+
+	*indent_stack = temp;
+}
+
+void popStack(iStack* indent_stack)
+{
+	iStack temp = (iStack) malloc(sizeof(struct indentStack));
+
+	if (indent_stack == NULL || (*indent_stack)->value == 0)
+	{
+		return;
+	}
+
+	temp = *indent_stack;
+	*indent_stack = (*indent_stack)->link;
+
+	free(temp);
 }
 
 int updateDynamicString(char currentChar, TokenPTR token) // TODO
@@ -99,7 +138,7 @@ int updateDynamicString(char currentChar, TokenPTR token) // TODO
 
 void computeNumberWithExponent(TokenPTR token)
 {
-	token->numberValueWithExponent = (atof(token->dynamic_value));
+	token->number_value = (atof(token->dynamic_value));
 }
 
 void freeMemory(TokenPTR token)
@@ -205,13 +244,13 @@ int checkKeyword(TokenPTR token)
 	return -1;
 }
 
-int getToken(TokenPTR* token)
+int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 {
 	int state = STATE_START;
 	int commentary_Counter;
-	//int exponent_Type = 1; // 1 kladné / 0 záporné
-	char currentChar;
-	char previousChar;
+	char currentChar, previousChar;
+
+	int current_indent_value = 0;
 
 	TokenPTR newToken = makeToken(token);
 	
@@ -384,7 +423,7 @@ int getToken(TokenPTR* token)
 				else if (isdigit(currentChar))
 				{
 					state = STATE_NUMBER_INT;
-					//IntegerConcatenate(currentChar, newToken);
+					previousChar = currentChar;
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken);
@@ -410,7 +449,6 @@ int getToken(TokenPTR* token)
 					{
 						printf("normální komentář\n"); //debug
 					}
-					//ungetc(currentChar, source_f); // kvůli EOF?
  				}
 				break;
 
@@ -425,11 +463,6 @@ int getToken(TokenPTR* token)
 				
 				if (commentary_Counter == 3)
 				{
-					/*if (currentChar != '\n' && currentChar != ' ' && currentChar != '\v' && currentChar != '\t' && currentChar != EOF && currentChar != '\r' && currentChar != '\f')
-					{
-						freeMemory(newToken);
-						return LEX_ERROR;	
-					}*/
 					if (currentChar == EOF)
 					{
 						freeMemory(newToken);
@@ -464,19 +497,13 @@ int getToken(TokenPTR* token)
 
 				if (commentary_Counter == 3)
 				{				
-					/*if (currentChar != '\n' || currentChar != ' ' || currentChar != '\v' || currentChar != '\t' || currentChar != EOF || currentChar != '\r' || currentChar != '\f')
+					state = STATE_START;
+					commentary_Counter = 0;
+					if (debug)
 					{
-						freeMemory(newToken);
-						return LEX_ERROR;	
-					}*/	
-					
-						state = STATE_START;
-						commentary_Counter = 0;
-						if (debug)
-						{
-							printf("konec blok. komentáře! \n"); //debug
-						}
-						break;
+						printf("konec blok. komentáře! \n"); //debug
+					}
+					break;
 				}
 				if (currentChar == EOF)
 				{
@@ -497,11 +524,6 @@ int getToken(TokenPTR* token)
 			case(STATE_LESS_THAN):
 				if (currentChar != '=')
 				{
-					/*if(updateDynamicString(currentChar, newToken))
-					{
-						freeMemory(newToken);
-						return LEX_ERROR;
-					}*/
 					ungetc(currentChar, source_f); // tento znak už není součástí tohoto tokenu, tudíž se vrátím zpět a zpracuji ho znova
 					newToken->type = TOKEN_LESS_THAN;
 					return TOKEN_OK;
@@ -521,11 +543,6 @@ int getToken(TokenPTR* token)
 			case(STATE_MORE_THAN):
 				if (currentChar != '=')
 				{
-					/*if(updateDynamicString(currentChar, newToken))
-					{
-						freeMemory(newToken);
-						return LEX_ERROR;
-					}*/
 					ungetc(currentChar, source_f); // tento znak už není součástí tohoto tokenu, tudíž se vrátím zpět a zpracuji ho znova
 					newToken->type = TOKEN_MORE_THAN;
 					return TOKEN_OK;
@@ -597,11 +614,6 @@ int getToken(TokenPTR* token)
 				}
 				else
 				{
-					/*if(updateDynamicString(currentChar, newToken))
-					{
-						freeMemory(newToken);
-						return LEX_ERROR;
-					}*/
 					ungetc(currentChar, source_f);
 					newToken->type = TOKEN_DIV;
 					return TOKEN_OK;
@@ -611,6 +623,12 @@ int getToken(TokenPTR* token)
 			case(STATE_NUMBER_INT):
 				if (isdigit(currentChar))
 				{
+					if (currentChar != '0' && previousChar == '0') // ošetření přebytečných nul na začátku čísla
+					{
+						freeMemory(newToken);
+						return LEX_ERROR;
+					}
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken);
@@ -702,7 +720,6 @@ int getToken(TokenPTR* token)
 						freeMemory(newToken);
 						return LEX_ERROR;
 					}
-					//concatenateExponent(currentChar, newToken);
 				}
 				else if (isalpha(currentChar))
 				{
@@ -737,7 +754,6 @@ int getToken(TokenPTR* token)
 					}
 					break;
 				}
-				//else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
 				else
 				{
 					if (!(checkKeyword(newToken)))
@@ -851,7 +867,10 @@ int getToken(TokenPTR* token)
 		previousChar = currentChar;
 	}
 
-	printf("konec scanneru error\n");
-	return LEX_ERROR;
+	if (debug)
+	{
+		printf("konec scanneru error\n");
+	}
 
+	return LEX_ERROR;
 }

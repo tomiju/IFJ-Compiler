@@ -45,7 +45,6 @@
 #define DYNAMIC_STRING_DEFAULT 8 // defaultní velikost pro dynamické pole znaků
 
 
-
 typedef enum
 {
 	TOKEN_DEFAULT,
@@ -111,22 +110,38 @@ typedef struct Token // struktura tokenu
 	char* dynamic_value; 
 	int size; // délka uloženého stringu
 	int allocated_size; // alokovaná velikost
-	int integer; // nepoužívat
-	double numberValueWithExponent; // nepoužívat
-	int exponent_value; 
+	int integer; // nevyužité
+	double number_value; // velikost bez zkráceného zápisu (e/E)
 	TokenTYPE type; // informace o typu tokenu
 	TokenKEYWORD keyword; // typ keywordu
 	// + přidat úroveň zanoření? - kvůli kontrole duplicity identifikátoru????
 }*TokenPTR;
 
+typedef struct indentStack // struktura pro stack (pevná velikost -> předělat na dynamickou)
+{
+	int value;
+	struct indentStack* link;
+}*iStack;
 
 // vstupní soubor s programem
+
 FILE* source_f;
+
 // deklarace funkcí
+
 void setSourceFile(FILE *f);
+
 TokenPTR makeToken(TokenPTR* token);
+int getToken(TokenPTR* token, iStack* indent_stack);
+void freeMemory(TokenPTR token);
+
 int updateDynamicString(char currentChar, TokenPTR token);
 void computeNumberWithExponent(TokenPTR token);
-void freeMemory(TokenPTR token);
 int checkKeyword(TokenPTR token);
-int getToken(TokenPTR* token);
+
+iStack initStack();
+void pushStack(iStack* indent_stack, int current_indent_value);
+void popStack(iStack* indent_stack);
+void destroyStack(iStack* indent_stack);
+int processIndent(int indent_Number, iStack* indent_stack);
+
