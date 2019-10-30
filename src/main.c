@@ -53,16 +53,16 @@ int main(int argc, char const *argv[]) {
          printf("length: %d\n",testPole[x]->size );
          printf("allocated_size:%d\n",testPole[x]->allocated_size );
          printf("type: %d\n",testPole[x]->type );
-         printf("keyword: %d\n",testPole[x]->keyword );  
 
-         printf("\nStack test: \n");
-         printf("init stack top: %d\n", indent_stack->value);
-         pushStack(&indent_stack, 5);
-         printf("stack top after push: %d\n", indent_stack->value);
-         popStack(&indent_stack);
-         printf("stack top after pop: %d\n", indent_stack->value);
 
       } while (testPole[x]->type != 1);
+         
+        printf("\nStack test: \n");
+        printf("init stack top: %d\n", indent_stack->value);
+        pushStack(&indent_stack, 5);
+        printf("stack top after push: %d\n", indent_stack->value);
+        popStack(&indent_stack);
+        printf("stack top after pop: %d\n", indent_stack->value);
       
       for (int i = 0; i < x; ++i)
       {

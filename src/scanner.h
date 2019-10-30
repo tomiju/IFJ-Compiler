@@ -83,10 +83,7 @@ typedef enum
 	TOKEN_COMMA,
 	TOKEN_COLON, // " : "
 
-}TokenTYPE;
-
-typedef enum
-{
+	// keywords
 	KEYWORD_DEFAULT,
 	KEYWORD_IF,
 	KEYWORD_ELSE,
@@ -103,7 +100,8 @@ typedef enum
 	KEYWORD_ORD,
 	KEYWORD_CHR,
 	KEYWORD_PASS,
-}TokenKEYWORD;
+
+}TokenTYPE;
 
 typedef struct Token // struktura tokenu
 {
@@ -113,13 +111,13 @@ typedef struct Token // struktura tokenu
 	int integer; // nevyužité
 	double number_value; // velikost bez zkráceného zápisu (e/E)
 	TokenTYPE type; // informace o typu tokenu
-	TokenKEYWORD keyword; // typ keywordu
 	// + přidat úroveň zanoření? - kvůli kontrole duplicity identifikátoru????
 }*TokenPTR;
 
 typedef struct indentStack // struktura pro stack (pevná velikost -> předělat na dynamickou)
 {
 	int value;
+	int level;
 	struct indentStack* link;
 }*iStack;
 

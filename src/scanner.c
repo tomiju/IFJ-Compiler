@@ -47,7 +47,6 @@ TokenPTR makeToken(TokenPTR* token) // vytvoří nový token a mallokuje základ
 	newToken->allocated_size = DYNAMIC_STRING_DEFAULT;
 	newToken->dynamic_value[newToken->size] = '\0';
 	newToken->type = TOKEN_DEFAULT;
-	newToken->keyword = KEYWORD_DEFAULT;
 
 	return newToken;
 }
@@ -62,6 +61,7 @@ iStack initStack()
 	}
 
 	newStack->value = 0;
+	newStack->level = 0;
 	newStack->link = newStack;
 
 	return newStack;
@@ -152,92 +152,77 @@ int checkKeyword(TokenPTR token)
 	int pom;
 	if ((pom = strcmp("if", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_IF; 
+	 	token->type = KEYWORD_IF;
 	 	return 0;
 	}
 	if ((pom = strcmp("else", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_ELSE; 
+	 	token->type = KEYWORD_ELSE;
 	 	return 0;
 	}
 	if ((pom = strcmp("return", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_RETURN; 
+	 	token->type = KEYWORD_RETURN;
 	 	return 0;
 	}
 	if ((pom = strcmp("def", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_DEF; 
+	 	token->type = KEYWORD_DEF;
 	 	return 0;
 	}
 	if ((pom = strcmp("while", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_WHILE; 
+	 	token->type = KEYWORD_WHILE; 
 	 	return 0;
 	}
 	if ((pom = strcmp("inputs", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_INPUTS; 
+	 	token->type = KEYWORD_INPUTS;
 	 	return 0;
 	}
 	if ((pom = strcmp("inputi", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_INPUTI; 
+	 	token->type = KEYWORD_INPUTI;
 	 	return 0;
 	}
 	if ((pom = strcmp("inputf", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_INPUTF; 
+	 	token->type = KEYWORD_INPUTF;
 	 	return 0;
 	}
 	if ((pom = strcmp("print", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_PRINT; 
+	 	token->type = KEYWORD_PRINT;
 	 	return 0;
 	}
 	if ((pom = strcmp("len", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_LEN; 
+	 	token->type = KEYWORD_LEN;
 	 	return 0;
 	}
 	if ((pom = strcmp("substr", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_SUBSTR; 
+	 	token->type = KEYWORD_SUBSTR;
 	 	return 0;
 	}
 	if ((pom = strcmp("ord", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_ORD; 
+	 	token->type = KEYWORD_ORD;
 	 	return 0;
 	}
 	if ((pom = strcmp("chr", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_CHR; 
+	 	token->type = KEYWORD_CHR;
 	 	return 0;
 	}
 	if ((pom = strcmp("pass", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_PASS; 
+	 	token->type = KEYWORD_PASS;
 	 	return 0;
 	}
 	if ((pom = strcmp("None", token->dynamic_value)) == 0)
 	{
-	 	token->type = TOKEN_KEYWORD;
-	 	token->keyword = KEYWORD_NONE; 
+	 	token->type = KEYWORD_NONE;
 	 	return 0;
 	}
 
