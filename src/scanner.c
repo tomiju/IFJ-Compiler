@@ -72,6 +72,7 @@ void pushStack(iStack* indent_stack, int current_indent_value)
 	iStack temp = (iStack) malloc(sizeof(struct indentStack));
 
 	temp->value = current_indent_value;
+	temp->level += (*indent_stack)->level + 1;
 	temp->link = *indent_stack;
 
 	*indent_stack = temp;
@@ -90,6 +91,20 @@ void popStack(iStack* indent_stack)
 	*indent_stack = (*indent_stack)->link;
 
 	free(temp);
+}
+
+void destroyStack(iStack* indent_stack)
+{
+	iStack temp = (iStack) malloc(sizeof(struct indentStack));
+    
+    temp = *indent_stack;
+    
+    while (temp->value != 0)
+    {
+        popStack(indent_stack);
+
+        temp = temp->link;
+    }
 }
 
 int updateDynamicString(char currentChar, TokenPTR token) // TODO
