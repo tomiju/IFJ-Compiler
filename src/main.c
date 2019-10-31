@@ -57,7 +57,7 @@ int main(int argc, char const *argv[]) {
 
       } while (testPole[x]->type != 1);
          
-        printf("\nStack test: \n");
+        /*printf("\nStack test: \n");
         printf("init stack top: %d, level: %d\n", indent_stack->value, indent_stack->level);
         pushStack(&indent_stack, 5);
         printf("stack top after push: %d, level: %d\n", indent_stack->value, indent_stack->level);
@@ -70,11 +70,11 @@ int main(int argc, char const *argv[]) {
         pushStack(&indent_stack, 3);
         printf("stack top after push: %d, level: %d\n", indent_stack->value, indent_stack->level);
         destroyStack(&indent_stack);
-        printf("stack top after destroy: %d, level: %d\n", indent_stack->value, indent_stack->level);
+        printf("stack top after destroy: %d, level: %d\n", indent_stack->value, indent_stack->level);*/
       
       for (int i = 0; i < x; ++i)
       {
-         freeMemory(testPole[i]);
+         freeMemory(testPole[i], &indent_stack);
       }
    }
    /**************************************************************************/

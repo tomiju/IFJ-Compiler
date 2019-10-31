@@ -53,7 +53,7 @@ TokenPTR makeToken(TokenPTR* token) // vytvoří nový token a mallokuje základ
 
 iStack initStack()
 {
-	iStack newStack = (iStack) malloc(sizeof(struct indentStack));
+	iStack newStack = (iStack) malloc(sizeof(struct indentStack)); 
 	
 	if (newStack == NULL)
 	{
@@ -69,7 +69,7 @@ iStack initStack()
 
 void pushStack(iStack* indent_stack, int current_indent_value)
 {
-	iStack temp = (iStack) malloc(sizeof(struct indentStack));
+	iStack temp = (iStack) malloc(sizeof(struct indentStack)); // ošetřit malloc
 
 	temp->value = current_indent_value;
 	temp->level += (*indent_stack)->level + 1;
@@ -80,7 +80,7 @@ void pushStack(iStack* indent_stack, int current_indent_value)
 
 void popStack(iStack* indent_stack)
 {
-	iStack temp = (iStack) malloc(sizeof(struct indentStack));
+	iStack temp = (iStack) malloc(sizeof(struct indentStack)); // ošetřit malloc
 
 	if (indent_stack == NULL || (*indent_stack)->value == 0)
 	{
@@ -156,10 +156,11 @@ void computeNumberWithExponent(TokenPTR token)
 	token->number_value = (atof(token->dynamic_value));
 }
 
-void freeMemory(TokenPTR token)
+void freeMemory(TokenPTR token, iStack* indent_stack)
 {
 	free(token->dynamic_value);
 	free(token);
+	destroyStack(indent_stack);
 }
 
 int checkKeyword(TokenPTR token)
@@ -248,9 +249,11 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 {
 	int state = STATE_START;
 	int commentary_Counter;
+	int dedent_pom;
 	char currentChar, previousChar;
 
 	int current_indent_value = 0;
+	static int FirstToken = TRUE;
 
 	TokenPTR newToken = makeToken(token);
 	
@@ -272,25 +275,49 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 				if (currentChar == EOF)
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
+
 					newToken->type = TOKEN_EOF;
 					return TOKEN_OK;
 				}
 				else if (currentChar == '\\')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					state = STATE_ESCAPE_SEQUENCE;
+					FirstToken = FALSE;
 				}
-				/*if (currentChar == '\n') // až bude hotové zpracování řetězců
+				if (currentChar == '\n') // pro indent / dedent nebo EOL - podle proměnné "FirstInLine"
 				{
-					newToken->type = TOKEN_EOL;
-					return TOKEN_OK;
-				}*/
+					//newToken->type = TOKEN_EOL;
+					FirstToken = TRUE;
+					//return TOKEN_OK;
+				}
 				else if (currentChar == '\'' && previousChar != '\\')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					state = STATE_STRING;
+					FirstToken = FALSE;
 				}
 				else if (currentChar == '#')
 				{
+
 					state = STATE_COMMENTARY;
+					FirstToken = FALSE;
 				}
 				else if (currentChar == '\"' && previousChar != '\\')
 				{
@@ -303,136 +330,235 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '+')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					newToken->type = TOKEN_PLUS;
+					FirstToken = FALSE;
 					return TOKEN_OK;
 				}
 				else if (currentChar == '-')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					newToken->type = TOKEN_MINUS;
+					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					return TOKEN_OK;
 				}
 				else if (currentChar == '*')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					newToken->type = TOKEN_MUL;
+					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					return TOKEN_OK;
 				}
 				else if (currentChar == '<')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					state = STATE_LESS_THAN;
+					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 				}
 				else if (currentChar == '>')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					state = STATE_MORE_THAN;
+					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 				}
 				else if (currentChar == '!')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					state = STATE_NOT_EQUAL;
+					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 				}
 				else if (currentChar == '=')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					state = STATE_ASSIGN;
+					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 				}
 				else if (currentChar == '/')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					state = STATE_DIV;
+					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 				}
 				else if (currentChar == '(')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					newToken->type = TOKEN_LEFT_BRACKET;
+					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					return TOKEN_OK;
 				}
 				else if (currentChar == ')')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					newToken->type = TOKEN_RIGHT_BRACKET;
+					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					return TOKEN_OK;
 				}
 				else if (currentChar == ',')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					newToken->type = TOKEN_COMMA;
+					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					return TOKEN_OK;
 				}
 				else if (currentChar == ':')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					newToken->type = TOKEN_COLON;
+					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					return TOKEN_OK;
 				}
 				else if (isalpha(currentChar) || currentChar == '_')
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					state = STATE_IDENTIFIER;
+					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 				}
 				else if (isdigit(currentChar))
 				{
+					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, source_f);
+						break;
+					}
 					state = STATE_NUMBER_INT;
 					previousChar = currentChar;
+					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 				}
-				else if (currentChar == ' ' && previousChar == '\n') // přeskočit mezery
+				else if (currentChar == ' ' && FirstToken == TRUE) // indent
 				{
 					state = STATE_INDENT;
+					current_indent_value++;
 				}
 				else // přeskočí zbytečné mezery
 				{
@@ -455,7 +581,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 			case(STATE_BLOCK_COMMENTARY):
 				if (currentChar == EOF)
 				{
-					freeMemory(newToken);
+					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
 				
@@ -465,7 +591,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if (currentChar == EOF)
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 
@@ -486,7 +612,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if(currentChar != '\"' && commentary_Counter < 3)
 				{
-					freeMemory(newToken);					
+					freeMemory(newToken, indent_stack);					
 					return LEX_ERROR;
 				}
 
@@ -507,7 +633,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				if (currentChar == EOF)
 				{
-					freeMemory(newToken);
+					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
 				if (currentChar == '\"' && commentary_Counter < 3 && previousChar != '\\')
@@ -532,7 +658,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					newToken->type = TOKEN_LESS_THAN_OR_EQUAL;
@@ -551,6 +677,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					newToken->type = TOKEN_MORE_THAN_OR_EQUAL;
@@ -563,7 +690,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					newToken->type = TOKEN_NOT_EQUAL;
@@ -571,7 +698,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else
 				{
-					freeMemory(newToken);
+					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
 			break;
@@ -582,7 +709,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					newToken->type = TOKEN_EQUAL;
@@ -592,7 +719,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					ungetc(currentChar, source_f);
@@ -606,7 +733,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					newToken->type = TOKEN_IDIV;
@@ -625,13 +752,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if (currentChar != '0' && previousChar == '0') // ošetření přebytečných nul na začátku čísla
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					break;
@@ -641,7 +768,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					state = STATE_NUMBER_DOUBLE;
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					break;
@@ -650,7 +777,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken)) // TODO: pak dodělat dopočítání přesné hodnoty
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					state = STATE_NUMBER_EXPONENT;
@@ -658,11 +785,15 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (isalpha(currentChar))
 				{
-					freeMemory(newToken);
+					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
 				{
+					if (currentChar == '\n')
+					{
+						FirstToken = TRUE;
+					}
 					newToken->type = TOKEN_INT;
 					ungetc(currentChar, source_f);
 					return TOKEN_OK;
@@ -675,7 +806,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken)) // TODO: pak dodělat dopočítání přesné hodnoty
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					state = STATE_NUMBER_EXPONENT;
@@ -685,18 +816,22 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					break;
 				}
 				else if (isalpha(currentChar))
 				{
-					freeMemory(newToken);
+					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
 				{
+					if (currentChar == '\n')
+					{
+						FirstToken = TRUE;
+					}
 					newToken->type = TOKEN_DOUBLE;
 					ungetc(currentChar, source_f);
 					return TOKEN_OK;
@@ -708,7 +843,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					break;
@@ -717,17 +852,21 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 				}
 				else if (isalpha(currentChar))
 				{
-					freeMemory(newToken);
+					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
 				{
+					if (currentChar == '\n')
+					{
+						FirstToken = TRUE;
+					}
 					newToken->type = TOKEN_DOUBLE;
 					ungetc(currentChar, source_f);
 					computeNumberWithExponent(newToken);
@@ -740,7 +879,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					break;
@@ -749,13 +888,18 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					break;
 				}
 				else
 				{
+					if (currentChar == '\n')
+					{
+						FirstToken = TRUE;
+					}
+
 					if (!(checkKeyword(newToken)))
 					{
 						ungetc(currentChar, source_f);
@@ -787,9 +931,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else
 				{
+					if (currentChar == '\n')
+					{
+						FirstToken = TRUE;
+					}
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					previousChar = currentChar;
@@ -803,7 +951,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					state = STATE_START;
@@ -813,7 +961,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					state = STATE_START;
@@ -823,7 +971,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					state = STATE_START;
@@ -833,7 +981,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					state = STATE_START;
@@ -843,7 +991,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
-						freeMemory(newToken);
+						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
 					state = STATE_START;
@@ -857,9 +1005,112 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 			break;
 
 			case(STATE_INDENT): // TODO
+				
+				if (currentChar == ' ')
+				{
+					current_indent_value++;
+					break;
+				}
+				else
+				{
+					if ((*indent_stack)->value == current_indent_value)
+					{
+						newToken->type = TOKEN_NO_INDENT_OR_DEDENT;
+						FirstToken = FALSE;
+						ungetc(currentChar, source_f);	
+						return TOKEN_OK;
+					}
+					else if ((*indent_stack)->value > current_indent_value)
+					{	
+						dedent_pom = FALSE;
+	
+						if ((*indent_stack)->value != current_indent_value)
+						{
+							popStack(indent_stack); // TODO možná někam uložit hodnotu zanoření? bude potřeba????
+							newToken->type = TOKEN_DEDENT;	
+							ungetc(currentChar, source_f);
+
+							if ((*indent_stack)->value == current_indent_value)
+							{
+								FirstToken = FALSE;
+							}
+
+							state = STATE_DEDENT; // toto se asi neprovede
+							
+							return TOKEN_OK;
+						}
+							
+							
+						if ((*indent_stack)->value == current_indent_value)
+						{
+							dedent_pom = TRUE;
+						}
+
+						if (dedent_pom == FALSE)
+						{
+							freeMemory(newToken, indent_stack);
+							return LEX_ERROR;
+						}
+						else
+						{
+							newToken->type = TOKEN_DEDENT;	
+							ungetc(currentChar, source_f);
+							FirstToken = FALSE;
+							return TOKEN_OK;
+						}
+					}
+					else
+					{
+						pushStack(indent_stack, current_indent_value);
+						ungetc(currentChar, source_f);
+						newToken->type = TOKEN_INDENT;
+						
+						FirstToken = FALSE;
+						
+						return TOKEN_OK;
+					}
+				}
+				
 			break;
 
-			case(STATE_DEDENT): // TODO
+			case(STATE_DEDENT): // TODO není potřeba???
+
+						dedent_pom = FALSE;
+	
+						if ((*indent_stack)->value != current_indent_value)
+						{
+							popStack(indent_stack); // TODO možná někam uložit hodnotu zanoření? bude potřeba????
+							newToken->type = TOKEN_DEDENT;	
+							ungetc(currentChar, source_f);
+
+							if ((*indent_stack)->value == current_indent_value)
+							{
+								FirstToken = FALSE;
+							}
+
+							state = STATE_DEDENT; // toto se asi neprovede
+							
+							return TOKEN_OK;
+						}
+							
+							
+						if ((*indent_stack)->value == current_indent_value)
+						{
+							dedent_pom = TRUE;
+						}
+
+						if (dedent_pom == FALSE)
+						{
+							freeMemory(newToken, indent_stack);
+							return LEX_ERROR;
+						}
+						else
+						{
+							newToken->type = TOKEN_DEDENT;	
+							FirstToken = FALSE;
+							ungetc(currentChar, source_f);
+							return TOKEN_OK;
+						}
 			break;
 
 			break;

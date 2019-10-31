@@ -20,6 +20,9 @@
 
 #define LEX_ERROR 1
 #define TOKEN_OK 0
+#define TRUE 1
+#define FALSE 0
+
 
 #define STATE_START 0
 #define STATE_COMMENTARY 1
@@ -78,6 +81,7 @@ typedef enum
 	// ostatní
 	TOKEN_INDENT,
 	TOKEN_DEDENT,
+	TOKEN_NO_INDENT_OR_DEDENT, // stejná úroveň zanoření
 	TOKEN_LEFT_BRACKET,
 	TOKEN_RIGHT_BRACKET,
 	TOKEN_COMMA,
@@ -131,7 +135,7 @@ void setSourceFile(FILE *f);
 
 TokenPTR makeToken(TokenPTR* token);
 int getToken(TokenPTR* token, iStack* indent_stack);
-void freeMemory(TokenPTR token);
+void freeMemory(TokenPTR token, iStack* indent_stack);
 
 int updateDynamicString(char currentChar, TokenPTR token);
 void computeNumberWithExponent(TokenPTR token);
