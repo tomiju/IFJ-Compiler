@@ -1023,9 +1023,15 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					else if ((*indent_stack)->value > current_indent_value)
 					{	
 						dedent_pom = FALSE;
-	
+						
 						if ((*indent_stack)->value != current_indent_value)
 						{
+							/*if (dedent_pom == FALSE && (*indent_stack)->value != current_indent_value && (*indent_stack)->level == 1)
+							{
+								freeMemory(newToken, indent_stack);
+								return LEX_ERROR;
+							}*/
+
 							popStack(indent_stack); // TODO možná někam uložit hodnotu zanoření? bude potřeba????
 							newToken->type = TOKEN_DEDENT;	
 							ungetc(currentChar, source_f);
@@ -1033,6 +1039,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 							if ((*indent_stack)->value == current_indent_value)
 							{
 								FirstToken = FALSE;
+								dedent_pom = TRUE;
+							}
+
+							if (dedent_pom == FALSE && (*indent_stack)->value != current_indent_value && (*indent_stack)->level == 1)
+							{
+								freeMemory(newToken, indent_stack);
+								return LEX_ERROR;
 							}
 
 							state = STATE_DEDENT; // toto se asi neprovede
@@ -1076,9 +1089,16 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 			case(STATE_DEDENT): // TODO není potřeba???
 
 						dedent_pom = FALSE;
-	
+
 						if ((*indent_stack)->value != current_indent_value)
 						{
+							/*if (dedent_pom == FALSE && (*indent_stack)->value != current_indent_value && (*indent_stack)->level == 1)
+							{
+								printf("debug: dedent error 2\n");
+								freeMemory(newToken, indent_stack);
+								return LEX_ERROR;
+							}*/
+
 							popStack(indent_stack); // TODO možná někam uložit hodnotu zanoření? bude potřeba????
 							newToken->type = TOKEN_DEDENT;	
 							ungetc(currentChar, source_f);
@@ -1086,6 +1106,14 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 							if ((*indent_stack)->value == current_indent_value)
 							{
 								FirstToken = FALSE;
+								dedent_pom = TRUE;
+							}
+
+							if (dedent_pom == FALSE && (*indent_stack)->value != current_indent_value && (*indent_stack)->level == 1)
+							{
+								freeMemory(newToken, indent_stack);
+								printf("debug: dedent error 3\n");
+								return LEX_ERROR;
 							}
 
 							state = STATE_DEDENT; // toto se asi neprovede

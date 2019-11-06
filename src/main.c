@@ -42,7 +42,7 @@ int main(int argc, char const *argv[]) {
 
         if (getToken(&testPole[x], &indent_stack) == 1)
          {
-            printf("lex error %d\n", x);
+            printf("\nlex error %d\n\n", x);
             return 1;
          }
 
@@ -53,6 +53,8 @@ int main(int argc, char const *argv[]) {
          printf("length: %d\n",testPole[x]->size );
          printf("allocated_size:%d\n",testPole[x]->allocated_size );
          printf("type: %d\n",testPole[x]->type );
+         printf("indent stack top: %d\n", indent_stack->value );
+         printf("indent stack level: %d\n", indent_stack->level );
 
 
       } while (testPole[x]->type != 1);
