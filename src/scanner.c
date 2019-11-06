@@ -15,14 +15,14 @@
 
 #include "scanner.h"
 
-int debug = 1; // debug výpisy - 1 = zapnuto, 0 = vypnuto
+int debug = 0; // debug výpisy - 1 = zapnuto, 0 = vypnuto
 
 void setSourceFile(FILE *f)
 {
 	source_f = f;
 }
 
-TokenPTR makeToken(TokenPTR* token) // vytvoří nový token a mallokuje základní prostor
+TokenPTR makeToken(TokenPTR* token) // vytvoří nový token a alokuje základní prostor
 {
 	TokenPTR newToken = (TokenPTR) malloc(sizeof(struct Token));
 	
@@ -41,7 +41,6 @@ TokenPTR makeToken(TokenPTR* token) // vytvoří nový token a mallokuje základ
 		return NULL;
 	}
 
-	newToken->integer = 0;
 	newToken->number_value = 0.0;
 	newToken->size = 0;
 	newToken->allocated_size = DYNAMIC_STRING_DEFAULT;
@@ -67,11 +66,16 @@ iStack initStack()
 	return newStack;
 }
 
-void pushStack(iStack* indent_stack, int current_indent_value)
+void pushStack(iStack* indent_stack, int currentIndent)
 {
-	iStack temp = (iStack) malloc(sizeof(struct indentStack)); // ošetřit malloc
+	iStack temp = (iStack) malloc(sizeof(struct indentStack)); 
 
-	temp->value = current_indent_value;
+	if (temp == NULL)
+	{
+		return;
+	}
+
+	temp->value = currentIndent;
 	temp->level += (*indent_stack)->level + 1;
 	temp->link = *indent_stack;
 
@@ -80,9 +84,9 @@ void pushStack(iStack* indent_stack, int current_indent_value)
 
 void popStack(iStack* indent_stack)
 {
-	iStack temp = (iStack) malloc(sizeof(struct indentStack)); // ošetřit malloc
+	iStack temp = (iStack) malloc(sizeof(struct indentStack));
 
-	if (indent_stack == NULL || (*indent_stack)->value == 0)
+	if (indent_stack == NULL || (*indent_stack)->value == 0 || temp == NULL)
 	{
 		return;
 	}
@@ -107,7 +111,7 @@ void destroyStack(iStack* indent_stack)
     }
 }
 
-int updateDynamicString(char currentChar, TokenPTR token) // TODO
+int updateDynamicString(char currentChar, TokenPTR token)
 {
 	if (token->size + 1 >= token->allocated_size)
 	{
@@ -248,11 +252,11 @@ int checkKeyword(TokenPTR token)
 int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 {
 	int state = STATE_START;
-	int commentary_Counter;
-	int dedent_pom;
+	int commentaryCounter;
+	int dedentFound; // TRUE = na stacku byla hodnota zanoření (při DEDENT), FALSE = na stacku nebyla -> error
+	int currentIndent = 0;
 	char currentChar, previousChar;
 
-	int current_indent_value = 0;
 	static int FirstToken = TRUE;
 
 	TokenPTR newToken = makeToken(token);
@@ -275,7 +279,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 				if (currentChar == EOF)
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -287,7 +291,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '\\')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -304,7 +308,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '\'' && previousChar != '\\')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -321,7 +325,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '\"' && previousChar != '\\')
 				{
-					commentary_Counter = 1;
+					commentaryCounter = 1;
 					state = STATE_BLOCK_COMMENTARY;
 					if (debug)
 					{
@@ -330,7 +334,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '+')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -342,7 +346,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '-')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -359,7 +363,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '*')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -376,7 +380,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '<')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -392,7 +396,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '>')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -408,7 +412,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '!')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -424,7 +428,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '=')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -440,7 +444,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '/')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -456,7 +460,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '(')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -473,7 +477,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == ')')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -490,7 +494,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == ',')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -507,7 +511,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == ':')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -524,7 +528,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (isalpha(currentChar) || currentChar == '_')
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -540,7 +544,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (isdigit(currentChar))
 				{
-					if (current_indent_value != (*indent_stack)->value && FirstToken == TRUE)
+					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
@@ -558,7 +562,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				else if (currentChar == ' ' && FirstToken == TRUE) // indent
 				{
 					state = STATE_INDENT;
-					current_indent_value++;
+					currentIndent++;
 				}
 				else // přeskočí zbytečné mezery
 				{
@@ -587,7 +591,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				
 				previousChar = currentChar;
 				
-				if (commentary_Counter == 3)
+				if (commentaryCounter == 3)
 				{
 					if (currentChar == EOF)
 					{
@@ -596,7 +600,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 
 					state = STATE_BLOCK_COMMENTARY_END;
-					commentary_Counter = 0;
+					commentaryCounter = 0;
 					if (debug)
 					{
 						printf("text komentáře\n"); //debug
@@ -605,12 +609,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				if (currentChar == '\"' && previousChar != '\\')
 				{
-					if (commentary_Counter < 3)
+					if (commentaryCounter < 3)
 					{
-						commentary_Counter++;	
+						commentaryCounter++;	
 					}
 				}
-				else if(currentChar != '\"' && commentary_Counter < 3)
+				else if(currentChar != '\"' && commentaryCounter < 3)
 				{
 					freeMemory(newToken, indent_stack);					
 					return LEX_ERROR;
@@ -621,10 +625,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 			case(STATE_BLOCK_COMMENTARY_END):
 				previousChar = currentChar;
 
-				if (commentary_Counter == 3)
+				if (commentaryCounter == 3)
 				{				
 					state = STATE_START;
-					commentary_Counter = 0;
+					commentaryCounter = 0;
 					if (debug)
 					{
 						printf("konec blok. komentáře! \n"); //debug
@@ -636,13 +640,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
-				if (currentChar == '\"' && commentary_Counter < 3 && previousChar != '\\')
+				if (currentChar == '\"' && commentaryCounter < 3 && previousChar != '\\')
 				{
-					commentary_Counter++;
+					commentaryCounter++;
 				}
-				else if (currentChar != '\"' && commentary_Counter < 3)
+				else if (currentChar != '\"' && commentaryCounter < 3)
 				{
-					commentary_Counter = 0;
+					commentaryCounter = 0;
 				}
 				
 			break;
@@ -775,7 +779,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				if (currentChar == 'e' || currentChar == 'E')
 				{
-					if(updateDynamicString(currentChar, newToken)) // TODO: pak dodělat dopočítání přesné hodnoty
+					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
@@ -804,7 +808,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 				if (currentChar == 'e' || currentChar == 'E')
 				{
-					if(updateDynamicString(currentChar, newToken)) // TODO: pak dodělat dopočítání přesné hodnoty
+					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
@@ -997,52 +1001,46 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					state = STATE_START;
 					break;
 				}
-				else if (currentChar == 'x') // hexa TODO
+				else if (currentChar == 'x') // hexa TODO??
 				{
 					state = STATE_START;
 					break;
 				}
 			break;
 
-			case(STATE_INDENT): // TODO
+			case(STATE_INDENT):
 				
 				if (currentChar == ' ')
 				{
-					current_indent_value++;
+					currentIndent++;
 					break;
 				}
 				else
 				{
-					if ((*indent_stack)->value == current_indent_value)
+					if ((*indent_stack)->value == currentIndent)
 					{
 						newToken->type = TOKEN_NO_INDENT_OR_DEDENT;
 						FirstToken = FALSE;
 						ungetc(currentChar, source_f);	
 						return TOKEN_OK;
 					}
-					else if ((*indent_stack)->value > current_indent_value)
+					else if ((*indent_stack)->value > currentIndent)
 					{	
-						dedent_pom = FALSE;
+						dedentFound = FALSE;
 						
-						if ((*indent_stack)->value != current_indent_value)
+						if ((*indent_stack)->value != currentIndent)
 						{
-							/*if (dedent_pom == FALSE && (*indent_stack)->value != current_indent_value && (*indent_stack)->level == 1)
-							{
-								freeMemory(newToken, indent_stack);
-								return LEX_ERROR;
-							}*/
-
 							popStack(indent_stack); // TODO možná někam uložit hodnotu zanoření? bude potřeba????
 							newToken->type = TOKEN_DEDENT;	
 							ungetc(currentChar, source_f);
 
-							if ((*indent_stack)->value == current_indent_value)
+							if ((*indent_stack)->value == currentIndent)
 							{
 								FirstToken = FALSE;
-								dedent_pom = TRUE;
+								dedentFound = TRUE;
 							}
 
-							if (dedent_pom == FALSE && (*indent_stack)->value != current_indent_value && (*indent_stack)->level == 1)
+							if (dedentFound == FALSE && (*indent_stack)->value != currentIndent && (*indent_stack)->level == 1)
 							{
 								freeMemory(newToken, indent_stack);
 								return LEX_ERROR;
@@ -1054,12 +1052,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						}
 							
 							
-						if ((*indent_stack)->value == current_indent_value)
+						if ((*indent_stack)->value == currentIndent)
 						{
-							dedent_pom = TRUE;
+							dedentFound = TRUE;
 						}
 
-						if (dedent_pom == FALSE)
+						if (dedentFound == FALSE)
 						{
 							freeMemory(newToken, indent_stack);
 							return LEX_ERROR;
@@ -1074,7 +1072,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 					else
 					{
-						pushStack(indent_stack, current_indent_value);
+						pushStack(indent_stack, currentIndent);
 						ungetc(currentChar, source_f);
 						newToken->type = TOKEN_INDENT;
 						
@@ -1086,30 +1084,23 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				
 			break;
 
-			case(STATE_DEDENT): // TODO není potřeba???
+			case(STATE_DEDENT):
 
-						dedent_pom = FALSE;
+						dedentFound = FALSE;
 
-						if ((*indent_stack)->value != current_indent_value)
+						if ((*indent_stack)->value != currentIndent)
 						{
-							/*if (dedent_pom == FALSE && (*indent_stack)->value != current_indent_value && (*indent_stack)->level == 1)
-							{
-								printf("debug: dedent error 2\n");
-								freeMemory(newToken, indent_stack);
-								return LEX_ERROR;
-							}*/
-
 							popStack(indent_stack); // TODO možná někam uložit hodnotu zanoření? bude potřeba????
 							newToken->type = TOKEN_DEDENT;	
 							ungetc(currentChar, source_f);
 
-							if ((*indent_stack)->value == current_indent_value)
+							if ((*indent_stack)->value == currentIndent)
 							{
 								FirstToken = FALSE;
-								dedent_pom = TRUE;
+								dedentFound = TRUE;
 							}
 
-							if (dedent_pom == FALSE && (*indent_stack)->value != current_indent_value && (*indent_stack)->level == 1)
+							if (dedentFound == FALSE && (*indent_stack)->value != currentIndent && (*indent_stack)->level == 1)
 							{
 								freeMemory(newToken, indent_stack);
 								printf("debug: dedent error 3\n");
@@ -1122,12 +1113,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						}
 							
 							
-						if ((*indent_stack)->value == current_indent_value)
+						if ((*indent_stack)->value == currentIndent)
 						{
-							dedent_pom = TRUE;
+							dedentFound = TRUE;
 						}
 
-						if (dedent_pom == FALSE)
+						if (dedentFound == FALSE)
 						{
 							freeMemory(newToken, indent_stack);
 							return LEX_ERROR;
@@ -1153,3 +1144,5 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 	return LEX_ERROR;
 }
+
+/** konec souboru "scanner.c" **/

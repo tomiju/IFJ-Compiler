@@ -23,7 +23,9 @@
 #define TRUE 1
 #define FALSE 0
 
-
+/**
+ * Stavy
+**/
 #define STATE_START 0
 #define STATE_COMMENTARY 1
 #define STATE_BLOCK_COMMENTARY 2
@@ -43,11 +45,11 @@
 #define STATE_DEDENT 16
 #define STATE_ESCAPE_SEQUENCE 17
 
-
-
 #define DYNAMIC_STRING_DEFAULT 8 // defaultní velikost pro dynamické pole znaků
 
-
+/**
+ * Pomocný enum s ID typů tokenů
+**/
 typedef enum
 {
 	TOKEN_DEFAULT,
@@ -107,43 +109,90 @@ typedef enum
 
 }TokenTYPE;
 
+/**
+ * Struktura tokenu
+**/
 typedef struct Token // struktura tokenu
 {
-	char* dynamic_value; 
+	char* dynamic_value; // reálný obsah tokenu
 	int size; // délka uloženého stringu
 	int allocated_size; // alokovaná velikost
-	int integer; // nevyužité
 	double number_value; // velikost bez zkráceného zápisu (e/E)
 	TokenTYPE type; // informace o typu tokenu
-	// + přidat úroveň zanoření? - kvůli kontrole duplicity identifikátoru????
 }*TokenPTR;
 
+/**
+ * Pomocná struktura pro stack "INDENT" a "DEDENT"
+**/
 typedef struct indentStack // struktura pro stack (pevná velikost -> předělat na dynamickou)
 {
-	int value;
-	int level;
-	struct indentStack* link;
+	int value; // hodnota na vrcholu stacku
+	int level; // úroveň zanoření
+	struct indentStack* link; // odkaz na další položku na stacku
 }*iStack;
 
 // vstupní soubor s programem
 
 FILE* source_f;
 
-// deklarace funkcí
+/*********************
+ * Deklarace funkcí
+**********************/
 
+/**
+ * Funkce nastaví zdrojový soubor
+**/
 void setSourceFile(FILE *f);
 
+/**
+ * Funkce vytvoří nový token a uloží do pointeru "token"
+**/
 TokenPTR makeToken(TokenPTR* token);
+
+/**
+ * Realizace konečného automatu celého scanneru
+**/
 int getToken(TokenPTR* token, iStack* indent_stack);
+
+/**
+ * Funkce uvolní všechny alokované prostředky
+**/
 void freeMemory(TokenPTR token, iStack* indent_stack);
 
+/**
+ * Funkce uloží další znak dynamicky do struktury token
+ * v případě, že není dostatek alokovaného prostoru alokuje další
+**/
 int updateDynamicString(char currentChar, TokenPTR token);
+
+/**
+ * Funkce pro převod číselné hodnoty z "char" do int
+**/
 void computeNumberWithExponent(TokenPTR token);
+
+/**
+ * Funkce, která zkontroluje, zda identifikátor není klíčovým slovem
+**/
 int checkKeyword(TokenPTR token);
 
+/**
+ * Inicializace pomocného stacku pro realizaci "INDENT / DEDENT"
+**/
 iStack initStack();
-void pushStack(iStack* indent_stack, int current_indent_value);
-void popStack(iStack* indent_stack);
-void destroyStack(iStack* indent_stack);
-int processIndent(int indent_Number, iStack* indent_stack);
 
+/**
+ * Funkce "pushne" hodnotu aktuálního odsazení na stack
+**/
+void pushStack(iStack* indent_stack, int current_indent_value);
+
+/**
+ * Funkce "popne" aktuální vrchol stacku
+**/
+void popStack(iStack* indent_stack);
+
+/**
+ * Funkce zruší celý stack a korektně uvolní alokovaný prostor
+**/
+void destroyStack(iStack* indent_stack);
+
+/** konec souboru "scanner.h" **/
