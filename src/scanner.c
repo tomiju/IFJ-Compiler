@@ -1030,6 +1030,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						
 						if ((*indent_stack)->value != currentIndent)
 						{
+							if ((*indent_stack)->level == 1 && currentIndent != 0)
+							{
+								freeMemory(newToken, indent_stack);
+								return LEX_ERROR;
+							}
+
 							popStack(indent_stack); // TODO možná někam uložit hodnotu zanoření? bude potřeba????
 							newToken->type = TOKEN_DEDENT;	
 							ungetc(currentChar, source_f);
@@ -1090,6 +1096,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 						if ((*indent_stack)->value != currentIndent)
 						{
+							if ((*indent_stack)->level == 1 && currentIndent != 0)
+							{
+								freeMemory(newToken, indent_stack);
+								return LEX_ERROR;
+							}
+							
 							popStack(indent_stack); // TODO možná někam uložit hodnotu zanoření? bude potřeba????
 							newToken->type = TOKEN_DEDENT;	
 							ungetc(currentChar, source_f);
