@@ -176,6 +176,11 @@ void computeNumberWithExponent(TokenPTR token);
 int checkKeyword(TokenPTR token);
 
 /**
+ * Funkce pro výpis obsahu tokenu
+**/
+void debugToken(TokenPTR* token, iStack* indent_stack);
+
+/**
  * Inicializace pomocného stacku pro realizaci "INDENT / DEDENT"
 **/
 iStack initStack();

@@ -249,6 +249,17 @@ int checkKeyword(TokenPTR token)
 	return -1;
 }
 
+void debugToken(TokenPTR* token, iStack* indent_stack)
+{
+	const char* typeNames[] = {"TOKEN_DEFAULT","TOKEN_EOF","TOKEN_EOL","TOKEN_IDENTIFIER","TOKEN_KEYWORD","TOKEN_INT","TOKEN_DOUBLE","TOKEN_STRING","TOKEN_NONE","TOKEN_PLUS","TOKEN_MINUS","TOKEN_MUL","TOKEN_DIV","TOKEN_IDIV","TOKEN_LESS_THAN","TOKEN_MORE_THAN","TOKEN_LESS_THAN_OR_EQUAL","TOKEN_MORE_THAN_OR_EQUAL","TOKEN_NOT_EQUAL","TOKEN_EQUAL","TOKEN_ASSIGN","TOKEN_INDENT","TOKEN_DEDENT","TOKEN_NO_INDENT_OR_DEDENT","TOKEN_LEFT_BRACKET","TOKEN_RIGHT_BRACKET","TOKEN_COMMA","TOKEN_COLON","KEYWORD_DEFAULT","KEYWORD_IF","KEYWORD_ELSE","KEYWORD_RETURN","KEYWORD_DEF","KEYWORD_NONE","KEYWORD_WHILE","KEYWORD_INPUTS","KEYWORD_INPUTI","KEYWORD_INPUTF","KEYWORD_PRINT","KEYWORD_LEN","KEYWORD_SUBSTR","KEYWORD_ORD","KEYWORD_CHR","KEYWORD_PASS"};
+
+	printf("\n");
+    printf("value: --> %s <--\n", (*token)->dynamic_value );
+    printf("type: %s\n",typeNames[(*token)->type] );
+    printf("indent stack top: %d\n", (*indent_stack)->value );
+    printf("indent stack level: %d\n", (*indent_stack)->level );
+}
+
 int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 {
 	int state = STATE_START;
@@ -302,9 +313,9 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				if (currentChar == '\n') // pro indent / dedent nebo EOL - podle proměnné "FirstInLine"
 				{
-					//newToken->type = TOKEN_EOL;
+					newToken->type = TOKEN_EOL;
 					FirstToken = TRUE;
-					//return TOKEN_OK;
+					return TOKEN_OK;
 				}
 				else if (currentChar == '\'' && previousChar != '\\')
 				{

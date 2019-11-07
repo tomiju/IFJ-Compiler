@@ -61,7 +61,8 @@ int main(int argc, char const *argv[]) {
             return 1;
          }
 
-         printf("\n");
+         debugToken(&testPole[x], &indent_stack);
+         /*printf("\n");
          printf("debug token (number %d) values:\n", x); 
          printf("value: %s\n", testPole[x]->dynamic_value );
          printf("number with exponent value: %lf\n",testPole[x]->number_value );
@@ -69,7 +70,7 @@ int main(int argc, char const *argv[]) {
          printf("allocated_size:%d\n",testPole[x]->allocated_size );
          printf("type: %d\n",testPole[x]->type );
          printf("indent stack top: %d\n", indent_stack->value );
-         printf("indent stack level: %d\n", indent_stack->level );
+         printf("indent stack level: %d\n", indent_stack->level );*/
 
 
       } while (testPole[x]->type != 1);
