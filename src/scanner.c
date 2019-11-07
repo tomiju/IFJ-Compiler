@@ -1126,7 +1126,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 							if (dedentFound == FALSE && (*indent_stack)->value != currentIndent && (*indent_stack)->level == 1 && currentIndent != 0)
 							{
 								freeMemory(newToken, indent_stack);
-								printf("debug: dedent error 3\n");
 								return LEX_ERROR;
 							}
 
