@@ -2,7 +2,8 @@ PRJ=ifj19
 #
 PROGS=$(PRJ)
 FILES=main.c scanner.c
-CC=gcc
+PARSER_FILES=main_parser.c scanner.c parser.c
+CC=gcc			
 CFLAGS=-Wall -W -Wextra -g -std=c99 -pedantic
 
 
@@ -11,5 +12,7 @@ all: $(PROGS)
 $(PRJ): $(FILES)
 	$(CC) $(CFLAGS) -o $@ $(FILES) -lm
 
+parser: $(PARSER_FILES)
+	$(CC) $(CFLAGS) -o $@ $(PARSER_FILES) -lm
 clean:
 	rm -f *.o *.out $(PROGS)
