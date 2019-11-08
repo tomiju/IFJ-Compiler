@@ -313,9 +313,14 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				if (currentChar == '\n') // pro indent / dedent nebo EOL - podle proměnné "FirstInLine"
 				{
-					newToken->type = TOKEN_EOL;
+					if (FirstToken == FALSE)
+					{
+						newToken->type = TOKEN_EOL;
+						FirstToken = TRUE;
+						return TOKEN_OK;
+					}
 					FirstToken = TRUE;
-					return TOKEN_OK;
+					break;
 				}
 				else if (currentChar == '\'' && previousChar != '\\')
 				{
@@ -332,7 +337,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 
 					state = STATE_COMMENTARY;
-					FirstToken = FALSE;
+					break;
 				}
 				else if (currentChar == '\"' && previousChar != '\\')
 				{
@@ -590,6 +595,8 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					{
 						printf("normální komentář\n"); //debug
 					}
+					ungetc(currentChar, source_f);
+					currentIndent = 0;
  				}
 				break;
 
@@ -640,10 +647,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{				
 					state = STATE_START;
 					commentaryCounter = 0;
+					
 					if (debug)
 					{
 						printf("konec blok. komentáře! \n"); //debug
 					}
+					currentIndent = 0;
 					break;
 				}
 				if (currentChar == EOF)
