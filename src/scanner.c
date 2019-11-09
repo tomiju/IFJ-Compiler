@@ -311,7 +311,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					state = STATE_ESCAPE_SEQUENCE;
 					FirstToken = FALSE;
 				}
-				if (currentChar == '\n') // pro indent / dedent nebo EOL - podle proměnné "FirstInLine"
+				if (currentChar == '\n') // pro indent / dedent... nebo EOL - podle proměnné "FirstInLine"
 				{
 					if (FirstToken == FALSE)
 					{
@@ -319,6 +319,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						FirstToken = TRUE;
 						return TOKEN_OK;
 					}
+					
 					FirstToken = TRUE;
 					break;
 				}
@@ -580,7 +581,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					state = STATE_INDENT;
 					currentIndent++;
 				}
-				else // přeskočí zbytečné mezery
+				else // přeskočí zbytečné mezery (asi spíš ne, ale to je jedno)
 				{
 					break;		
 				}
@@ -591,10 +592,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				if (currentChar == '\n' || currentChar == EOF)
 				{
 					state = STATE_START;
+
 					if (debug)
 					{
 						printf("normální komentář\n"); //debug
 					}
+
 					ungetc(currentChar, source_f);
 					currentIndent = 0;
  				}
@@ -619,10 +622,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					state = STATE_BLOCK_COMMENTARY_END;
 					commentaryCounter = 0;
+
 					if (debug)
 					{
 						printf("text komentáře\n"); //debug
 					}
+
 					break;
 				}
 				if (currentChar == '\"' && previousChar != '\\')
@@ -652,6 +657,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					{
 						printf("konec blok. komentáře! \n"); //debug
 					}
+
 					currentIndent = 0;
 					break;
 				}
@@ -1064,7 +1070,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 								return LEX_ERROR;
 							}
 
-							popStack(indent_stack); // TODO možná někam uložit hodnotu zanoření? bude potřeba????
+							popStack(indent_stack);
 							newToken->type = TOKEN_DEDENT;	
 							ungetc(currentChar, source_f);
 
@@ -1079,8 +1085,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 								freeMemory(newToken, indent_stack);
 								return LEX_ERROR;
 							}
-
-							state = STATE_DEDENT; // toto se asi neprovede
 							
 							return TOKEN_OK;
 						}
@@ -1120,56 +1124,52 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 			case(STATE_DEDENT):
 
-						dedentFound = FALSE;
+				dedentFound = FALSE;
 
-						if ((*indent_stack)->value != currentIndent)
-						{
-							if ((*indent_stack)->level == 1 && currentIndent != 0)
-							{
-								freeMemory(newToken, indent_stack);
-								return LEX_ERROR;
-							}
-							
-							popStack(indent_stack); // TODO možná někam uložit hodnotu zanoření? bude potřeba????
-							newToken->type = TOKEN_DEDENT;	
-							ungetc(currentChar, source_f);
+				if ((*indent_stack)->value != currentIndent)
+				{
+					if ((*indent_stack)->level == 1 && currentIndent != 0)
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+					
+					popStack(indent_stack);
+					newToken->type = TOKEN_DEDENT;	
+					ungetc(currentChar, source_f);
 
-							if ((*indent_stack)->value == currentIndent)
-							{
-								FirstToken = FALSE;
-								dedentFound = TRUE;
-							}
+					if ((*indent_stack)->value == currentIndent)
+					{
+						FirstToken = FALSE;
+						dedentFound = TRUE;
+					}
 
-							if (dedentFound == FALSE && (*indent_stack)->value != currentIndent && (*indent_stack)->level == 1 && currentIndent != 0)
-							{
-								freeMemory(newToken, indent_stack);
-								return LEX_ERROR;
-							}
+					if (dedentFound == FALSE && (*indent_stack)->value != currentIndent && (*indent_stack)->level == 1 && currentIndent != 0)
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+						
+					return TOKEN_OK;
+				}
+														
+				if ((*indent_stack)->value == currentIndent)
+				{
+					dedentFound = TRUE;
+				}
 
-							state = STATE_DEDENT; // toto se asi neprovede
-							
-							return TOKEN_OK;
-						}
-							
-							
-						if ((*indent_stack)->value == currentIndent)
-						{
-							dedentFound = TRUE;
-						}
-
-						if (dedentFound == FALSE)
-						{
-							freeMemory(newToken, indent_stack);
-							return LEX_ERROR;
-						}
-						else
-						{
-							newToken->type = TOKEN_DEDENT;	
-							FirstToken = FALSE;
-							ungetc(currentChar, source_f);
-							return TOKEN_OK;
-						}
-			break;
+				if (dedentFound == FALSE)
+				{
+					freeMemory(newToken, indent_stack);
+					return LEX_ERROR;
+				}
+				else
+				{
+					newToken->type = TOKEN_DEDENT;	
+					FirstToken = FALSE;
+					ungetc(currentChar, source_f);
+					return TOKEN_OK;
+				}
 
 			break;
 		}
