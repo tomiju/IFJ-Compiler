@@ -8,7 +8,7 @@
  * Datum:    xx.xx.xxxx
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
- * 			 Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
+ *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
  *           Tomáš Kantor    <xkanto14@stud.fit.vutbr.cz>
  *           Lukáš Kuchta	 <xkucht09@stud.fit.vutbr.cz>
  */
@@ -1033,6 +1033,14 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				if (currentChar == ' ')
 				{
 					currentIndent++;
+					break;
+				}
+				
+				if ((currentChar == '\n' || currentChar == '#' || currentChar == '\"') && FirstToken == TRUE)
+				{
+					currentIndent = 0;
+					ungetc(currentChar, source_f);
+					state = STATE_START;
 					break;
 				}
 				else
