@@ -747,11 +747,11 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else
 				{
-					if(updateDynamicString(currentChar, newToken))
+					/*if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
-					}
+					}*/
 					ungetc(currentChar, source_f);
 					newToken->type = TOKEN_ASSIGN;
 					return TOKEN_OK;
@@ -824,10 +824,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
 				{
-					if (currentChar == '\n')
+					/*if (currentChar == '\n')
 					{
 						FirstToken = TRUE;
-					}
+					}*/
 					newToken->type = TOKEN_INT;
 					ungetc(currentChar, source_f);
 					return TOKEN_OK;
@@ -862,10 +862,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
 				{
-					if (currentChar == '\n')
+					/*if (currentChar == '\n')
 					{
 						FirstToken = TRUE;
-					}
+					}*/
 					newToken->type = TOKEN_DOUBLE;
 					ungetc(currentChar, source_f);
 					return TOKEN_OK;
@@ -897,10 +897,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
 				{
-					if (currentChar == '\n')
+					/*if (currentChar == '\n')
 					{
 						FirstToken = TRUE;
-					}
+					}*/
 					newToken->type = TOKEN_DOUBLE;
 					ungetc(currentChar, source_f);
 					computeNumberWithExponent(newToken);
@@ -929,10 +929,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else
 				{
-					if (currentChar == '\n')
+					/*if (currentChar == '\n')
 					{
 						FirstToken = TRUE;
-					}
+					}*/
 
 					if (!(checkKeyword(newToken)))
 					{
@@ -965,10 +965,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else
 				{
-					if (currentChar == '\n')
+					/*if (currentChar == '\n')
 					{
 						FirstToken = TRUE;
-					}
+					}*/
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
