@@ -1184,4 +1184,17 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 	return LEX_ERROR;
 }
 
+int preloadToken(TokenPTR* token, iStack* stack)
+{
+	fpos_t position;
+
+	fgetpos(source_f, &position);
+
+	int result = getToken( token , stack);
+
+	fsetpos(source_f, &position);
+
+	return  result;
+}
+
 /** konec souboru "scanner.c" **/

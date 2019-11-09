@@ -205,7 +205,9 @@ int funcDef(){
 int program(){
     int result;
 
+
     if(token_ptr->type == KEYWORD_DEF){
+        printf("And it doesnt change the future\n");
         result = funcDef();
 
         if(result != TOKEN_OK){
