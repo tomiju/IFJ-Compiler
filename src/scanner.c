@@ -815,8 +815,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (isalpha(currentChar))
 				{
-					freeMemory(newToken, indent_stack);
-					return LEX_ERROR;
+					newToken->type = TOKEN_INT;
+					ungetc(currentChar, source_f);
+					return TOKEN_OK;
+
+					/*freeMemory(newToken, indent_stack);
+					return LEX_ERROR;*/
 				}
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
 				{
