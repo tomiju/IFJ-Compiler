@@ -155,6 +155,12 @@ TokenPTR makeToken(TokenPTR* token);
 int getToken(TokenPTR* token, iStack* indent_stack);
 
 /**
+ * Funkce vrací token stejně jako funkce getToken(),
+ * ale neposouvá se v souboru
+**/
+int preloadToken(TokenPTR* token, iStack* indent_stack);
+
+/**
  * Funkce uvolní všechny alokované prostředky
 **/
 void freeMemory(TokenPTR token, iStack* indent_stack);
