@@ -7,7 +7,7 @@ CC=gcc
 CFLAGS=-Wall -W -Wextra -g -std=c99 -pedantic
 
 
-all: $(PROGS)
+all: $(PROGS) parser
 
 $(PRJ): $(FILES)
 	$(CC) $(CFLAGS) -o $@ $(FILES) -lm

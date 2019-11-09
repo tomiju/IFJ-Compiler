@@ -1,1 +1,7 @@
-def name(cislo,y):
+
+
+
+
+def name( f , g ):
+
+def name(  a , g):

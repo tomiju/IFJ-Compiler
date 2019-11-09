@@ -20,24 +20,61 @@
 iStack indent_stack; //required by scanner
 TokenPTR token_ptr; //pointer to the token
 
+int currentLine = 1;
+int inFunction = 0;
+
+
+int expression(){
+  
+   if(token_ptr->type != TOKEN_INT  ){
+       
+        fprintf(stderr,"line: %d\n",currentLine);
+        return SYNATX_ERROR;
+    }
+
+    if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
+        fprintf(stderr,"line: %d\n",currentLine);
+        return LEX_ERROR;
+    }
+    return TOKEN_OK;
+}
+
+int param(){
+      
+    if(inFunction){
+        if(token_ptr->type != TOKEN_IDENTIFIER  ){
+            fprintf(stderr,"line: %d\n",currentLine);
+            return SYNATX_ERROR;
+        }
+        if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
+            fprintf(stderr,"line: %d\n",currentLine);
+            return LEX_ERROR;
+        }
+    }else{
+        return expression();
+    }
+
+    return TOKEN_OK;
+}
+
 int paramList2(){
     int result = TOKEN_OK;
 
     if(token_ptr->type != TOKEN_COMMA){
+        fprintf(stderr,"line: %d\n",currentLine);
         return SYNATX_ERROR;
     }
 
     if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
+        fprintf(stderr,"line: %d\n",currentLine);
         return LEX_ERROR;
     }
     //---------------------------------------------------
+    
+    result = param();
 
-    if(token_ptr->type != TOKEN_IDENTIFIER){
-        return SYNATX_ERROR;
-    }
-
-    if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
-        return LEX_ERROR;
+    if(result != TOKEN_OK) {
+        return result;
     }
     //---------------------------------------------------
 
@@ -52,7 +89,8 @@ int paramList2(){
         return TOKEN_OK;
     }
 
-    return SYNATX_ERROR;
+    fprintf(stderr,"line: %d\n",currentLine);
+        return SYNATX_ERROR;
 }
 
 int paramList(){
@@ -62,12 +100,10 @@ int paramList(){
         return TOKEN_OK; 
     }
 
-    if(token_ptr->type != TOKEN_IDENTIFIER){
-        return SYNATX_ERROR; 
-    }
+    result = param();
 
-    if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
-        return LEX_ERROR;
+    if(result != TOKEN_OK) {
+        return result;
     }
     //---------------------------------------------------
 
@@ -77,78 +113,108 @@ int paramList(){
             return result;
         }
     }
-
     return result;
 }
 
 int funcDef(){
+    inFunction = 1;
+
     int result = TOKEN_OK;
 
     if(token_ptr->type != KEYWORD_DEF){
+        fprintf(stderr,"line: %d\n",currentLine);
         return SYNATX_ERROR; 
     }
     
     if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
+        fprintf(stderr,"line: %d\n",currentLine);
         return LEX_ERROR;
     }
     //---------------------------------------------------
     if(token_ptr->type != TOKEN_IDENTIFIER){
+        fprintf(stderr,"line: %d\n",currentLine);
         return SYNATX_ERROR; 
     }
     
     if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
+        fprintf(stderr,"line: %d\n",currentLine);
         return LEX_ERROR;
     }
     //---------------------------------------------------
 
     if(token_ptr->type != TOKEN_LEFT_BRACKET){
+        fprintf(stderr,"line: %d\n",currentLine);
         return SYNATX_ERROR; 
     }
 
     if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
+        fprintf(stderr,"line: %d\n",currentLine);
         return LEX_ERROR;
     }
 
     //---------------------------------------------------
-    if(token_ptr->type == TOKEN_IDENTIFIER){
-        result = paramList();
-        if(result != TOKEN_OK)return result;
-    }
+    
+    result = paramList();
+    if(result != TOKEN_OK)return result;
+    
     //---------------------------------------------------
     
 
     if(token_ptr->type != TOKEN_RIGHT_BRACKET){
+        fprintf(stderr,"line: %d\n",currentLine);
         return SYNATX_ERROR; 
     }
 
     if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
+        fprintf(stderr,"line: %d\n",currentLine);
         return LEX_ERROR;
     }
     //---------------------------------------------------
 
     if(token_ptr->type != TOKEN_COLON){
+        fprintf(stderr,"line: %d\n",currentLine);
         return SYNATX_ERROR;
     }
 
-    
+    if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
+        fprintf(stderr,"line: %d\n",currentLine);
+        return LEX_ERROR;
+    }
+    //---------------------------------------------------
+
+    if(token_ptr->type != TOKEN_EOL){
+        fprintf(stderr,"line: %d\n",currentLine);
+        return SYNATX_ERROR;
+    }
+
+    currentLine += 1;    
+
+    if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
+        fprintf(stderr,"line: %d\n",currentLine);
+        return LEX_ERROR;
+    }
+
     //---------------------------------------------------
     //TODO body
     //---------------------------------------------------
-
+    inFunction = 0;
     return result;
 }
 
+
 int program(){
     int result;
+
     if(token_ptr->type == KEYWORD_DEF){
         result = funcDef();
-    }else{
-        return SYNATX_ERROR;
+
+        if(result != TOKEN_OK){
+            return result;
+        }
+        
+        result = program();
     }
-    
-
-
-
+        
     return result;
 }
 
@@ -164,6 +230,7 @@ int parse(){
 
     //get first token
     if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
+        fprintf(stderr,"line: %d\n",currentLine);
         return LEX_ERROR;
     }
     int result = program();
