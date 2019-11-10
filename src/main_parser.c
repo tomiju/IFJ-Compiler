@@ -19,7 +19,7 @@
 
 int main(int argc, char const *argv[]){
     FILE *f;
-
+    
     if (argc == 1) // TODO: do jedné funkce
     {
         fprintf(stderr,"No input file.\n");
@@ -33,7 +33,7 @@ int main(int argc, char const *argv[]){
 
     setSourceFile(f);
 
-    int result = parse();
+    int result =  parse();
 
     fclose(f);
 

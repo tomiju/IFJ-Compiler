@@ -1,7 +1,3 @@
 
 
-
-
-def name( f , g ):
-
-def name(  a , g):
+name(12e3+2, x-y)
