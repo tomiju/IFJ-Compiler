@@ -1039,6 +1039,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if ((*indent_stack)->value == currentIndent)
 					{
 						state = STATE_START;
+						ungetc(currentChar, source_f);
 						break;
 					}
 					else if ((*indent_stack)->value > currentIndent)
