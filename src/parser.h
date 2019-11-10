@@ -10,7 +10,7 @@
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
  *           Tomáš Kantor    <xkanto14@stud.fit.vutbr.cz>
- *           Lukáš Kuchta   <xkucht09@stud.fit.vutbr.cz>
+ *           Lukáš Kuchta    <xkucht09@stud.fit.vutbr.cz>
  */
 
 

@@ -15,4 +15,4 @@ $(PRJ): $(FILES)
 parser: $(PARSER_FILES)
 	$(CC) $(CFLAGS) -o $@ $(PARSER_FILES) -lm
 clean:
-	rm -f *.o *.out $(PROGS)
+	rm -f *.o *.out $(PROGS) parser
