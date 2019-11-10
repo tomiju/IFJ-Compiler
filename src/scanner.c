@@ -290,7 +290,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 				if (currentChar == EOF)
 				{
-					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
+					if ((*indent_stack)->value != 0)
 					{
 						state = STATE_DEDENT;
 						ungetc(currentChar, source_f);
