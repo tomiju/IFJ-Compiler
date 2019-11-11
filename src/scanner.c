@@ -170,6 +170,7 @@ void freeMemory(TokenPTR token, iStack* indent_stack)
 int checkKeyword(TokenPTR token)
 {
 	int pom;
+	
 	if ((pom = strcmp("if", token->dynamic_value)) == 0)
 	{
 	 	token->type = KEYWORD_IF;
@@ -193,46 +194,6 @@ int checkKeyword(TokenPTR token)
 	if ((pom = strcmp("while", token->dynamic_value)) == 0)
 	{
 	 	token->type = KEYWORD_WHILE; 
-	 	return 0;
-	}
-	if ((pom = strcmp("inputs", token->dynamic_value)) == 0)
-	{
-	 	token->type = KEYWORD_INPUTS;
-	 	return 0;
-	}
-	if ((pom = strcmp("inputi", token->dynamic_value)) == 0)
-	{
-	 	token->type = KEYWORD_INPUTI;
-	 	return 0;
-	}
-	if ((pom = strcmp("inputf", token->dynamic_value)) == 0)
-	{
-	 	token->type = KEYWORD_INPUTF;
-	 	return 0;
-	}
-	if ((pom = strcmp("print", token->dynamic_value)) == 0)
-	{
-	 	token->type = KEYWORD_PRINT;
-	 	return 0;
-	}
-	if ((pom = strcmp("len", token->dynamic_value)) == 0)
-	{
-	 	token->type = KEYWORD_LEN;
-	 	return 0;
-	}
-	if ((pom = strcmp("substr", token->dynamic_value)) == 0)
-	{
-	 	token->type = KEYWORD_SUBSTR;
-	 	return 0;
-	}
-	if ((pom = strcmp("ord", token->dynamic_value)) == 0)
-	{
-	 	token->type = KEYWORD_ORD;
-	 	return 0;
-	}
-	if ((pom = strcmp("chr", token->dynamic_value)) == 0)
-	{
-	 	token->type = KEYWORD_CHR;
 	 	return 0;
 	}
 	if ((pom = strcmp("pass", token->dynamic_value)) == 0)
