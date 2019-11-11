@@ -106,7 +106,6 @@ int paramList(){
 
     int result;
     
-    printf("TOKEN %d\n",token_ptr->type);
     switch(token_ptr->type)
     {
     //pravidlo paramList -> epsilon
@@ -337,7 +336,6 @@ int stat(){
             result = stat();
             if(result != TOKEN_OK)return result;
 
-
             result = statList();
             if(result != TOKEN_OK)return result;
 
@@ -347,6 +345,9 @@ int stat(){
             if(result != TOKEN_OK)return result;
 
             if(token_ptr->type != KEYWORD_ELSE)return SYNATX_ERROR;
+
+            result = getToken(&token_ptr, &indent_stack );
+            if(result != TOKEN_OK)return result;
 
             if(token_ptr->type != TOKEN_COLON)return SYNATX_ERROR;
 
@@ -366,16 +367,11 @@ int stat(){
             result = stat();
             if(result != TOKEN_OK)return result;
 
-
             result = statList();
             if(result != TOKEN_OK)return result;
 
             if(token_ptr->type != TOKEN_DEDENT)return SYNATX_ERROR;
 
-            result = getToken(&token_ptr, &indent_stack );
-            if(result != TOKEN_OK)return result;
-
-        
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
 
