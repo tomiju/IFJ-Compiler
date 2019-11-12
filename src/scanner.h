@@ -44,6 +44,7 @@
 #define STATE_INDENT 15
 #define STATE_DEDENT 16
 #define STATE_ESCAPE_SEQUENCE 17
+#define STATE_DOC_STRING 18
 
 #define DYNAMIC_STRING_DEFAULT 8 // defaultní velikost pro dynamické pole znaků
 

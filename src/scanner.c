@@ -303,6 +303,11 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '\"' && previousChar != '\\')
 				{
+					if (previousChar == '(')
+					{
+						state = STATE_DOC_STRING;
+						break;
+					}
 					commentaryCounter = 1;
 					state = STATE_BLOCK_COMMENTARY;
 					if (debug)
@@ -1115,6 +1120,9 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					ungetc(currentChar, source_f);
 					return TOKEN_OK;
 				}
+
+			break;
+			case(STATE_DOC_STRING): // TODO
 
 			break;
 		}
