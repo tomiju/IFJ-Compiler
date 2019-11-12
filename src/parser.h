@@ -15,6 +15,31 @@
 
 #include "scanner.h"
 
-//entry point of parser
-//initialization and call of first recursive function program()
+
+iStack indent_stack; //required by scanner
+TokenPTR token_ptr; //pointer to the token
+
+
+int statList();
+
+int param();
+
+int paramList2();
+
+int paramList();
+
+int funcCall();
+
+int assigment();
+
+int statWithId();
+
+int stat();
+
+int funcDef();
+
+int statList();
+
+int program();
+
 int parse();

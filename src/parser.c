@@ -13,33 +13,16 @@
  *           Lukáš Kuchta    <xkucht09@stud.fit.vutbr.cz>
  */
 
+#include "scanner.h"
 #include "parser.h"
+#include "semantic.h"
 
 
-iStack indent_stack; //required by scanner
-TokenPTR token_ptr; //pointer to the token
 
 int currentLine = 1;
 int inFunDef = 0;
 
-int statList();
 
-int expression(){
-    printf("expression\n");
-    int result;
-    //sezere tri tokeny bez syntakticke kontroly
-    
-    result = getToken(&token_ptr, &indent_stack );
-    if(result != TOKEN_OK)return result;
-
-    result = getToken(&token_ptr, &indent_stack );
-    if(result != TOKEN_OK)return result;
-
-    result = getToken(&token_ptr, &indent_stack );
-    if(result != TOKEN_OK)return result;
-
-    return TOKEN_OK;
-}
 
 int param(){
     printf("param\n");
