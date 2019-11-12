@@ -1,6 +1,42 @@
-#include "htab.h"
+#include "symtable.h"
 #include <stdint.h>
 #include <stdio.h>
+#include "errors.h"
+
+int htab_insert(htab_t *t, char *key, int val){
+	htab_item_t *ht_item = malloc(sizeof(*ht_item));
+
+	if(ht_item == NULL){
+		return INTERNAL_ERROR;
+	}
+
+	ht_item->key = malloc(sizeof(strlen(key)) + 1);
+
+	if(ht_item->key == NULL){
+		return INTERNAL_ERROR;
+	}
+
+	unsigned idx = htab_hash_function(key);
+
+	ht_item->value = val;
+	strcpy(ht_item->key, key);
+	ht_item->next = t->ptr[idx];
+
+	t->ptr[idx] = ht_item;
+
+	return 0;
+}
+
+void htab_insert_default_functions(htab_t *htab){
+	htab_insert(htab, "inputs", 0);
+	htab_insert(htab, "inputi", 0);
+	htab_insert(htab, "inputf", 0);
+	htab_insert(htab, "len", 1);
+	htab_insert(htab, "substr", 3);
+	htab_insert(htab, "ord", 2);
+	htab_insert(htab, "chr", 1);
+	//TODO print
+}
 
 unsigned int htab_hash_function(char *str) {
     uint32_t h=0;     // musí mít 32 bitů (but why ?)
@@ -10,36 +46,20 @@ unsigned int htab_hash_function(char *str) {
     return h % SIZE;
 }
 
-htab_t *htab_init(){
-	htab_t *htab = malloc(sizeof(*htab));
+int htab_init(htab_t **htab){
+	*htab = malloc(sizeof(struct htab));
 
-	if(htab != NULL){
-		for(unsigned i = 0; i < SIZE; i++){
-			htab->ptr[i] = NULL;
-		}
+	if(htab == NULL){
+		return INTERNAL_ERROR;
 	}
+
+	for(unsigned i = 0; i < SIZE; i++){
+		(*htab)->ptr[i] = NULL;
+	}
+
+	htab_insert_default_functions(*htab);
 	
-	return htab;
-}
-
-void htab_insert(htab_t *t, char *key, int val){
-	htab_item_t *ht_item = malloc(sizeof(*ht_item));
-
-	if(ht_item != NULL){	//TODO NULL
-		ht_item->key = malloc(sizeof(strlen(key)) + 1);	//TODO NULL
-
-		/*if(ht_item->key == NULL){
-			fprintf(stderr, ("Chyba alokácie"));
-		}*/
-
-		unsigned idx = htab_hash_function(key);
-
-		ht_item->value = val;
-		strcpy(ht_item->key, key);
-		ht_item->next = t->ptr[idx];
-
-		t->ptr[idx] = ht_item;
-	}
+	return 0;
 }
 
 int htab_find(htab_t *t, char *key){

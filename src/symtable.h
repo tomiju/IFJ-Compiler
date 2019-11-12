@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-// TODO zmeniť 20 iba na test
-#define SIZE 2
+// veľkosť tabuľky
+#define SIZE 100
 
 // položky
 typedef struct htab_item {
@@ -20,15 +20,19 @@ typedef struct htab {
 	struct htab_item* ptr[SIZE]; 
 } htab_t;           
 
-// hashovacia funkcia
+// vloží vstavané funkcie do hash table
+void htab_insert_default_functions(htab_t *htab);
+
+// hashovacia funkcia, vracia index do tabuľky
 unsigned int htab_hash_function(char *str);
 
-// inicializuje tabuľku, vráti na ňu ukazateľ
-// ak sa nepodarilo alokovať vracia NULL
-htab_t * htab_init();             
+// inicializuje tabuľku predanú ukazovateľom
+// pri úspechu vracia 0, pri chybe INTERNAL_ERROR
+int htab_init(htab_t **htab);           
 
 // vloží do tabuľky t prvok s klúčom key a hodnotou val
-void htab_insert(htab_t *t, char *key, int val);
+// pri úspechu vracia 0, pri chybe INTERNAL_ERROR
+int htab_insert(htab_t *t, char *key, int val);
 
 // vyhľadá a vráti hodnotu prvku s kľúčom key, 
 // pri neúspešom vyhľadaní vráti -1
