@@ -13,7 +13,6 @@
  *           Lukáš Kuchta    <xkucht09@stud.fit.vutbr.cz>
  */
 
-#include "scanner.h"
 #include "parser.h"
 
 
@@ -47,7 +46,7 @@ int param(){
 
     int result;
 
-    if(token_ptr->type != TOKEN_IDENTIFIER)return SYNATX_ERROR;
+    if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
     return result;
@@ -69,7 +68,7 @@ int param(){
     break;
     }
 */
-    return SYNATX_ERROR;
+    return SYNTAX_ERROR;
 }
 
 int paramList2(){
@@ -85,7 +84,7 @@ int paramList2(){
     break;
     //pravidlo paramList2 -> , param paramList2
     case TOKEN_COMMA:
-        if(token_ptr->type != TOKEN_COMMA)return SYNATX_ERROR;
+        if(token_ptr->type != TOKEN_COMMA)return SYNTAX_ERROR;
 
         result = getToken(&token_ptr, &indent_stack );
         if(result != TOKEN_OK)return result;
@@ -103,7 +102,7 @@ int paramList2(){
     break;
     }
 
-    return SYNATX_ERROR;
+    return SYNTAX_ERROR;
 }
 
 int paramList(){
@@ -136,7 +135,7 @@ int paramList(){
     break;
     }
        
-    return SYNATX_ERROR;
+    return SYNTAX_ERROR;
 }
 
 int funcCall(){
@@ -145,12 +144,12 @@ int funcCall(){
     int result;
 
     //pravidlo funcCall -> id ( paramList )
-    if(token_ptr->type != TOKEN_IDENTIFIER)return SYNATX_ERROR;
+    if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
 
-    if(token_ptr->type != TOKEN_LEFT_BRACKET)return SYNATX_ERROR;
+    if(token_ptr->type != TOKEN_LEFT_BRACKET)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
@@ -159,7 +158,7 @@ int funcCall(){
     if(result != TOKEN_OK)return result;
     
     
-    if(token_ptr->type != TOKEN_RIGHT_BRACKET)return SYNATX_ERROR;
+    if(token_ptr->type != TOKEN_RIGHT_BRACKET)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
@@ -173,12 +172,12 @@ int assigment(){
     int result;
     //pravidlo id = neco
 
-    if(token_ptr->type != TOKEN_IDENTIFIER)return SYNATX_ERROR;
+    if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
     
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
     
-    if(token_ptr->type != TOKEN_ASSIGN)return SYNATX_ERROR;
+    if(token_ptr->type != TOKEN_ASSIGN)return SYNTAX_ERROR;
     
     //vime id =
     // zjistime, co prirazujeme
@@ -203,12 +202,12 @@ int assigment(){
         }
     }
     
-    return SYNATX_ERROR;
+    return SYNTAX_ERROR;
 }
 
 int statWithId(){
     printf("statWithId\n");
-    if(token_ptr->type != TOKEN_IDENTIFIER)return SYNATX_ERROR;
+    if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
 
     TokenPTR next_token;
     int result;
@@ -237,7 +236,7 @@ int statWithId(){
         break;
     }
     //pravidlo nenalezeno
-    return SYNATX_ERROR;
+    return SYNTAX_ERROR;
 }
 
 int stat(){
@@ -249,7 +248,7 @@ int stat(){
             result = statWithId();
             if(result != TOKEN_OK)return result;
            
-            if(token_ptr->type != TOKEN_EOL)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
             
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
@@ -265,7 +264,7 @@ int stat(){
             result = expression();
             if(result != TOKEN_OK)return result;
 
-            if(token_ptr->type != TOKEN_EOL)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
        
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
@@ -275,7 +274,7 @@ int stat(){
         //pravidlo: Stat -> while (Expression) : eol indent Stat StatList dedent
         case KEYWORD_WHILE:
             printf("while\n");
-            if(token_ptr->type != KEYWORD_WHILE)return SYNATX_ERROR;
+            if(token_ptr->type != KEYWORD_WHILE)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
@@ -284,17 +283,17 @@ int stat(){
             if(result != TOKEN_OK)return result;
             
             
-            if(token_ptr->type != TOKEN_COLON)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
 
-            if(token_ptr->type != TOKEN_EOL)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
 
-            if(token_ptr->type != TOKEN_INDENT)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_INDENT)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
@@ -305,7 +304,7 @@ int stat(){
             result = statList();
             if(result != TOKEN_OK)return result;
 
-            if(token_ptr->type != TOKEN_DEDENT)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_DEDENT)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
@@ -315,7 +314,7 @@ int stat(){
         //pravidlo stat -> if expression : eol dedent stat statList indent else : dedent stat statList indent
         case KEYWORD_IF:
             printf("if\n");
-            if(token_ptr->type != KEYWORD_IF)return SYNATX_ERROR;
+            if(token_ptr->type != KEYWORD_IF)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
@@ -323,17 +322,17 @@ int stat(){
             result = expression();
             if(result != TOKEN_OK)return result;
             
-            if(token_ptr->type != TOKEN_COLON)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
 
-            if(token_ptr->type != TOKEN_EOL)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
 
-            if(token_ptr->type != TOKEN_INDENT)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_INDENT)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
@@ -344,27 +343,27 @@ int stat(){
             result = statList();
             if(result != TOKEN_OK)return result;
             
-            if(token_ptr->type != TOKEN_DEDENT)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_DEDENT)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
             
-            if(token_ptr->type != KEYWORD_ELSE)return SYNATX_ERROR;
+            if(token_ptr->type != KEYWORD_ELSE)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
 
-            if(token_ptr->type != TOKEN_COLON)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
 
-            if(token_ptr->type != TOKEN_EOL)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
            
-            if(token_ptr->type != TOKEN_INDENT)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_INDENT)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
@@ -375,7 +374,7 @@ int stat(){
             result = statList();
             if(result != TOKEN_OK)return result;
 
-            if(token_ptr->type != TOKEN_DEDENT)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_DEDENT)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
@@ -387,7 +386,7 @@ int stat(){
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
             
-            if(token_ptr->type != TOKEN_EOL)return SYNATX_ERROR;
+            if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             return result;
@@ -401,7 +400,7 @@ int stat(){
                 result = expression();
                 if(result != TOKEN_OK)return result;
 
-                if(token_ptr->type != TOKEN_EOL)return SYNATX_ERROR;
+                if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
 
                 result = getToken(&token_ptr, &indent_stack );
                 if(result != TOKEN_OK)return result;
@@ -415,7 +414,7 @@ int stat(){
     }
 
     //pravidlo nenalezeno
-    return SYNATX_ERROR;
+    return SYNTAX_ERROR;
 }
 
 int funcDef(){
@@ -424,17 +423,17 @@ int funcDef(){
     int result;
 
     //pravidlo funcDef -> def id ( paramList ) : eol dedent stat statList indent
-    if(token_ptr->type != KEYWORD_DEF)return SYNATX_ERROR;
+    if(token_ptr->type != KEYWORD_DEF)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
 
-    if(token_ptr->type != TOKEN_IDENTIFIER)return SYNATX_ERROR;
+    if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
 
-    if(token_ptr->type != TOKEN_LEFT_BRACKET)return SYNATX_ERROR;
+    if(token_ptr->type != TOKEN_LEFT_BRACKET)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
@@ -442,22 +441,22 @@ int funcDef(){
     result = paramList();
     if(result != TOKEN_OK)return result; 
     
-    if(token_ptr->type != TOKEN_RIGHT_BRACKET)return SYNATX_ERROR;
+    if(token_ptr->type != TOKEN_RIGHT_BRACKET)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
 
-    if(token_ptr->type != TOKEN_COLON)return SYNATX_ERROR;
+    if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
 
-    if(token_ptr->type != TOKEN_EOL)return SYNATX_ERROR;
+    if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
 
-    if(token_ptr->type != TOKEN_INDENT)return SYNATX_ERROR;
+    if(token_ptr->type != TOKEN_INDENT)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
@@ -468,7 +467,7 @@ int funcDef(){
     result = statList();
     if(result != TOKEN_OK)return result;
 
-    if(token_ptr->type != TOKEN_DEDENT)return SYNATX_ERROR;
+    if(token_ptr->type != TOKEN_DEDENT)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;   
@@ -509,13 +508,13 @@ int statList(){
         break;
         //pravidlo nenalezeno   
         default:
-            return SYNATX_ERROR;
+            return SYNTAX_ERROR;
         break;
     }
     
 
     //pravidlo nenalezeno   
-    return SYNATX_ERROR;
+    return SYNTAX_ERROR;
 }
 
 int program(){
@@ -553,11 +552,11 @@ int program(){
         break;
 
         default:
-            return SYNATX_ERROR;
+            return SYNTAX_ERROR;
         break;
     }
     //pravidlo nenalezeno   
-    return SYNATX_ERROR;
+    return SYNTAX_ERROR;
 }
 
 int parse(){

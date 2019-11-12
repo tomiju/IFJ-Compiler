@@ -17,8 +17,8 @@
 #include <ctype.h> // isalpha, isdigit...
 #include <stdlib.h>
 #include <string.h>
+#include "errors.h"
 
-#define LEX_ERROR 1
 #define TOKEN_OK 0
 #define TRUE 1
 #define FALSE 0

@@ -13,8 +13,7 @@
  *           Lukáš Kuchta    <xkucht09@stud.fit.vutbr.cz>
  */
 
-
-#define SYNATX_ERROR 2
+#include "scanner.h"
 
 //entry point of parser
 //initialization and call of first recursive function program()
