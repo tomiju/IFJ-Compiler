@@ -228,7 +228,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 	int dedentFound; // TRUE = na stacku byla hodnota zanoření (při DEDENT), FALSE = na stacku nebyla -> error
 	int currentIndent = 0;
 	char currentChar, previousChar;
-
+	static char docStringPrevChar;
 	static int FirstToken = TRUE;
 
 	TokenPTR newToken = makeToken(token);
@@ -303,9 +303,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '\"' && previousChar != '\\')
 				{
-					if (previousChar == '(')
+					if (docStringPrevChar == '(')
 					{
 						state = STATE_DOC_STRING;
+						commentaryCounter = 1;
 						break;
 					}
 					commentaryCounter = 1;
@@ -454,6 +455,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						ungetc(currentChar, source_f);
 						break;
 					}
+					docStringPrevChar = currentChar;
 					newToken->type = TOKEN_LEFT_BRACKET;
 					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
@@ -592,6 +594,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 
 					state = STATE_BLOCK_COMMENTARY_END;
+					ungetc(currentChar, source_f);
 					commentaryCounter = 0;
 
 					if (debug)
@@ -617,29 +620,44 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				break;
 
 			case(STATE_BLOCK_COMMENTARY_END):
+
 				previousChar = currentChar;
 
 				if (commentaryCounter == 3)
-				{				
-					state = STATE_START;
-					commentaryCounter = 0;
-					
-					if (debug)
+				{	
+					if (currentChar == '\n' || currentChar == EOF)
 					{
-						printf("konec blok. komentáře! \n"); //debug
+						state = STATE_START;
+						commentaryCounter = 0;
+						
+						if (debug)
+						{
+							printf("konec blok. komentáře! \n"); //debug
+						}
+
+						currentIndent = 0;
+						break;
 					}
 
-					currentIndent = 0;
-					break;
+					if (currentChar != ' ' && currentChar != '\v' && currentChar != '\t' && currentChar != '\r' && currentChar != '\f')
+					{
+						freeMemory(newToken, indent_stack);					
+						return LEX_ERROR;		
+					}
+
+					break;			
 				}
 				if (currentChar == EOF)
 				{
 					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
-				if (currentChar == '\"' && commentaryCounter < 3 && previousChar != '\\')
+				if (currentChar == '\"' &&  previousChar != '\\')
 				{
-					commentaryCounter++;
+					if (commentaryCounter < 3)
+					{
+						commentaryCounter++;	
+					}
 				}
 				else if (currentChar != '\"' && commentaryCounter < 3)
 				{
@@ -900,12 +918,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 			case(STATE_STRING):
 
 
-				if (currentChar == '\'' && previousChar != '\\')
+				if (currentChar == '\'' && previousChar != '\\') // otestovat
 				{
 					newToken->type = TOKEN_STRING;
 					return TOKEN_OK;
 				}
-				else if (currentChar == EOF)
+				else if (currentChar == EOF || currentChar == '\n')
 				{
 					return LEX_ERROR;
 				}
@@ -1122,8 +1140,73 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 
 			break;
-			case(STATE_DOC_STRING): // TODO
 
+			case(STATE_DOC_STRING):
+				if (currentChar == EOF)
+				{
+					freeMemory(newToken, indent_stack);
+					return LEX_ERROR;
+				}
+				
+				if (commentaryCounter == 3)
+				{
+					if (currentChar == EOF)
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+
+					state = STATE_DOC_STRING_END;
+					ungetc(currentChar, source_f);
+					commentaryCounter = 0;
+					break;
+				}
+				if (currentChar == '\"' && previousChar != '\\')
+				{
+					if (commentaryCounter < 3)
+					{
+						commentaryCounter++;	
+					}
+				}
+				else if(currentChar != '\"' && commentaryCounter < 3)
+				{
+					freeMemory(newToken, indent_stack);					
+					return LEX_ERROR;
+				}
+
+
+			break;
+
+			case(STATE_DOC_STRING_END):
+
+				previousChar = currentChar;
+
+				if (commentaryCounter == 3)
+				{				
+					newToken->type = TOKEN_STRING;
+					return TOKEN_OK;
+				}
+				if (currentChar == EOF)
+				{
+					freeMemory(newToken, indent_stack);
+					return LEX_ERROR;
+				}
+				if (currentChar == '\"' && commentaryCounter < 3 && previousChar != '\\')
+				{
+					commentaryCounter++;
+				}
+				else if (currentChar != '\"' && commentaryCounter < 3)
+				{
+					commentaryCounter = 0;
+				}
+				if (currentChar != '\"')
+				{
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+				}
 			break;
 		}
 		previousChar = currentChar;
