@@ -1,4 +1,4 @@
-PRJ=ifj19
+PRJ=scanner
 #
 PROGS=$(PRJ)
 FILES=main_scanner.c scanner.c
