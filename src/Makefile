@@ -1,7 +1,7 @@
 PRJ=ifj19
 #
 PROGS=$(PRJ)
-FILES=main.c scanner.c
+FILES=main_scanner.c scanner.c
 PARSER_FILES=main_parser.c scanner.c parser.c semantic.c
 CC=gcc			
 CFLAGS=-Wall -W -Wextra -g -std=c99 -pedantic
