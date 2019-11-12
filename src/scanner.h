@@ -19,6 +19,10 @@
 #include <string.h>
 #include "errors.h"
 
+
+#ifndef SCANNER
+#define SCANNER
+
 #define TOKEN_OK 0
 #define TRUE 1
 #define FALSE 0
@@ -207,3 +211,5 @@ void popStack(iStack* indent_stack);
 void destroyStack(iStack* indent_stack);
 
 /** konec souboru "scanner.h" **/
+
+#endif
