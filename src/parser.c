@@ -393,6 +393,23 @@ int stat(){
             return result;
         break;
 
+        case KEYWORD_RETURN:
+            if(inFunDef){
+                result = getToken(&token_ptr, &indent_stack );
+                if(result != TOKEN_OK)return result;
+            
+                result = expression();
+                if(result != TOKEN_OK)return result;
+
+                if(token_ptr->type != TOKEN_EOL)return SYNATX_ERROR;
+
+                result = getToken(&token_ptr, &indent_stack );
+                if(result != TOKEN_OK)return result;
+
+                return result;
+            }
+        break;
+
         default:
         break;
     }
@@ -475,7 +492,8 @@ int statList(){
         case TOKEN_DOUBLE: 
         case TOKEN_STRING: 
         case KEYWORD_WHILE: 
-        case KEYWORD_IF: 
+        case KEYWORD_IF:
+        case KEYWORD_RETURN:
             result = stat();
             if(result != TOKEN_OK)return result;
 
