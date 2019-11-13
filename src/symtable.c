@@ -35,7 +35,7 @@ void htab_insert_default_functions(htab_t *htab){
 	htab_insert(htab, "substr", 3);
 	htab_insert(htab, "ord", 2);
 	htab_insert(htab, "chr", 1);
-	//TODO print
+	htab_insert(htab, "print", -2);
 }
 
 unsigned int htab_hash_function(char *str) {

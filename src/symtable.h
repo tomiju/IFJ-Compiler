@@ -10,7 +10,7 @@
 
 // položky
 typedef struct htab_item {
-	unsigned value;
+	int value;
 	char *key;
 	struct htab_item *next;
 } htab_item_t;
