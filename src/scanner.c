@@ -303,17 +303,29 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '\"' && previousChar != '\\')
 				{
-					if (docStringPrevChar == '(')
+					if (docStringPrevChar == '(' || currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar == '\f')
 					{
-						state = STATE_DOC_STRING;
-						commentaryCounter = 1;
-						break;
+						if (docStringPrevChar == '(')
+						{
+							state = STATE_DOC_STRING;
+							commentaryCounter = 1;
+							break;
+						}
+						else
+						{
+							commentaryCounter = 1;
+							state = STATE_BLOCK_COMMENTARY;
+							if (debug)
+							{
+								printf("začátek blok. komentáře\n"); //debug
+							}
+							break;
+						}
 					}
-					commentaryCounter = 1;
-					state = STATE_BLOCK_COMMENTARY;
-					if (debug)
+					else
 					{
-						printf("začátek blok. komentáře\n"); //debug
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
 					}
 				}
 				else if (currentChar == '+')
@@ -840,7 +852,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					ungetc(currentChar, source_f);
 					return TOKEN_OK;
 				}
-				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
+				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar == '\f')
 				{
 					newToken->type = TOKEN_DOUBLE;
 					ungetc(currentChar, source_f);
@@ -873,7 +885,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					ungetc(currentChar, source_f);
 					return TOKEN_OK;
 				}
-				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
+				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar == '\f')
 				{
 					newToken->type = TOKEN_DOUBLE;
 					ungetc(currentChar, source_f);
