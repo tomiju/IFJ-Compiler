@@ -303,24 +303,22 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '\"' && previousChar != '\\')
 				{
-					if (docStringPrevChar == '(' || currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar == '\f')
+					if (docStringPrevChar == '(')
 					{
-						if (docStringPrevChar == '(')
+	
+						state = STATE_DOC_STRING;
+						commentaryCounter = 1;
+						break;
+					}
+					else if (FirstToken == TRUE)
+					{
+						commentaryCounter = 1;
+						state = STATE_BLOCK_COMMENTARY;
+						if (debug)
 						{
-							state = STATE_DOC_STRING;
-							commentaryCounter = 1;
-							break;
+							printf("začátek blok. komentáře\n"); //debug
 						}
-						else
-						{
-							commentaryCounter = 1;
-							state = STATE_BLOCK_COMMENTARY;
-							if (debug)
-							{
-								printf("začátek blok. komentáře\n"); //debug
-							}
-							break;
-						}
+						break;
 					}
 					else
 					{
