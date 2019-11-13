@@ -4,3 +4,4 @@ src/scanner-test.in
 src/parser
 src/*.txt
 src/text.txt
+src/scanner

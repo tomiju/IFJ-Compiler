@@ -25,7 +25,7 @@ int inFunDef = 0;
 
 
 int param(){
-    printf("param\n");
+    fprintf(stderr,"param\n");
 
     int result;
 
@@ -55,7 +55,7 @@ int param(){
 }
 
 int paramList2(){
-    printf("paramList2\n");
+    fprintf(stderr,"paramList2\n");
 
     int result;
     
@@ -89,7 +89,7 @@ int paramList2(){
 }
 
 int paramList(){
-    printf("paramList\n");
+    fprintf(stderr,"paramList\n");
 
     int result;
     
@@ -122,7 +122,7 @@ int paramList(){
 }
 
 int funcCall(){
-    printf("funcCall\n");
+    fprintf(stderr,"funcCall\n");
 
     int result;
 
@@ -150,7 +150,7 @@ int funcCall(){
 }
 
 int assigment(){
-    printf("assigment ");
+    fprintf(stderr,"assigment ");
     TokenPTR next_token;
     int result;
     //pravidlo id = neco
@@ -189,7 +189,7 @@ int assigment(){
 }
 
 int statWithId(){
-    printf("statWithId\n");
+    fprintf(stderr,"statWithId\n");
     if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
 
     TokenPTR next_token;
@@ -223,7 +223,7 @@ int statWithId(){
 }
 
 int stat(){
-    printf("stat\n");
+    fprintf(stderr,"stat\n");
     int result;
     switch(token_ptr->type){
         //pravidlo: Stat -> StatWithId eol
@@ -231,6 +231,7 @@ int stat(){
             result = statWithId();
             if(result != TOKEN_OK)return result;
            
+           if(token_ptr->type == TOKEN_DEDENT)return result;
             if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
             
             result = getToken(&token_ptr, &indent_stack );
@@ -247,6 +248,7 @@ int stat(){
             result = expression();
             if(result != TOKEN_OK)return result;
 
+            if(token_ptr->type == TOKEN_DEDENT)return result;
             if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
        
             result = getToken(&token_ptr, &indent_stack );
@@ -256,7 +258,7 @@ int stat(){
         break;
         //pravidlo: Stat -> while (Expression) : eol indent Stat StatList dedent
         case KEYWORD_WHILE:
-            printf("while\n");
+            fprintf(stderr,"while\n");
             if(token_ptr->type != KEYWORD_WHILE)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
@@ -296,7 +298,7 @@ int stat(){
         break;
         //pravidlo stat -> if expression : eol dedent stat statList indent else : dedent stat statList indent
         case KEYWORD_IF:
-            printf("if\n");
+            fprintf(stderr,"if\n");
             if(token_ptr->type != KEYWORD_IF)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
@@ -369,6 +371,7 @@ int stat(){
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
             
+            if(token_ptr->type == TOKEN_DEDENT)return result;
             if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
@@ -383,6 +386,7 @@ int stat(){
                 result = expression();
                 if(result != TOKEN_OK)return result;
 
+                if(token_ptr->type == TOKEN_DEDENT)return result;
                 if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
 
                 result = getToken(&token_ptr, &indent_stack );
@@ -401,7 +405,7 @@ int stat(){
 }
 
 int funcDef(){
-    printf("funcDef\n");
+    fprintf(stderr,"funcDef\n");
     inFunDef = 1;
     int result;
 
@@ -461,7 +465,7 @@ int funcDef(){
 
 
 int statList(){
-    printf("statList\n");
+    fprintf(stderr,"statList\n");
 
     int result;
     
@@ -501,7 +505,7 @@ int statList(){
 }
 
 int program(){
-    printf("program\n");
+    fprintf(stderr,"program\n");
     int result;
     
     switch(token_ptr->type){
