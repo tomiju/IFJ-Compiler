@@ -1194,6 +1194,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				if (commentaryCounter == 3)
 				{				
 					newToken->type = TOKEN_STRING;
+					ungetc(currentChar, source_f);
 					return TOKEN_OK;
 				}
 				if (currentChar == EOF)
