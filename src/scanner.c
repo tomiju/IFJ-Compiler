@@ -579,7 +579,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					currentIndent++;
 					break;
 				}
-				else if(currentChar == ' ') // přeskočí zbytečné mezery (asi spíš ne, ale to je jedno)
+				else if(currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == '\r' || currentChar == '\f') // přeskočí zbytečné mezery (asi spíš ne, ale to je jedno)
 				{ // TODO: ZKONTROLOVAT, JESTLI FUNGUJÍ OSTATNÍ BÍLÉ ZNAKY!!!!!!!
 					break;
 				}
