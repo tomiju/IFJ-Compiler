@@ -213,7 +213,7 @@ int checkKeyword(TokenPTR token)
 void debugToken(TokenPTR* token, iStack* indent_stack)
 {
 	const char* typeNames[] = {"TOKEN_DEFAULT","TOKEN_EOF","TOKEN_EOL","TOKEN_IDENTIFIER","TOKEN_KEYWORD","TOKEN_INT","TOKEN_DOUBLE","TOKEN_STRING","TOKEN_NONE","TOKEN_PLUS","TOKEN_MINUS","TOKEN_MUL","TOKEN_DIV","TOKEN_IDIV","TOKEN_LESS_THAN","TOKEN_MORE_THAN","TOKEN_LESS_THAN_OR_EQUAL","TOKEN_MORE_THAN_OR_EQUAL","TOKEN_NOT_EQUAL","TOKEN_EQUAL","TOKEN_ASSIGN","TOKEN_INDENT","TOKEN_DEDENT","TOKEN_NO_INDENT_OR_DEDENT","TOKEN_LEFT_BRACKET","TOKEN_RIGHT_BRACKET","TOKEN_COMMA","TOKEN_COLON","KEYWORD_DEFAULT","KEYWORD_IF","KEYWORD_ELSE","KEYWORD_RETURN","KEYWORD_DEF","KEYWORD_NONE","KEYWORD_WHILE","KEYWORD_INPUTS","KEYWORD_INPUTI","KEYWORD_INPUTF","KEYWORD_PRINT","KEYWORD_LEN","KEYWORD_SUBSTR","KEYWORD_ORD","KEYWORD_CHR","KEYWORD_PASS"};
-
+	
 	printf("\n");
     printf("value: --> %s <--\n", (*token)->dynamic_value );
     printf("type: %s\n",typeNames[(*token)->type] );
@@ -271,6 +271,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 					state = STATE_ESCAPE_SEQUENCE;
 					FirstToken = FALSE;
+					break;
 				}
 				if (currentChar == '\n') // pro indent / dedent... nebo EOL - podle proměnné "FirstInLine"
 				{
@@ -294,6 +295,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 					state = STATE_STRING;
 					FirstToken = FALSE;
+					break;
 				}
 				else if (currentChar == '#')
 				{
@@ -325,6 +327,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
+					break;
 				}
 				else if (currentChar == '+')
 				{
@@ -392,6 +395,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
+					break;
 				}
 				else if (currentChar == '>')
 				{
@@ -408,6 +412,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
+					break;
 				}
 				else if (currentChar == '!')
 				{
@@ -424,6 +429,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
+					break;
 				}
 				else if (currentChar == '=')
 				{
@@ -440,6 +446,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
+					break;
 				}
 				else if (currentChar == '/')
 				{
@@ -456,6 +463,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
+					break;
 				}
 				else if (currentChar == '(')
 				{
@@ -474,6 +482,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						return LEX_ERROR;
 					}
 					return TOKEN_OK;
+					break;
 				}
 				else if (currentChar == ')')
 				{
@@ -491,6 +500,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						return LEX_ERROR;
 					}
 					return TOKEN_OK;
+					break;
 				}
 				else if (currentChar == ',')
 				{
@@ -508,6 +518,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						return LEX_ERROR;
 					}
 					return TOKEN_OK;
+					break;
 				}
 				else if (currentChar == ':')
 				{
@@ -525,6 +536,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						return LEX_ERROR;
 					}
 					return TOKEN_OK;
+					break;
 				}
 				else if (isalpha(currentChar) || currentChar == '_')
 				{
@@ -541,6 +553,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
+					break;
 				}
 				else if (isdigit(currentChar))
 				{
@@ -558,16 +571,24 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
+					break;
 				}
 				else if (currentChar == ' ' && FirstToken == TRUE) // indent
 				{
 					state = STATE_INDENT;
 					currentIndent++;
+					break;
 				}
-				else // přeskočí zbytečné mezery (asi spíš ne, ale to je jedno)
-				{
+				else if(currentChar == ' ') // přeskočí zbytečné mezery (asi spíš ne, ale to je jedno)
+				{ // TODO: ZKONTROLOVAT, JESTLI FUNGUJÍ OSTATNÍ BÍLÉ ZNAKY!!!!!!!
+					break;
+				}
+				else 
+				{		
+					state = STATE_ERROR;
 					break;		
 				}
+				
 
 				break;
 
@@ -837,6 +858,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (isdigit(currentChar))
 				{
+					
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
@@ -844,13 +866,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 					break;
 				}
-				else if (isalpha(currentChar))
+				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar == '\f')
 				{
-					newToken->type = TOKEN_INT;
+					newToken->type = TOKEN_DOUBLE;
 					ungetc(currentChar, source_f);
 					return TOKEN_OK;
 				}
-				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar == '\f')
+				else if (!isdigit(currentChar))
 				{
 					newToken->type = TOKEN_DOUBLE;
 					ungetc(currentChar, source_f);
@@ -1219,6 +1241,11 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 				}
 			break;
+
+			case(STATE_ERROR):
+				freeMemory(newToken, indent_stack);
+				return LEX_ERROR;
+			break;
 		}
 		previousChar = currentChar;
 	}
@@ -1228,6 +1255,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 		printf("konec scanneru error\n");
 	}
 
+	freeMemory(newToken, indent_stack);
 	return LEX_ERROR;
 }
 

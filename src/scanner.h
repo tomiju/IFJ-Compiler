@@ -50,6 +50,7 @@
 #define STATE_ESCAPE_SEQUENCE 17
 #define STATE_DOC_STRING 18
 #define STATE_DOC_STRING_END 19
+#define STATE_ERROR 20
 
 #define DYNAMIC_STRING_DEFAULT 8 // defaultní velikost pro dynamické pole znaků
 
