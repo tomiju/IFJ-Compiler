@@ -1,5 +1,9 @@
+ 
+
 def func():
   while x < 2:
    x = 2+3
-def func1():
+def func1(x):
  x = 2+1
+
+y = func1('asdf')

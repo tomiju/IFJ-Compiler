@@ -132,6 +132,18 @@ int funcCall(){
     paramCount = 0;
     //pravidlo funcCall -> id ( paramList )
     if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
+    TokenPTR funcName = token_ptr;
+    htab_item_t *funcInTable = htab_find(symtable,funcName->dynamic_value);
+
+    if(funcInTable == NULL){
+        fprintf(stderr,"Not defined %s\n",funcName->dynamic_value);
+        return SEMANTIC_UNDEF_VALUE_ERROR;
+    }
+
+    if(funcInTable->isFunc != 1){
+        fprintf(stderr,"Not function %s\n",funcName->dynamic_value);
+        return SEMANTIC_UNDEF_VALUE_ERROR;
+    }
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
@@ -143,7 +155,11 @@ int funcCall(){
 
     result = paramList();
     if(result != TOKEN_OK)return result;
-    fprintf(stderr,"Param count: %d\n",paramCount);
+    
+    if(paramCount != funcInTable->value){
+        fprintf(stderr,"Wrong number of params: %d\n",paramCount);
+        return SEMANTIC_WRONG_PARAMETER_NUMBER_ERROR;
+    }
     paramCount = 0;
 
     if(token_ptr->type != TOKEN_RIGHT_BRACKET)return SYNTAX_ERROR;
@@ -162,6 +178,8 @@ int assigment(){
 
     if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
     
+    
+
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
     
@@ -427,6 +445,7 @@ int funcDef(){
     if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
 
     TokenPTR funcName = token_ptr;
+    
     if(htab_find(symtable,funcName->dynamic_value)!= NULL){
         fprintf(stderr,"Redefinition %s\n",funcName->dynamic_value);
         return SEMANTIC_UNDEF_VALUE_ERROR;
