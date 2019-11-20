@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 // veľkosť tabuľky
 #define SIZE 100
@@ -12,6 +13,7 @@
 typedef struct htab_item {
 	int value;
 	char *key;
+	bool isFunc;
 	struct htab_item *next;
 } htab_item_t;
 
@@ -30,13 +32,14 @@ unsigned int htab_hash_function(char *str);
 // pri úspechu vracia 0, pri chybe INTERNAL_ERROR
 int htab_init(htab_t **htab);           
 
-// vloží do tabuľky t prvok s klúčom key a hodnotou val
+// vloží do tabuľky t prvok s klúčom key, hodnotou val 
+// a príznakom funkcie
 // pri úspechu vracia 0, pri chybe INTERNAL_ERROR
-int htab_insert(htab_t *t, char *key, int val);
+int htab_insert(htab_t *t, char *key, int val, bool isFunc);
 
-// vyhľadá a vráti hodnotu prvku s kľúčom key, 
-// pri neúspešom vyhľadaní vráti -1
-int htab_find(htab_t *t, char *key);
+// vyhľadá a vráti ukazateľ na konkrétny prvok
+// ak sa nenašiel, vráti NULL
+htab_item_t* htab_find(htab_t *t, char *key);
 
 // vyčistí tabuľku (tabuľka je po vykonaní prázdna)
 void htab_clear(htab_t * t);	

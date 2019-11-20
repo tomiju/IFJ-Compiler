@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "errors.h"
 
-int htab_insert(htab_t *t, char *key, int val){
+int htab_insert(htab_t *t, char *key, int val, bool isFunc){
 	htab_item_t *ht_item = malloc(sizeof(*ht_item));
 
 	if(ht_item == NULL){
@@ -19,6 +19,7 @@ int htab_insert(htab_t *t, char *key, int val){
 	unsigned idx = htab_hash_function(key);
 
 	ht_item->value = val;
+	ht_item->isFunc = isFunc;
 	strcpy(ht_item->key, key);
 	ht_item->next = t->ptr[idx];
 
@@ -28,14 +29,14 @@ int htab_insert(htab_t *t, char *key, int val){
 }
 
 void htab_insert_default_functions(htab_t *htab){
-	htab_insert(htab, "inputs", 0);
-	htab_insert(htab, "inputi", 0);
-	htab_insert(htab, "inputf", 0);
-	htab_insert(htab, "len", 1);
-	htab_insert(htab, "substr", 3);
-	htab_insert(htab, "ord", 2);
-	htab_insert(htab, "chr", 1);
-	htab_insert(htab, "print", -2);
+	htab_insert(htab, "inputs", 0, true);
+	htab_insert(htab, "inputi", 0, true);
+	htab_insert(htab, "inputf", 0, true);
+	htab_insert(htab, "len", 1, true);
+	htab_insert(htab, "substr", 3, true);
+	htab_insert(htab, "ord", 2, true);
+	htab_insert(htab, "chr", 1, true);
+	htab_insert(htab, "print", -2, true);
 }
 
 unsigned int htab_hash_function(char *str) {
@@ -62,7 +63,7 @@ int htab_init(htab_t **htab){
 	return 0;
 }
 
-int htab_find(htab_t *t, char *key){
+htab_item_t* htab_find(htab_t *t, char *key){
 	unsigned idx = htab_hash_function(key);
 
 	htab_item_t *actual;
@@ -72,13 +73,13 @@ int htab_find(htab_t *t, char *key){
 		actual = next;
 
 		if(strcmp(actual->key, key) == 0){
-			return actual->value;
+			return actual;
 		}
 
 		next = actual->next;
 	}
 
-	return -1;
+	return NULL;
 }
 
 void htab_clear(htab_t* t){
