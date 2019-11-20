@@ -21,36 +21,36 @@
 
 int currentLine = 1;
 int inFunDef = 0;
-
+int inFunDefHead = 0;
 
 
 int param(){
     fprintf(stderr,"param\n");
 
     int result;
+    if(inFunDefHead){
+        if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
 
-    if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
+        result = getToken(&token_ptr, &indent_stack );
+        return result;
+    }else{
+        switch(token_ptr->type)
+        {
+        //pravidlo param -> term
+        case TOKEN_IDENTIFIER: 
+        case TOKEN_LEFT_BRACKET:
+        case TOKEN_INT: 
+        case TOKEN_DOUBLE: 
+        case TOKEN_STRING:
+            result = getToken(&token_ptr, &indent_stack );
+            return result;
+        break;
 
-    result = getToken(&token_ptr, &indent_stack );
-    return result;
-    /*
-    switch(token_ptr->type)
-    {
-    //pravidlo param -> expression
-    case TOKEN_IDENTIFIER: 
-    case TOKEN_LEFT_BRACKET:
-    case TOKEN_INT: 
-    case TOKEN_DOUBLE: 
-    case TOKEN_STRING:
-        result = expression();
-
-        return  result;
-    break;
-
-    default:
-    break;
+        default:
+        break;
+        }
     }
-*/
+    
     return SYNTAX_ERROR;
 }
 
@@ -334,6 +334,7 @@ int stat(){
             if(result != TOKEN_OK)return result;
             
             if(token_ptr->type != KEYWORD_ELSE)return SYNTAX_ERROR;
+            fprintf(stderr,"else\n");
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
@@ -371,10 +372,10 @@ int stat(){
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
             
-            if(token_ptr->type == TOKEN_DEDENT)return result;
+            if(token_ptr->type == TOKEN_DEDENT)return TOKEN_OK;
             if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
 
-            result = getToken(&token_ptr, &indent_stack );
+            result = getToken(&token_ptr, &indent_stack );          
             return result;
         break;
 
@@ -386,12 +387,12 @@ int stat(){
                 result = expression();
                 if(result != TOKEN_OK)return result;
 
-                if(token_ptr->type == TOKEN_DEDENT)return result;
+                if(token_ptr->type == TOKEN_DEDENT)return TOKEN_OK;
                 if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
 
                 result = getToken(&token_ptr, &indent_stack );
                 if(result != TOKEN_OK)return result;
-
+                
                 return result;
             }
         break;
@@ -407,6 +408,7 @@ int stat(){
 int funcDef(){
     fprintf(stderr,"funcDef\n");
     inFunDef = 1;
+    inFunDefHead = 1;
     int result;
 
     //pravidlo funcDef -> def id ( paramList ) : eol dedent stat statList indent
@@ -442,6 +444,8 @@ int funcDef(){
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
+
+    inFunDefHead = 0;
 
     if(token_ptr->type != TOKEN_INDENT)return SYNTAX_ERROR;
 

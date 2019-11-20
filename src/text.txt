@@ -1,24 +1,2 @@
-
-
-while x  < 3:
-   a = x + 3
-   b = x + 3
-x = x +3
-      d = x +3
-   else:
-      pass
-   return e*x
-
-while f=x:
-   g = 3+2
-
-h(y)
-i+2
-j = h(y)
-k = i+2
-
-"""
-return e*x
-Return nemuze byt mimo funkci
-"""
-
+def func():
+    return 2+3
