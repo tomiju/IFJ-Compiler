@@ -178,8 +178,16 @@ int assigment(){
 
     if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
     
+    htab_item_t *varInTable = htab_find(symtable,token_ptr->dynamic_value);
+    if(varInTable == NULL){
+        htab_insert(symtable, token_ptr->dynamic_value, TOKEN_INT,0);
+    }else{
+        if(varInTable->isFunc == 1){
+            fprintf(stderr,"Already defined as function");
+            return SEMANTIC_UNDEF_VALUE_ERROR;
+        }
+    }
     
-
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
     
