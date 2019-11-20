@@ -16,7 +16,7 @@
 
 #define LEX_ERROR 1
 #define SYNTAX_ERROR 2
-#define SEMANTIC_UNDEF_VALUE_ERROR 3 // nedefinovaná funkce/proměnná
+#define SEMANTIC_UNDEF_VALUE_ERROR 3 // nedefinovaná funkce/proměnná, pokus o redefinici funkce
 #define SEMANTIC_TYPE_COMPATIBILITY_ERROR 4 // chyba typové kompatibility v aritmetických/řetězcových operacích
 #define SEMANTIC_WRONG_PARAMETER_NUMBER_ERROR 5 // špatný počet parametrů u volání funkcí
 #define SEMANTIC_OTHER_ERROR 6 // ostatní sémantické operace

@@ -1,2 +1,5 @@
 def func():
-    return 2+3
+  while x < 2:
+   x = 2+3
+def func1():
+ x = 2+1

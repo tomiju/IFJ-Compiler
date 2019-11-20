@@ -2,7 +2,7 @@ PRJ=scanner
 #
 PROGS=$(PRJ)
 FILES=main_scanner.c scanner.c
-PARSER_FILES=main_parser.c scanner.c parser.c semantic.c
+PARSER_FILES=main_parser.c scanner.c parser.c semantic.c symtable.c
 CC=gcc			
 CFLAGS=-Wall -W -Wextra -g -std=c99 -pedantic
 

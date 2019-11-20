@@ -16,18 +16,22 @@
 #include "scanner.h"
 #include "parser.h"
 #include "semantic.h"
-
+#include "symtable.h"
 
 
 int currentLine = 1;
 int inFunDef = 0;
 int inFunDefHead = 0;
+int paramCount = 0;
+
+htab_t *symtable;
 
 
 int param(){
     fprintf(stderr,"param\n");
 
     int result;
+    paramCount +=1;
     if(inFunDefHead){
         if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
 
@@ -125,7 +129,7 @@ int funcCall(){
     fprintf(stderr,"funcCall\n");
 
     int result;
-
+    paramCount = 0;
     //pravidlo funcCall -> id ( paramList )
     if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
 
@@ -139,8 +143,9 @@ int funcCall(){
 
     result = paramList();
     if(result != TOKEN_OK)return result;
-    
-    
+    fprintf(stderr,"Param count: %d\n",paramCount);
+    paramCount = 0;
+
     if(token_ptr->type != TOKEN_RIGHT_BRACKET)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
@@ -232,6 +237,7 @@ int stat(){
             if(result != TOKEN_OK)return result;
            
            if(token_ptr->type == TOKEN_DEDENT)return result;
+           if(token_ptr->type == TOKEN_EOF)return result;
             if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
             
             result = getToken(&token_ptr, &indent_stack );
@@ -249,6 +255,7 @@ int stat(){
             if(result != TOKEN_OK)return result;
 
             if(token_ptr->type == TOKEN_DEDENT)return result;
+            if(token_ptr->type == TOKEN_EOF)return result;
             if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
        
             result = getToken(&token_ptr, &indent_stack );
@@ -266,8 +273,7 @@ int stat(){
 
             result = expression();
             if(result != TOKEN_OK)return result;
-            
-            
+                     
             if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
@@ -409,6 +415,7 @@ int funcDef(){
     fprintf(stderr,"funcDef\n");
     inFunDef = 1;
     inFunDefHead = 1;
+    paramCount = 0;
     int result;
 
     //pravidlo funcDef -> def id ( paramList ) : eol dedent stat statList indent
@@ -419,6 +426,12 @@ int funcDef(){
 
     if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
 
+    TokenPTR funcName = token_ptr;
+    if(htab_find(symtable,funcName->dynamic_value)!= NULL){
+        fprintf(stderr,"Redefinition %s\n",funcName->dynamic_value);
+        return SEMANTIC_UNDEF_VALUE_ERROR;
+    }
+
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
 
@@ -428,8 +441,12 @@ int funcDef(){
     if(result != TOKEN_OK)return result;
 
     result = paramList();
-    if(result != TOKEN_OK)return result; 
-    
+    if(result != TOKEN_OK)return result;
+
+    fprintf(stderr,"Param count: %d\n",paramCount);
+    htab_insert(symtable,funcName->dynamic_value,paramCount,1);
+    paramCount = 0;
+
     if(token_ptr->type != TOKEN_RIGHT_BRACKET)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
@@ -561,6 +578,9 @@ int parse(){
         return -1;
     }
 
+    if(htab_init(&symtable) == INTERNAL_ERROR)return INTERNAL_ERROR;
+
+
     //get first token
     if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
         fprintf(stderr,"line: %d\n",currentLine);
@@ -572,6 +592,8 @@ int parse(){
 
     //cleaning
     destroyStack(&indent_stack);
-    
+    htab_free(symtable);
+
+
     return result;
 }
