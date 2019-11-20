@@ -24,7 +24,7 @@ int inFunDef = 0;
 int inFunDefHead = 0;
 int paramCount = 0;
 
-htab_t *symtable;
+
 
 
 int param(){
@@ -133,7 +133,7 @@ int funcCall(){
     //pravidlo funcCall -> id ( paramList )
     if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
     TokenPTR funcName = token_ptr;
-    htab_item_t *funcInTable = htab_find(symtable,funcName->dynamic_value);
+    htab_item_t *funcInTable = htab_find(globalSymtable,funcName->dynamic_value);
 
     if(funcInTable == NULL){
         fprintf(stderr,"Not defined %s\n",funcName->dynamic_value);
@@ -178,16 +178,16 @@ int assigment(){
 
     if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
     
-    htab_item_t *varInTable = htab_find(symtable,token_ptr->dynamic_value);
+    htab_item_t *varInTable = htab_find(globalSymtable,token_ptr->dynamic_value);
     if(varInTable == NULL){
-        htab_insert(symtable, token_ptr->dynamic_value, TOKEN_INT,0);
+        htab_insert(globalSymtable, token_ptr->dynamic_value, TOKEN_INT,0);
     }else{
         if(varInTable->isFunc == 1){
             fprintf(stderr,"Already defined as function");
             return SEMANTIC_UNDEF_VALUE_ERROR;
         }
     }
-    
+
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
     
@@ -454,7 +454,7 @@ int funcDef(){
 
     TokenPTR funcName = token_ptr;
     
-    if(htab_find(symtable,funcName->dynamic_value)!= NULL){
+    if(htab_find(globalSymtable,funcName->dynamic_value)!= NULL){
         fprintf(stderr,"Redefinition %s\n",funcName->dynamic_value);
         return SEMANTIC_UNDEF_VALUE_ERROR;
     }
@@ -471,7 +471,7 @@ int funcDef(){
     if(result != TOKEN_OK)return result;
 
     fprintf(stderr,"Param count: %d\n",paramCount);
-    htab_insert(symtable,funcName->dynamic_value,paramCount,1);
+    htab_insert(globalSymtable,funcName->dynamic_value,paramCount,1);
     paramCount = 0;
 
     if(token_ptr->type != TOKEN_RIGHT_BRACKET)return SYNTAX_ERROR;
@@ -605,7 +605,7 @@ int parse(){
         return -1;
     }
 
-    if(htab_init(&symtable) == INTERNAL_ERROR)return INTERNAL_ERROR;
+    if(htab_init(&globalSymtable) == INTERNAL_ERROR)return INTERNAL_ERROR;
 
 
     //get first token
@@ -619,7 +619,7 @@ int parse(){
 
     //cleaning
     destroyStack(&indent_stack);
-    htab_free(symtable);
+    htab_free(globalSymtable);
 
 
     return result;

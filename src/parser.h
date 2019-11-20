@@ -14,11 +14,11 @@
  */
 
 #include "scanner.h"
-
+#include "symtable.h"
 
 iStack indent_stack; //required by scanner
 TokenPTR token_ptr; //pointer to the token
-
+htab_t *globalSymtable;//global table of symbols
 
 int statList();
 

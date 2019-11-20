@@ -1,2 +1,2 @@
-""" ah
-aaa"""ss
+def func():
+ return 5+2
