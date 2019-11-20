@@ -228,7 +228,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 	int dedentFound; // TRUE = na stacku byla hodnota zanoření (při DEDENT), FALSE = na stacku nebyla -> error
 	int currentIndent = 0;
 	char currentChar, previousChar;
-	static char docStringPrevChar;
+	//static char docStringPrevChar; // odkomentovat, pro případ, že by """ ss """ byl komentář :)
 	static int FirstToken = TRUE;
 
 	TokenPTR newToken = makeToken(token);
@@ -305,29 +305,30 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '\"' && previousChar != '\\')
 				{
-					if (docStringPrevChar == '(')
-					{
-	
+					// odkomentovat pro případ, že by """ sss """ byl komentář :)
+					//if (docStringPrevChar == '(')
+					//{
+						FirstToken = FALSE;
 						state = STATE_DOC_STRING;
 						commentaryCounter = 1;
 						break;
-					}
-					else if (FirstToken == TRUE)
-					{
-						commentaryCounter = 1;
-						state = STATE_BLOCK_COMMENTARY;
-						if (debug)
-						{
-							printf("začátek blok. komentáře\n"); //debug
-						}
-						break;
-					}
-					else
-					{
-						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
-					}
-					break;
+					//}
+					// else if (FirstToken == TRUE)
+					// {
+					// 	commentaryCounter = 1;
+					// 	state = STATE_BLOCK_COMMENTARY;
+					// 	if (debug)
+					// 	{
+					// 		printf("začátek blok. komentáře\n"); //debug
+					// 	}
+					// 	break;
+					// }
+					// else
+					// {
+					// 	freeMemory(newToken, indent_stack);
+					// 	return LEX_ERROR;
+					// }
+					//break;
 				}
 				else if (currentChar == '+')
 				{
@@ -473,7 +474,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						ungetc(currentChar, source_f);
 						break;
 					}
-					docStringPrevChar = currentChar;
+					//docStringPrevChar = currentChar; // odkomentovat, pro případ, že by """ ss """ byl komentář :)
 					newToken->type = TOKEN_LEFT_BRACKET;
 					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
@@ -580,7 +581,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					break;
 				}
 				else if(currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == '\r' || currentChar == '\f') // přeskočí zbytečné mezery (asi spíš ne, ale to je jedno)
-				{ // TODO: ZKONTROLOVAT, JESTLI FUNGUJÍ OSTATNÍ BÍLÉ ZNAKY!!!!!!!
+				{
 					break;
 				}
 				else 
