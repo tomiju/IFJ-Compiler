@@ -416,6 +416,7 @@ int stat(){
         break;
 
         case KEYWORD_RETURN:
+            fprintf(stderr,"return");
             if(inFunDef){
                 result = getToken(&token_ptr, &indent_stack );
                 if(result != TOKEN_OK)return result;
@@ -423,13 +424,18 @@ int stat(){
                 if(token_ptr->type == TOKEN_DEDENT)return TOKEN_OK;
                 if(token_ptr->type == TOKEN_EOF)return TOKEN_OK;
 
-                if(token_ptr->type == TOKEN_EOL)return SYNTAX_ERROR;
-                result = getToken(&token_ptr, &indent_stack );
-                if(result != TOKEN_OK)return result;
+                if(token_ptr->type == TOKEN_EOL){
+                    result = getToken(&token_ptr, &indent_stack );
+                    if(result != TOKEN_OK)return result;
+                    return TOKEN_OK;
+                }
+                
                 //return expression
+                
                 result = expression();
+                
                 if(result != TOKEN_OK)return result;
-
+                
                 if(token_ptr->type == TOKEN_DEDENT)return TOKEN_OK;
                 if(token_ptr->type == TOKEN_EOF)return TOKEN_OK;
                 if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
