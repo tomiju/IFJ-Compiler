@@ -37,8 +37,28 @@ typedef enum
 	I_LEFT_BRACKET,		/// 4 (
 	I_RIGHT_BRACKET,	/// 5 )
 	I_DATA,				/// 6 i (id, int, double, string)
-	I_DOLLAR			/// 7 $
+	I_DOLLAR,			/// 7 $
+	I_STOP				/// 8 STOP
 } Prec_table_index_enum;
+
+
+typedef enum
+{
+	NT_EQ_NT,		/// E -> E = E
+	NT_NEQ_NT,		/// E -> E <> E
+	NT_LEQ_NT,		/// E -> E <= E
+	NT_LTN_NT,		/// E -> E < E
+	NT_MEQ_NT,		/// E -> E => E
+	NT_MTN_NT,		/// E -> E > E
+	NT_PLUS_NT,		/// E -> E + E
+	NT_MINUS_NT,	/// E -> E - E
+	NT_IDIV_NT,		/// E -> E \ E
+	NT_MUL_NT,		/// E -> E * E
+	NT_DIV_NT,		/// E -> E / E
+	LBR_NT_RBR,		/// E -> (E)
+	OPERAND,		/// E -> i
+	NOT_A_RULE		/// rule doesn't exist
+} Prec_rules_enum;
 
 
 typedef struct stacktokenitem
@@ -59,6 +79,23 @@ Prec_table_index_enum get_prec_table_index(TokenTYPE symbol);
 
 
 int expression();
+
+
+int reduce(TStackToken *stack);
+
+
+int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, Prec_rules_enum rule, TokenTYPE *final_token_type);
+
+
+Prec_rules_enum test_rule(int count, TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3);
+
+
+
+int countTokenStack(TStackToken *stack);
+
+
+int totalCountTokenStack(TStackToken *stack);
+
 
 /**
  * Inicializace pomocného stacku pro realizaci "INDENT / DEDENT"
