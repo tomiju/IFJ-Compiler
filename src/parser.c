@@ -200,6 +200,7 @@ int assigment(){
 
     if(token_ptr->type != TOKEN_IDENTIFIER){
         result = expression();
+       
         return result;
     }else{
         result = preloadToken(&next_token, &indent_stack );
@@ -260,10 +261,12 @@ int stat(){
         //pravidlo: Stat -> StatWithId eol
         case TOKEN_IDENTIFIER: 
             result = statWithId();
+            
             if(result != TOKEN_OK)return result;
            
-           if(token_ptr->type == TOKEN_DEDENT)return result;
-           if(token_ptr->type == TOKEN_EOF)return result;
+            if(token_ptr->type == TOKEN_DEDENT)return result;
+            if(token_ptr->type == TOKEN_EOF)return result;
+            
             if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
             
             result = getToken(&token_ptr, &indent_stack );
@@ -278,6 +281,7 @@ int stat(){
         case TOKEN_DOUBLE: 
         case TOKEN_STRING: 
             result = expression();
+            fprintf(stderr,"result: %d\n",result);
             if(result != TOKEN_OK)return result;
 
             if(token_ptr->type == TOKEN_DEDENT)return result;
@@ -415,11 +419,19 @@ int stat(){
             if(inFunDef){
                 result = getToken(&token_ptr, &indent_stack );
                 if(result != TOKEN_OK)return result;
-            
+                //return
+                if(token_ptr->type == TOKEN_DEDENT)return TOKEN_OK;
+                if(token_ptr->type == TOKEN_EOF)return TOKEN_OK;
+
+                if(token_ptr->type == TOKEN_EOL)return SYNTAX_ERROR;
+                result = getToken(&token_ptr, &indent_stack );
+                if(result != TOKEN_OK)return result;
+                //return expression
                 result = expression();
                 if(result != TOKEN_OK)return result;
 
                 if(token_ptr->type == TOKEN_DEDENT)return TOKEN_OK;
+                if(token_ptr->type == TOKEN_EOF)return TOKEN_OK;
                 if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
 
                 result = getToken(&token_ptr, &indent_stack );
