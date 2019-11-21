@@ -174,6 +174,7 @@ int assigment(){
     fprintf(stderr,"assigment ");
     TokenPTR next_token;
     int result;
+    int expressionType;
     //pravidlo id = neco
 
     if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
@@ -226,6 +227,7 @@ int statWithId(){
 
     TokenPTR next_token;
     int result;
+    int expressionType;
 
     result = preloadToken(&next_token, &indent_stack );
     if(result != TOKEN_OK)return result;
@@ -257,6 +259,7 @@ int statWithId(){
 int stat(){
     fprintf(stderr,"stat\n");
     int result;
+    int expressionType;
     switch(token_ptr->type){
         //pravidlo: Stat -> StatWithId eol
         case TOKEN_IDENTIFIER: 
