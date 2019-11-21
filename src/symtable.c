@@ -3,7 +3,39 @@
 #include <stdio.h>
 #include "errors.h"
 
-int htab_insert(htab_t *t, char *key, int val, bool isFunc){
+htab_item_t* htab_find(htab_t *t, char *key){
+	unsigned idx = htab_hash_function(key);
+
+	htab_item_t *actual;
+	htab_item_t *next = t->ptr[idx];
+
+	while(next != NULL){
+		actual = next;
+
+		if(strcmp(actual->key, key) == 0){
+			return actual;
+		}
+
+		next = actual->next;
+	}
+
+	return NULL;
+}
+
+int htab_insert(htab_t *t, char *key, int val, int type, int frame, bool isConst, bool isLabel, bool defined){
+	htab_item_t* item = htab_find(t, key);
+	
+	// ak sa už nachádza v tabuľke, zmenia sa hodnoty
+	if(item != NULL){
+		item->value = val;
+		item->type = type;
+		item->frame = frame;
+		item->isConst = isConst;
+		item->isLabel = isLabel;
+		item->defined = defined;
+		return 0;
+	}
+
 	htab_item_t *ht_item = malloc(sizeof(*ht_item));
 
 	if(ht_item == NULL){
@@ -19,7 +51,13 @@ int htab_insert(htab_t *t, char *key, int val, bool isFunc){
 	unsigned idx = htab_hash_function(key);
 
 	ht_item->value = val;
-	ht_item->isFunc = isFunc;
+	ht_item->type = type;
+	ht_item->frame = frame;
+	ht_item->isConst = isConst;
+	ht_item->isLabel = isLabel;
+	ht_item->reviewed = false;
+	ht_item->defined = defined;
+	ht_item->local_vars = NULL;
 	strcpy(ht_item->key, key);
 	ht_item->next = t->ptr[idx];
 
@@ -29,14 +67,14 @@ int htab_insert(htab_t *t, char *key, int val, bool isFunc){
 }
 
 void htab_insert_default_functions(htab_t *htab){
-	htab_insert(htab, "inputs", 0, true);
-	htab_insert(htab, "inputi", 0, true);
-	htab_insert(htab, "inputf", 0, true);
-	htab_insert(htab, "len", 1, true);
-	htab_insert(htab, "substr", 3, true);
-	htab_insert(htab, "ord", 2, true);
-	htab_insert(htab, "chr", 1, true);
-	htab_insert(htab, "print", -2, true);
+	htab_insert(htab, "inputs", 0, FUNC, 0, false, true, true);
+	htab_insert(htab, "inputi", 0, FUNC, 0, false, true, true);
+	htab_insert(htab, "inputf", 0, FUNC, 0, false, true, true);
+	htab_insert(htab, "len", 1, FUNC, 0, false, true, true);
+	htab_insert(htab, "substr", 3, FUNC, 0, false, true, true);
+	htab_insert(htab, "ord", 2, FUNC, 0, false, true, true);
+	htab_insert(htab, "chr", 1, FUNC, 0, false, true, true);
+	htab_insert(htab, "print", -2, FUNC, 0, false, true, true);
 }
 
 unsigned int htab_hash_function(char *str) {
@@ -61,25 +99,6 @@ int htab_init(htab_t **htab){
 	htab_insert_default_functions(*htab);
 	
 	return 0;
-}
-
-htab_item_t* htab_find(htab_t *t, char *key){
-	unsigned idx = htab_hash_function(key);
-
-	htab_item_t *actual;
-	htab_item_t *next = t->ptr[idx];
-
-	while(next != NULL){
-		actual = next;
-
-		if(strcmp(actual->key, key) == 0){
-			return actual;
-		}
-
-		next = actual->next;
-	}
-
-	return NULL;
 }
 
 void htab_clear(htab_t* t){
