@@ -1,15 +1,15 @@
 #ifndef __GENERATOR_H__
 #define __GENERATOR_H__
 
+#include "symtable.h"
+
 //#define str(x) #x
 //#define INSTR_TO_STR(x) str(x)
 
 /********************* LIST INŠTRUKCIÍ *********************/
 typedef struct Instr{
 	int type;
-	void* add1;
-	void* add2;
-	void* add3;
+	htab_item_t* param[3];
 } tInstr;
 
 typedef struct Node{
@@ -170,8 +170,28 @@ static const char* INSTR_STRING[] = {
     INSTR(GENERATE_STRING)
 };
 
+void generate_instr(tList* instr_list, enum INSTR_ENUM instr_enum, int count, ...);
+
+void generate_return_variable(tList* list_instr, htab_t* htab);
+
+void generate_copy_params(tList* list_instr, int count, ...);
+
+// vstavané funkcie 
+void generate_inputs(tList* list, htab_t* htab);
+void generate_inputf(tList* list, htab_t* htab);
+void generate_inputi(tList* list, htab_t* htab);
+void generate_len(tList* list, htab_t* htab);
+
+void generate_substr(tList* list, htab_t* htab);
+
+// volá sa na začiatku generovania
+// nageneruje základnú štruktúru a vstavané funkcie
+void generator_start(tList* list);
+
 void generate_params(int count, ...);
 
+// volá sa na záver
+// vypíše všetky nagenerované inštrukcie na výstup
 void printInstructions(tList* list);
 
 #endif // __GENERATOR_H__
