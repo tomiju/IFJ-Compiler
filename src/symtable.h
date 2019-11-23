@@ -9,17 +9,20 @@
 // veľkosť tabuľky
 #define SIZE 100
 
+// htab_item "frame" constants
 #define GF 0
 #define LF 1
 #define TF 2
 
+// htab_item "type" constants
 #define INT 0
-#define DOUBLE 1
+#define FLOAT 1
 #define STRING 2
 #define BOOL 3
 #define NIL 4	
 #define UNKNOWN 5
 #define FUNC 6
+#define TYPE_NAME 7
 
 struct htab{
 	struct htab_item* ptr[SIZE]; 
@@ -28,15 +31,15 @@ struct htab{
 // položky
 typedef struct htab_item {
 	int value;
-	char *key;
+	char* key;
 	int type;
-	int frame;
+	int frame;	
 	bool isLabel;
 	bool isConst;
-	struct htab_item *next;
+	struct htab_item *next;		// ďalšia položka (synonymum)
 	bool reviewed;
-	bool defined;
-	struct htab* local_vars;
+	bool defined;			
+	struct htab* local_vars;	// symtable pre lokálne premenné
 } htab_item_t;
 
 // tabuľka

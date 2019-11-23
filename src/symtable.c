@@ -13,6 +13,7 @@ htab_item_t* htab_find(htab_t *t, char *key){
 		actual = next;
 
 		if(strcmp(actual->key, key) == 0){
+			actual->reviewed = 1;
 			return actual;
 		}
 
@@ -23,10 +24,10 @@ htab_item_t* htab_find(htab_t *t, char *key){
 }
 
 int htab_insert(htab_t *t, char *key, int val, int type, int frame, bool isConst, bool isLabel, bool defined){
-	htab_item_t* item = htab_find(t, key);
+	//htab_item_t* item = htab_find(t, key);
 	
 	// ak sa už nachádza v tabuľke, zmenia sa hodnoty
-	if(item != NULL){
+	/*if(item != NULL){
 		item->value = val;
 		item->type = type;
 		item->frame = frame;
@@ -34,7 +35,7 @@ int htab_insert(htab_t *t, char *key, int val, int type, int frame, bool isConst
 		item->isLabel = isLabel;
 		item->defined = defined;
 		return 0;
-	}
+	}*/
 
 	htab_item_t *ht_item = malloc(sizeof(*ht_item));
 

@@ -7,9 +7,18 @@
 //#define INSTR_TO_STR(x) str(x)
 
 /********************* LIST INŠTRUKCIÍ *********************/
-typedef struct Instr{
+typedef struct InstrPar{
+	int value;
+	char* key;
 	int type;
-	htab_item_t* param[3];
+	int frame;	
+	bool isLabel;
+	bool isConst;
+} tInstrPar;
+
+typedef struct Instr{
+	int type;				// názov inštrukcie
+	tInstrPar* param[3];
 } tInstr;
 
 typedef struct Node{
@@ -42,6 +51,9 @@ void First(tList* list);
 // nastaví aktivitu na posledný
 void Last(tList* list);
 
+// nastaví aktivitu na konkrétny prvok
+void SetActive(tList* list, tNode* node);
+
 // vráti hodnotu prvého
 void CopyFirst(tList* list, tInstr* instr);
 
@@ -63,7 +75,7 @@ void PreDelete(tList* list);
 // vloží prvok za aktívnym
 int PostInsert(tList* list, tInstr instr);
 
-// zmaže prvok pred aktívnym
+// vloží prvok pred aktívnym
 int PreInsert(tList* list, tInstr instr);
 
 // vráti hodnotu 
@@ -78,28 +90,19 @@ void Succ(tList* list);
 // posunie aktuálny na predchádzajúci
 void Pred(tList* list);
 
-// skontrolu aktualitu
+// skontroluje, či má list aktívny prvok
 int Active(tList* list);
 
-/********************* LIST INŠTRUKCIÍ *********************/
+//void InstrInit(tInstr* instr, enum INSTR_ENUM instr_enum);
 
 /*********************** INŠTRUKCIE ************************/
 
-typedef enum type{
-	T_INT, T_FLOAT, T_DOUBLE, T_CHAR
-} tType;
-
-typedef union value {
+/*typedef union value {
 	int ival;
 	float fval;
 	double dval;
 	char* cval;
-} tValue;
-
-typedef struct operand{
-	tType type;
-	tValue val;
-} tOperand;
+} tValue;*/
 
 #define INSTR(x) \
         x(MOVE)			/* <var> <symb> */				\
@@ -170,25 +173,54 @@ static const char* INSTR_STRING[] = {
     INSTR(GENERATE_STRING)
 };
 
-void generate_instr(tList* instr_list, enum INSTR_ENUM instr_enum, int count, ...);
-
-void generate_return_variable(tList* list_instr, htab_t* htab);
+void generate_return_variable(tList* list_instr);
 
 void generate_copy_params(tList* list_instr, int count, ...);
 
 // vstavané funkcie 
-void generate_inputs(tList* list, htab_t* htab);
-void generate_inputf(tList* list, htab_t* htab);
-void generate_inputi(tList* list, htab_t* htab);
-void generate_len(tList* list, htab_t* htab);
+void generate_inputs(tList* list);
+void generate_inputf(tList* list);
+void generate_inputi(tList* list);
+void generate_len(tList* list);
+void generate_ord(tList* list);
+void generate_substr(tList* list);
 
-void generate_substr(tList* list, htab_t* htab);
+/*******************************************************/
+/********************  GENEROVANIE  ********************/
+/*******************************************************/
+
+// pridá inštrukciu do listu, predanú cez enum, následuje počet parametrov 
+// a parametre cez htab_item_t*
+void generate_instr(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned count, ...);
 
 // volá sa na začiatku generovania
 // nageneruje základnú štruktúru a vstavané funkcie
 void generator_start(tList* list);
 
-void generate_params(int count, ...);
+// vráti argument funckie indexovaný od 0
+// využíva sa v tele funkcie
+htab_item_t* get_param(unsigned idx);
+
+// volá sa na začiatku generovania funkcie
+// label je odkaz do tabuľky symbolov, kde sa nachádza funkcia
+// vytvorí zarážku, frame a návratovú hodnotu pre funkciu
+void generate_func_start(tList* list, htab_item_t* label);
+
+// volá sa na konci funkcie pri dedente 
+void generate_func_end(tList* list);
+
+// výsledok funkcie uloží do premmenej var
+void generate_save_return_value(tList* list, htab_item_t* var);
+
+// nageneruje volanie funkcie
+// vytvorí rámec a na ňom predá parametre do funkcie, zavolá funckiu
+// list, odkaz na funkciu v hashtable, počet argumentov 
+// a následne odkazy do hash table na jednotlivé argumenty
+void generate_func_call(tList* list, htab_item_t* label, unsigned count, ...);
+
+/*******************************************************/
+/************************ END **************************/
+/*******************************************************/
 
 // volá sa na záver
 // vypíše všetky nagenerované inštrukcie na výstup
