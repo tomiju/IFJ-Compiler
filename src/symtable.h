@@ -37,7 +37,7 @@ typedef struct htab_item {
 	bool isLabel;
 	bool isConst;
 	struct htab_item *next;		// ďalšia položka (synonymum)
-	bool reviewed;
+	int reviewed;
 	bool defined;			
 	struct htab* local_vars;	// symtable pre lokálne premenné
 } htab_item_t;

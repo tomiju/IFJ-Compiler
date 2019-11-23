@@ -14,7 +14,7 @@ htab_item_t* htab_find(htab_t *t, char *key){
 
 		if(strcmp(actual->key, key) == 0){
 			if(actual->type != FUNC){
-				actual->reviewed = 1;
+				actual->reviewed += 1;
 			}
 			return actual;
 		}
