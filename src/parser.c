@@ -213,6 +213,7 @@ int funcCall(){
     if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
     TokenPTR funcName = token_ptr;
     htab_item_t *funcInTable = htab_find(globalSymtable,funcName->dynamic_value);
+    htab_item_t* funcInLocalTable;
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
@@ -239,7 +240,14 @@ int funcCall(){
             return SEMANTIC_UNDEF_VALUE_ERROR;
         }
     }else{
-        if(funcInTable == NULL){
+        funcInLocalTable = htab_find(localSymtable,funcName->dynamic_value);
+        if(funcInLocalTable != NULL){
+            if(funcInLocalTable->type != FUNC){
+                fprintf(stderr,"%s is used as local variable\n",funcName->dynamic_value);
+                return SEMANTIC_UNDEF_VALUE_ERROR;
+            }
+        }
+        if(funcInTable == NULL){        
             htab_insert(globalSymtable,funcName->dynamic_value,paramCount,FUNC,GF,0,1,0);
             funcInTable = htab_find(globalSymtable,funcName->dynamic_value);
             if(funcInTable == NULL)return INTERNAL_ERROR;
@@ -248,9 +256,13 @@ int funcCall(){
             if(htab_insert(localSymtable,funcName->dynamic_value,paramCount,FUNC,LF,0,1,0)==INTERNAL_ERROR){
                 return INTERNAL_ERROR;
         }
+         if(funcInTable->type != FUNC){
+            fprintf(stderr,"Not function %s\n",funcName->dynamic_value);
+            return SEMANTIC_UNDEF_VALUE_ERROR;
+        }
     }
     if(paramCount != funcInTable->value && funcInTable->value != -2){
-        fprintf(stderr,"Wrong number of params: %d\n",paramCount);
+        fprintf(stderr,"Wrong number of params in %s: %d\n",funcInTable->key,paramCount);
         return SEMANTIC_WRONG_PARAMETER_NUMBER_ERROR;
     }
 
@@ -264,8 +276,8 @@ int funcCall(){
     return TOKEN_OK;
 }
 
-int assigment(){
-    fprintf(stderr,"assigment ");
+int assignment(){
+    fprintf(stderr,"assignment ");
     TokenPTR next_token;
     int result;
     TokenTYPE expressionType = UNKNOWN;
@@ -281,6 +293,8 @@ int assigment(){
         varInLocalTable = htab_find(localSymtable,token_ptr->dynamic_value);
         if(varInGlobalTable == NULL && varInLocalTable == NULL){
             htab_insert(localSymtable, token_ptr->dynamic_value, token_ptr->number_value,expressionType,LF,0,0,1);
+            varInLocalTable = htab_find(localSymtable,token_ptr->dynamic_value);
+            if(varInLocalTable == NULL)return INTERNAL_ERROR;
         }else if(varInGlobalTable != NULL && varInLocalTable == NULL){
             if(varInGlobalTable->type == FUNC){
                 fprintf(stderr,"Already defined as function\n");
@@ -290,7 +304,9 @@ int assigment(){
                 fprintf(stderr,"Already used as global variable in this function\n");
                 return SEMANTIC_UNDEF_VALUE_ERROR;
             }
-            htab_insert(localSymtable, token_ptr->dynamic_value, token_ptr->number_value,expressionType,LF,0,0,1);        
+            htab_insert(localSymtable, token_ptr->dynamic_value, token_ptr->number_value,expressionType,LF,0,0,1);
+            varInLocalTable = htab_find(localSymtable,token_ptr->dynamic_value);
+            if(varInLocalTable == NULL)return INTERNAL_ERROR;      
         }else if(varInGlobalTable == NULL && varInLocalTable != NULL){
             if(varInLocalTable->type == FUNC){
                 fprintf(stderr,"Function call with same identifier\n");
@@ -305,6 +321,8 @@ int assigment(){
             }
         }else{
             htab_insert(globalSymtable, token_ptr->dynamic_value, token_ptr->number_value,expressionType,GF,0,0,1);
+            varInGlobalTable = htab_find(globalSymtable,token_ptr->dynamic_value);
+            if(varInGlobalTable == NULL)return INTERNAL_ERROR;
         }
     }
     
@@ -324,7 +342,11 @@ int assigment(){
 
     if(token_ptr->type != TOKEN_IDENTIFIER){
         result = expression(&expressionType);
-       
+        if(inFunDef){
+            varInLocalTable->type = expressionType;
+        }else{
+            varInGlobalTable->type = expressionType;
+        }
         return result;
     }else{
         result = preloadToken(&next_token, &indent_stack );
@@ -332,11 +354,20 @@ int assigment(){
         //prirazujeme vysledek volani fce
         if(next_token->type == TOKEN_LEFT_BRACKET){
             result = funcCall();
+            if(inFunDef){
+                varInLocalTable->type = UNKNOWN;
+            }else{
+                varInGlobalTable->type = UNKNOWN;
+            }
             return result;
         }else{
             //prirazujeme vyraz
             result = expression(&expressionType);
-            
+            if(inFunDef){
+                varInLocalTable->type = expressionType;
+            }else{
+                varInGlobalTable->type = expressionType;
+            }
             return result;
         }
     }
@@ -365,7 +396,7 @@ int statWithId(){
         break;
 
         case TOKEN_ASSIGN:
-            result = assigment();
+            result = assignment();
             return result;
         break;
         
@@ -610,16 +641,17 @@ int funcDef(){
             return SEMANTIC_UNDEF_VALUE_ERROR;
         }
         alreadyCalled = 1;
+        
     }else{
 
         htab_insert(globalSymtable,funcName->dynamic_value,paramCount,FUNC,GF,0,1,1);
         func = htab_find(globalSymtable,funcName->dynamic_value);
         if(func == NULL)return INTERNAL_ERROR;
-        htab_init(&(func->local_vars));
+        
+    }
+    htab_init(&(func->local_vars));
         if(func->local_vars == NULL)return INTERNAL_ERROR;
         localSymtable = func->local_vars;
-    }
-
 
 
     result = getToken(&token_ptr, &indent_stack );
@@ -788,13 +820,15 @@ int parse(){
         return INTERNAL_ERROR;
     }
     localSymtable = NULL;
+    
 
     //get first token
     if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
         fprintf(stderr,"line: %d\n",currentLine);
         return LEX_ERROR;
     }
-    
+    //TokenPTR firstToken = token_ptr;
+
     int result = program();
 
 
