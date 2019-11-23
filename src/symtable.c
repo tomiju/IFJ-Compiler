@@ -114,7 +114,7 @@ void htab_clear(htab_t* t){
 				do{
 					item = item_next;
 					item_next = item->next;
-
+					htab_free(item->local_vars);
 					free(item->key);
 					free(item);
 				} while (item_next != NULL);
