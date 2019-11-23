@@ -13,6 +13,9 @@
  *           Lukáš Kuchta    <xkucht09@stud.fit.vutbr.cz>
  */
 
+#ifndef PARSER_H
+#define PARSER_H
+
 #include "scanner.h"
 #include "symtable.h"
 
@@ -20,6 +23,7 @@ iStack indent_stack; //required by scanner
 TokenPTR token_ptr; //pointer to the token
 TokenPTR next_token;
 htab_t *globalSymtable;//global table of symbols
+htab_t *localSymtable;//local active table of symbols
 
 int statList();
 
@@ -44,3 +48,5 @@ int statList();
 int program();
 
 int parse();
+
+#endif
