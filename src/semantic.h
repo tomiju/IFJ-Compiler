@@ -78,8 +78,7 @@ typedef struct stacktoken
 Prec_table_index_enum get_prec_table_index(TokenTYPE symbol);
 
 
-int expression();
-
+int expression(TokenTYPE *expression_type);
 
 int reduce(TStackToken *stack);
 

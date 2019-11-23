@@ -100,21 +100,21 @@ Prec_table_index_enum get_prec_table_index(TokenTYPE symbol)
 
 extern int currentLine;
 
-int expression(){
+int expression(TokenTYPE *expression_type){
     printf("expression\n");
     int result;
-    //sezere tri tokeny bez syntakticke kontroly
+    // sezere tri tokeny bez syntakticke kontroly
     
-    result = getToken(&token_ptr, &indent_stack );
-    if(result != TOKEN_OK)return result;
+    // result = getToken(&token_ptr, &indent_stack );
+    // if(result != TOKEN_OK)return result;
 
-    result = getToken(&token_ptr, &indent_stack );
-    if(result != TOKEN_OK)return result;
+    // result = getToken(&token_ptr, &indent_stack );
+    // if(result != TOKEN_OK)return result;
 
-    result = getToken(&token_ptr, &indent_stack );
-    if(result != TOKEN_OK)return result;
+    // result = getToken(&token_ptr, &indent_stack );
+    // if(result != TOKEN_OK)return result;
 
-    /*TStackToken *Stack = (TStackToken*) malloc(sizeof(struct stacktoken));
+    TStackToken *Stack = (TStackToken*) malloc(sizeof(struct stacktoken));
     if (Stack == NULL)
     {
     	printf("Chyba alokácie\n");
@@ -126,7 +126,6 @@ int expression(){
 
 
     bool success = FALSE;
-    int result;
     int count;
     TStackTokenItem tmpitem;
     
@@ -137,7 +136,7 @@ int expression(){
     	switch(prec_table[Stack->top->token_type][get_prec_table_index(token_ptr->type)])
     	{
 		case S:
-			printf("OPERATION S\n");
+			// printf("OPERATION S\n");
 
 			if (get_prec_table_index(token_ptr->type) == I_DATA)
 			{
@@ -155,7 +154,7 @@ int expression(){
 			break;
 
 		case E:
-			printf("OPERATION E\n");
+			// printf("OPERATION E\n");
 			pushTokenStack(Stack, TOKEN_RIGHT_BRACKET, I_RIGHT_BRACKET);
 
 			if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
@@ -166,7 +165,7 @@ int expression(){
 			break;
 
 		case R:
-			printf("OPERATION R\n");
+			// printf("OPERATION R\n");
 			result = reduce(Stack);
 
 			if(result != SYNTAX_OK)
@@ -178,7 +177,7 @@ int expression(){
 			break;
 
 		case N:
-			printf("OPERATION N\n");
+			// printf("OPERATION N\n");
 			if (Stack->top->next_token->data_type == TOKEN_DOLLAR && get_prec_table_index(token_ptr->type) == I_DOLLAR)
 			{
 				success = TRUE;
@@ -198,34 +197,53 @@ int expression(){
 
 
     	tmpitem = Stack->top;
-    	printf("TOKENY NA STACKU: ");
+    	// printf("TOKENY NA STACKU: ");
     	while(tmpitem->token_type != I_DOLLAR)
     	{
-    		printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
+    		// printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
     		tmpitem = tmpitem->next_token;
     	}
-    	printf("  Ďalší token: %s\n", token_ptr->dynamic_value);
+    	// printf("  Ďalší token: %s\n", token_ptr->dynamic_value);
 
     } while(success == FALSE);
 
 
-    printf("\n\n");
+    // printf("\n\n");
 
     tmpitem = Stack->top;
-    	printf("TOKENY NA STACKU: ");
+    	// printf("TOKENY NA STACKU: ");
     	while(tmpitem->token_type != I_DOLLAR)
     	{
-    		printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
+    		// printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
     		tmpitem = tmpitem->next_token;
     	}
 
-    printf("\n\n");
+    // printf("\n\n");
 
-    printf("END OF EXPRESSION, final data typy: %d\n", Stack->top->data_type);
+ //    printf("END OF EXPRESSION, final data type: %d\n", Stack->top->data_type);
 
-	printf("Ďalší token: %s\n", token_ptr->dynamic_value);
+	// printf("Ďalší token: %s\n", token_ptr->dynamic_value);
 
-	printf("TOKEN_OK %d \n", TOKEN_OK);*/
+	// printf("TOKEN_OK %d \n", TOKEN_OK);
+
+	switch(Stack->top->data_type)
+	{
+		case TOKEN_NONTERM_INT:
+			*expression_type = TOKEN_INT;
+			break;
+		case TOKEN_NONTERM_DOUBLE:
+			*expression_type = TOKEN_DOUBLE;
+			break;
+		case TOKEN_NONTERM_STRING:
+			*expression_type = TOKEN_STRING;
+			break;
+		case TOKEN_NONTERM_BOOL:
+			*expression_type = TOKEN_NONTERM_BOOL;
+			break;
+		default:
+			*expression_type = TOKEN_NONE;
+	}
+
 	return TOKEN_OK;
     // return Stack->top->data_type;
 }
@@ -437,7 +455,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, Prec
 			break;
 	
 		case NT_EQ_NT:
-			printf("SOM TU\n");
+			// printf("SOM TU\n");
 			*final_token_type = op1->data_type;
 			break;
 
