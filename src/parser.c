@@ -76,7 +76,10 @@ int param(){
     htab_item_t* identifier;
     int result;
     paramCount +=1;
-    if(inFunDefHead){     
+    if(inFunDefHead){
+        if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
+        if(htab_insert(localSymtable,token_ptr->dynamic_value,token_ptr->number_value,UNKNOWN,LF,0,0,1) == INTERNAL_ERROR)return INTERNAL_ERROR;
+
         result = getToken(&token_ptr, &indent_stack );
         return result;
     }else{
@@ -265,7 +268,7 @@ int assigment(){
     fprintf(stderr,"assigment ");
     TokenPTR next_token;
     int result;
-    int expressionType = UNKNOWN;
+    TokenTYPE expressionType = UNKNOWN;
     //pravidlo id = neco
 
     if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
@@ -320,7 +323,7 @@ int assigment(){
     if(result != TOKEN_OK)return result;
 
     if(token_ptr->type != TOKEN_IDENTIFIER){
-        result = expression();
+        result = expression(&expressionType);
        
         return result;
     }else{
@@ -332,7 +335,7 @@ int assigment(){
             return result;
         }else{
             //prirazujeme vyraz
-            result = expression();
+            result = expression(&expressionType);
             
             return result;
         }
@@ -347,7 +350,7 @@ int statWithId(){
 
     TokenPTR next_token;
     int result;
-    int expressionType;
+    TokenTYPE expressionType;
 
     result = preloadToken(&next_token, &indent_stack );
     if(result != TOKEN_OK)return result;
@@ -367,7 +370,7 @@ int statWithId(){
         break;
         
         default:
-            result = expression();
+            result = expression(&expressionType);
 
             return result;
         break;
@@ -379,7 +382,7 @@ int statWithId(){
 int stat(){
     fprintf(stderr,"stat\n");
     int result;
-    int expressionType;
+    TokenTYPE expressionType;
     switch(token_ptr->type){
         //pravidlo: Stat -> StatWithId eol
         case TOKEN_IDENTIFIER: 
@@ -403,7 +406,7 @@ int stat(){
         case TOKEN_INT: 
         case TOKEN_DOUBLE: 
         case TOKEN_STRING: 
-            result = expression();
+            result = expression(&expressionType);
             fprintf(stderr,"result: %d\n",result);
             if(result != TOKEN_OK)return result;
 
@@ -424,7 +427,7 @@ int stat(){
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
 
-            result = expression();
+            result = expression(&expressionType);
             if(result != TOKEN_OK)return result;
                      
             if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
@@ -463,7 +466,7 @@ int stat(){
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
 
-            result = expression();
+            result = expression(&expressionType);
             if(result != TOKEN_OK)return result;
             
             if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
@@ -555,7 +558,7 @@ int stat(){
                 
                 //return expression
                 
-                result = expression();
+                result = expression(&expressionType);
                 
                 if(result != TOKEN_OK)return result;
                 
@@ -595,13 +598,29 @@ int funcDef(){
 
     TokenPTR funcName = token_ptr;
     htab_item_t* func = htab_find(globalSymtable,funcName->dynamic_value);
+    int alreadyCalled = 0;
     
     if(func!= NULL){
+        if(func->type != FUNC){
+            fprintf(stderr,"%s Already defined as variable\n",funcName->dynamic_value);
+            return SEMANTIC_UNDEF_VALUE_ERROR;
+        }
         if(func->defined == 1){
             fprintf(stderr,"Redefinition %s\n",funcName->dynamic_value);
             return SEMANTIC_UNDEF_VALUE_ERROR;
         }
+        alreadyCalled = 1;
+    }else{
+
+        htab_insert(globalSymtable,funcName->dynamic_value,paramCount,FUNC,GF,0,1,1);
+        func = htab_find(globalSymtable,funcName->dynamic_value);
+        if(func == NULL)return INTERNAL_ERROR;
+        htab_init(&(func->local_vars));
+        if(func->local_vars == NULL)return INTERNAL_ERROR;
+        localSymtable = func->local_vars;
     }
+
+
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
@@ -615,18 +634,20 @@ int funcDef(){
     if(result != TOKEN_OK)return result;
 
     fprintf(stderr,"Param count: %d\n",paramCount);
-    if(func == NULL){
-        htab_insert(globalSymtable,funcName->dynamic_value,paramCount,FUNC,GF,0,1,1);
-    }else{
+    
+        
+    if(alreadyCalled){
+        if(func->value != paramCount){
+            fprintf(stderr,"Function %s was called with different number of params\n",func->key);
+            return SEMANTIC_WRONG_PARAMETER_NUMBER_ERROR;
+        }
         func->defined = 1;
+    }else{
+        func->value = paramCount;
     }
     unreviewVariables(globalSymtable);
     
-    func = htab_find(globalSymtable,funcName->dynamic_value);
-    if(func == NULL)return INTERNAL_ERROR;
-    htab_init(&(func->local_vars));
-    if(func->local_vars == NULL)return INTERNAL_ERROR;
-    localSymtable = func->local_vars;
+    
 
     paramCount = 0;
 
