@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include "stdbool.h"
 #include "scanner.h"
-#include "semantic.h"
+#include "expression.h"
 #include "parser.h"
 
 #define TAB_SIZE 8
@@ -196,13 +196,13 @@ int expression(TokenTYPE *expression_type){
     	}
 
 
-    	tmpitem = Stack->top;
+    	// tmpitem = Stack->top;
     	// printf("TOKENY NA STACKU: ");
-    	while(tmpitem->token_type != I_DOLLAR)
-    	{
-    		// printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
-    		tmpitem = tmpitem->next_token;
-    	}
+    	// while(tmpitem->token_type != I_DOLLAR)
+    	// {
+    	// 	printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
+    	// 	tmpitem = tmpitem->next_token;
+    	// }
     	// printf("  Ďalší token: %s\n", token_ptr->dynamic_value);
 
     } while(success == FALSE);
@@ -210,21 +210,18 @@ int expression(TokenTYPE *expression_type){
 
     // printf("\n\n");
 
-    tmpitem = Stack->top;
-    	// printf("TOKENY NA STACKU: ");
-    	while(tmpitem->token_type != I_DOLLAR)
-    	{
-    		// printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
-    		tmpitem = tmpitem->next_token;
-    	}
+    // tmpitem = Stack->top;
+    // 	printf("TOKENY NA STACKU: ");
+    // 	while(tmpitem->token_type != I_DOLLAR)
+    // 	{
+    // 		printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
+    // 		tmpitem = tmpitem->next_token;
+    // 	}
 
     // printf("\n\n");
 
- //    printf("END OF EXPRESSION, final data type: %d\n", Stack->top->data_type);
-
 	// printf("Ďalší token: %s\n", token_ptr->dynamic_value);
 
-	// printf("TOKEN_OK %d \n", TOKEN_OK);
 
 	switch(Stack->top->data_type)
 	{
@@ -243,6 +240,9 @@ int expression(TokenTYPE *expression_type){
 		default:
 			*expression_type = TOKEN_NONE;
 	}
+
+    // printf("END OF EXPRESSION, final data type: %d\n", *expression_type);
+    // printf("\n\n");
 
 	return TOKEN_OK;
     // return Stack->top->data_type;
@@ -386,6 +386,11 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, Prec
 
 				case TOKEN_IDENTIFIER:
 					*final_token_type = TOKEN_NONTERM_IDENTIFIER;
+
+
+
+
+					
 					break;
 
 				default:

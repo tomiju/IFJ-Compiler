@@ -2,7 +2,7 @@ PRJ=scanner
 #
 PROGS=$(PRJ)
 FILES=main_scanner.c scanner.c
-PARSER_FILES=main_parser.c scanner.c parser.c semantic.c symtable.c
+PARSER_FILES=main_parser.c scanner.c parser.c expression.c symtable.c
 CC=gcc			
 CFLAGS=-Wall -W -Wextra -g -std=c99 -pedantic
 
@@ -16,4 +16,4 @@ parser: $(PARSER_FILES)
 	$(CC) $(CFLAGS) -o $@ $(PARSER_FILES) -lm
 
 clean:
-	rm -f *.o *.out $(PROGS) parser semantic
+	rm -f *.o *.out $(PROGS) parser expression

@@ -13,8 +13,8 @@
  *           Lukáš Kuchta   <xkucht09@stud.fit.vutbr.cz>
  */
 
-#ifndef SEMANTIC_H
-#define SEMANTIC_H
+#ifndef EXPRESSION_H
+#define EXPRESSION_H
 
 #include "stdbool.h"
 
