@@ -3,6 +3,12 @@
 #include <stdio.h>
 #include "errors.h"
 
+int zero = 0;
+int one = 1;
+int two = 2;
+int three = 3;
+int minus_two = -2;
+
 htab_item_t* htab_find(htab_t *t, char *key){
 	unsigned idx = htab_hash_function(key);
 
@@ -25,7 +31,7 @@ htab_item_t* htab_find(htab_t *t, char *key){
 	return NULL;
 }
 
-int htab_insert(htab_t *t, char *key, int val, int type, int frame, bool isConst, bool isLabel, bool defined){
+int htab_insert(htab_t *t, char *key, void* val, int type, int frame, bool isConst, bool isLabel, bool defined){
 	//htab_item_t* item = htab_find(t, key);
 	
 	// ak sa už nachádza v tabuľke, zmenia sa hodnoty
@@ -53,7 +59,12 @@ int htab_insert(htab_t *t, char *key, int val, int type, int frame, bool isConst
 
 	unsigned idx = htab_hash_function(key);
 
-	ht_item->value = val;
+	switch(type){
+		case INT: case FUNC: ht_item->value.ival = val; break;
+		case FLOAT: ht_item->value.dval = val; break;
+		case STRING: case NIL: case BOOL: case TYPE_NAME: ht_item->value.sval = val; break;
+	}
+
 	ht_item->type = type;
 	ht_item->frame = frame;
 	ht_item->isConst = isConst;
@@ -70,14 +81,14 @@ int htab_insert(htab_t *t, char *key, int val, int type, int frame, bool isConst
 }
 
 void htab_insert_default_functions(htab_t *htab){
-	htab_insert(htab, "inputs", 0, FUNC, 0, false, true, true);
-	htab_insert(htab, "inputi", 0, FUNC, 0, false, true, true);
-	htab_insert(htab, "inputf", 0, FUNC, 0, false, true, true);
-	htab_insert(htab, "len", 1, FUNC, 0, false, true, true);
-	htab_insert(htab, "substr", 3, FUNC, 0, false, true, true);
-	htab_insert(htab, "ord", 2, FUNC, 0, false, true, true);
-	htab_insert(htab, "chr", 1, FUNC, 0, false, true, true);
-	htab_insert(htab, "print", -2, FUNC, 0, false, true, true);
+	htab_insert(htab, "inputs", &zero, FUNC, 0, false, true, true);
+	htab_insert(htab, "inputi", &zero, FUNC, 0, false, true, true);
+	htab_insert(htab, "inputf", &zero, FUNC, 0, false, true, true);
+	htab_insert(htab, "len", &one, FUNC, 0, false, true, true);
+	htab_insert(htab, "substr", &three, FUNC, 0, false, true, true);
+	htab_insert(htab, "ord", &two, FUNC, 0, false, true, true);
+	htab_insert(htab, "chr", &one, FUNC, 0, false, true, true);
+	htab_insert(htab, "print", &minus_two, FUNC, 0, false, true, true);
 }
 
 unsigned int htab_hash_function(char *str) {
