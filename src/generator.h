@@ -3,12 +3,9 @@
 
 #include "symtable.h"
 
-//#define str(x) #x
-//#define INSTR_TO_STR(x) str(x)
-
 /********************* LIST INŠTRUKCIÍ *********************/
 typedef struct InstrPar{
-	int value;
+	tValue value;
 	char* key;
 	int type;
 	int frame;	
@@ -96,13 +93,6 @@ int Active(tList* list);
 //void InstrInit(tInstr* instr, enum INSTR_ENUM instr_enum);
 
 /*********************** INŠTRUKCIE ************************/
-
-/*typedef union value {
-	int ival;
-	float fval;
-	double dval;
-	char* cval;
-} tValue;*/
 
 #define INSTR(x) \
         x(MOVE)			/* <var> <symb> */				\
@@ -218,12 +208,12 @@ void generate_save_return_value(tList* list, htab_item_t* var);
 // a následne odkazy do hash table na jednotlivé argumenty
 void generate_func_call(tList* list, htab_item_t* label, unsigned count, ...);
 
-/*******************************************************/
-/************************ END **************************/
-/*******************************************************/
-
 // volá sa na záver
 // vypíše všetky nagenerované inštrukcie na výstup
 void printInstructions(tList* list);
+
+/*******************************************************/
+/************************ END **************************/
+/*******************************************************/
 
 #endif // __GENERATOR_H__
