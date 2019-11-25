@@ -181,6 +181,10 @@ void generate_substr(tList* list);
 /********************  GENEROVANIE  ********************/
 /*******************************************************/
 
+// vracia ukazateľ do tabuľky symbolov na konštantu s názvom name
+// ak už existuje, nájde ju a vráti. Ak nie, vľoží ju do tabuľky
+htab_item_t* make_const(char* name, int type);
+
 // pridá inštrukciu do listu, predanú cez enum, následuje počet parametrov 
 // a parametre cez htab_item_t*
 void generate_instr(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned count, ...);
