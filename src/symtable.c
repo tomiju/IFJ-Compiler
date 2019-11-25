@@ -3,12 +3,6 @@
 #include <stdio.h>
 #include "errors.h"
 
-int zero = 0;
-int one = 1;
-int two = 2;
-int three = 3;
-int minus_two = -2;
-
 htab_item_t* htab_find(htab_t *t, char *key){
 	unsigned idx = htab_hash_function(key);
 
@@ -45,12 +39,6 @@ int htab_insert(htab_t *t, char *key, int type, int frame, bool isConst, bool is
 	}
 
 	unsigned idx = htab_hash_function(key);
-
-	/*switch(type){
-		case INT: case FUNC: ht_item->value.ival = val; break;
-		case FLOAT: ht_item->value.dval = val; break;
-		case STRING: case NIL: case BOOL: case TYPE_NAME: ht_item->value.sval = val; break;
-	}*/
 
 	ht_item->type = type;
 	ht_item->frame = frame;
