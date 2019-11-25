@@ -17,11 +17,13 @@
 #include "parser.h"
 #include "expression.h"
 #include "symtable.h"
+#include "generator.h"
 
 int currentLine = 1;
 int inFunDef = 0;
 int inFunDefHead = 0;
 int paramCount = 0;
+tList* list;
 
 void unreviewVariables(htab_t* table){
     htab_item_t* item;
@@ -73,6 +75,7 @@ int checkCompleteDefinition(htab_item_t* func){
 int param(){
     fprintf(stderr,"param\n");
     htab_item_t* identifier;
+    htab_item_t* constValue;
     int result;
     paramCount +=1;
     if(inFunDefHead){
@@ -120,10 +123,23 @@ int param(){
             result = getToken(&token_ptr, &indent_stack );
             return result;
         break;
-        case TOKEN_LEFT_BRACKET:
-        case TOKEN_INT: 
-        case TOKEN_DOUBLE: 
+        case TOKEN_INT:
+            constValue = make_const(token_ptr->dynamic_value,INT);
+            constValue->ival = token_ptr->number_value;
+            send_param(constValue);
+            result = getToken(&token_ptr, &indent_stack );
+            return result;
+
+        case TOKEN_DOUBLE:
+            constValue = make_const(token_ptr->dynamic_value,INT);
+            constValue->dval = token_ptr->number_value;
+            send_param(constValue);
+            result = getToken(&token_ptr, &indent_stack );
+            return result;
         case TOKEN_STRING:
+            constValue = make_const(token_ptr->dynamic_value,INT);
+            constValue->sval = token_ptr->dynamic_value;
+            send_param(constValue);
             result = getToken(&token_ptr, &indent_stack );
             return result;
         break;
@@ -272,6 +288,7 @@ int funcCall(){
 
     if(token_ptr->type != TOKEN_RIGHT_BRACKET)return SYNTAX_ERROR;
 
+    func_call(list,funcInTable);
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
 
@@ -825,6 +842,7 @@ int parse(){
     }
     localSymtable = NULL;
     
+    InitList(list);
 
     //get first token
     if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
@@ -835,11 +853,11 @@ int parse(){
 
     int result = program();
 
-
+    printInstructions(list);
     //cleaning
     destroyStack(&indent_stack);
     htab_free(globalSymtable);
-
+    DisposeList(list);
 
     return result;
 }
