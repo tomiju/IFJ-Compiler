@@ -72,26 +72,26 @@ void htab_insert_default_functions(htab_t *htab){
 	htab_item_t* inputs = htab_find(htab, "inputs");
 	inputs->ival = 0;
 	htab_insert(htab, "inputi", FUNC, 0, false, true, true);
-	htab_item_t* inputs = htab_find(htab, "inputs");
-	inputs->ival = 0;
+	htab_item_t* inputi = htab_find(htab, "inputi");
+	inputi->ival = 0;
 	htab_insert(htab, "inputf", FUNC, 0, false, true, true);
-	htab_item_t* inputs = htab_find(htab, "inputs");
-	inputs->ival = 0;
+	htab_item_t* inputf = htab_find(htab, "inputf");
+	inputf->ival = 0;
 	htab_insert(htab, "len", FUNC, 0, false, true, true);
-	htab_item_t* inputs = htab_find(htab, "inputs");
-	inputs->ival = 1;
+	htab_item_t* len = htab_find(htab, "len");
+	len->ival = 1;
 	htab_insert(htab, "substr", FUNC, 0, false, true, true);
-	htab_item_t* inputs = htab_find(htab, "inputs");
-	inputs->ival = 3;
+	htab_item_t* substr = htab_find(htab, "substr");
+	substr->ival = 3;
 	htab_insert(htab, "ord", FUNC, 0, false, true, true);
-	htab_item_t* inputs = htab_find(htab, "inputs");
-	inputs->ival = 2;
+	htab_item_t* ord = htab_find(htab, "ord");
+	ord->ival = 2;
 	htab_insert(htab, "chr", FUNC, 0, false, true, true);
-	htab_item_t* inputs = htab_find(htab, "inputs");
-	inputs->ival = 1;
+	htab_item_t* chr = htab_find(htab, "chr");
+	chr->ival = 1;
 	htab_insert(htab, "print", FUNC, 0, false, true, true);
-	htab_item_t* inputs = htab_find(htab, "inputs");
-	inputs->ival = -2;
+	htab_item_t* print = htab_find(htab, "print");
+	print->ival = -2;
 }
 
 unsigned int htab_hash_function(char *str) {
