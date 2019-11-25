@@ -23,7 +23,7 @@ int currentLine = 1;
 int inFunDef = 0;
 int inFunDefHead = 0;
 int paramCount = 0;
-tList* list;
+tList list;
 
 void unreviewVariables(htab_t* table){
     htab_item_t* item;
@@ -288,7 +288,7 @@ int funcCall(){
 
     if(token_ptr->type != TOKEN_RIGHT_BRACKET)return SYNTAX_ERROR;
 
-    func_call(list,funcInTable);
+    func_call(&list,funcInTable);
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
 
@@ -842,22 +842,23 @@ int parse(){
     }
     localSymtable = NULL;
     
-    InitList(list);
-
+    
+    
+    InitList(&list);
+    generator_start(&list);
     //get first token
     if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
-        fprintf(stderr,"line: %d\n",currentLine);
         return LEX_ERROR;
     }
     //TokenPTR firstToken = token_ptr;
 
     int result = program();
 
-    printInstructions(list);
+    printInstructions(&list);
     //cleaning
     destroyStack(&indent_stack);
     htab_free(globalSymtable);
-    DisposeList(list);
+    DisposeList(&list);
 
     return result;
 }
