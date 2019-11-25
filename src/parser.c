@@ -18,7 +18,6 @@
 #include "expression.h"
 #include "symtable.h"
 
-
 int currentLine = 1;
 int inFunDef = 0;
 int inFunDefHead = 0;
