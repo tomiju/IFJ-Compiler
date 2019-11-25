@@ -31,20 +31,7 @@ htab_item_t* htab_find(htab_t *t, char *key){
 	return NULL;
 }
 
-int htab_insert(htab_t *t, char *key, void* val, int type, int frame, bool isConst, bool isLabel, bool defined){
-	//htab_item_t* item = htab_find(t, key);
-	
-	// ak sa už nachádza v tabuľke, zmenia sa hodnoty
-	/*if(item != NULL){
-		item->value = val;
-		item->type = type;
-		item->frame = frame;
-		item->isConst = isConst;
-		item->isLabel = isLabel;
-		item->defined = defined;
-		return 0;
-	}*/
-
+int htab_insert(htab_t *t, char *key, int type, int frame, bool isConst, bool isLabel, bool defined){
 	htab_item_t *ht_item = malloc(sizeof(*ht_item));
 
 	if(ht_item == NULL){
@@ -59,11 +46,11 @@ int htab_insert(htab_t *t, char *key, void* val, int type, int frame, bool isCon
 
 	unsigned idx = htab_hash_function(key);
 
-	switch(type){
+	/*switch(type){
 		case INT: case FUNC: ht_item->value.ival = val; break;
 		case FLOAT: ht_item->value.dval = val; break;
 		case STRING: case NIL: case BOOL: case TYPE_NAME: ht_item->value.sval = val; break;
-	}
+	}*/
 
 	ht_item->type = type;
 	ht_item->frame = frame;
@@ -81,14 +68,30 @@ int htab_insert(htab_t *t, char *key, void* val, int type, int frame, bool isCon
 }
 
 void htab_insert_default_functions(htab_t *htab){
-	htab_insert(htab, "inputs", &zero, FUNC, 0, false, true, true);
-	htab_insert(htab, "inputi", &zero, FUNC, 0, false, true, true);
-	htab_insert(htab, "inputf", &zero, FUNC, 0, false, true, true);
-	htab_insert(htab, "len", &one, FUNC, 0, false, true, true);
-	htab_insert(htab, "substr", &three, FUNC, 0, false, true, true);
-	htab_insert(htab, "ord", &two, FUNC, 0, false, true, true);
-	htab_insert(htab, "chr", &one, FUNC, 0, false, true, true);
-	htab_insert(htab, "print", &minus_two, FUNC, 0, false, true, true);
+	htab_insert(htab, "inputs", FUNC, 0, false, true, true);
+	htab_item_t* inputs = htab_find(htab, "inputs");
+	inputs->ival = 0;
+	htab_insert(htab, "inputi", FUNC, 0, false, true, true);
+	htab_item_t* inputs = htab_find(htab, "inputs");
+	inputs->ival = 0;
+	htab_insert(htab, "inputf", FUNC, 0, false, true, true);
+	htab_item_t* inputs = htab_find(htab, "inputs");
+	inputs->ival = 0;
+	htab_insert(htab, "len", FUNC, 0, false, true, true);
+	htab_item_t* inputs = htab_find(htab, "inputs");
+	inputs->ival = 1;
+	htab_insert(htab, "substr", FUNC, 0, false, true, true);
+	htab_item_t* inputs = htab_find(htab, "inputs");
+	inputs->ival = 3;
+	htab_insert(htab, "ord", FUNC, 0, false, true, true);
+	htab_item_t* inputs = htab_find(htab, "inputs");
+	inputs->ival = 2;
+	htab_insert(htab, "chr", FUNC, 0, false, true, true);
+	htab_item_t* inputs = htab_find(htab, "inputs");
+	inputs->ival = 1;
+	htab_insert(htab, "print", FUNC, 0, false, true, true);
+	htab_item_t* inputs = htab_find(htab, "inputs");
+	inputs->ival = -2;
 }
 
 unsigned int htab_hash_function(char *str) {
