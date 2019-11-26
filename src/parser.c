@@ -131,13 +131,13 @@ int param(){
             return result;
 
         case TOKEN_DOUBLE:
-            constValue = make_const(token_ptr->dynamic_value,INT);
+            constValue = make_const(token_ptr->dynamic_value,FLOAT);
             constValue->dval = token_ptr->number_value;
             send_param(constValue);
             result = getToken(&token_ptr, &indent_stack );
             return result;
         case TOKEN_STRING:
-            constValue = make_const(token_ptr->dynamic_value,INT);
+            constValue = make_const(token_ptr->dynamic_value,STRING);
             constValue->sval = token_ptr->dynamic_value;
             send_param(constValue);
             result = getToken(&token_ptr, &indent_stack );
@@ -853,8 +853,8 @@ int parse(){
     //TokenPTR firstToken = token_ptr;
 
     int result = program();
-
-    printInstructions(&list);
+    //printing instruction is very dangerous prints many instructions
+    //printInstructions(&list);
     //cleaning
     destroyStack(&indent_stack);
     htab_free(globalSymtable);
