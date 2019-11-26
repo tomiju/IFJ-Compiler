@@ -1,3 +1,18 @@
+/**
+ * Předmět:  IFJ
+ * Projekt:  Implementace překladače imperativního jazyka IFJ19
+ * Varianta: Tým 018, varianta II
+ * Soubor:   generator.h
+ * 
+ *
+ * Datum:    xx.xx.xxxx
+ *
+ * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
+ *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
+ *           Tomáš Kantor    <xkanto14@stud.fit.vutbr.cz>
+ *           Lukáš Kuchta	 <xkucht09@stud.fit.vutbr.cz>
+ */
+
 #ifndef __GENERATOR_H__
 #define __GENERATOR_H__
 
@@ -92,7 +107,19 @@ void Pred(tList* list);
 // skontroluje, či má list aktívny prvok
 int Active(tList* list);
 
-//void InstrInit(tInstr* instr, enum INSTR_ENUM instr_enum);
+/************************** STACK **************************/
+typedef struct stack{
+	tNode* node;
+	struct stack* link;
+}tStack;
+
+tStack* initStack();
+
+void pushStack(tStack** stack, tNode* node);
+
+tNode* popStack(tStack** stack);
+
+void destroyStack(tStack* stack);
 
 /*********************** INŠTRUKCIE ************************/
 
@@ -185,6 +212,9 @@ void generate_substr(tList* list);
 // ak už existuje, nájde ju a vráti. Ak nie, vľoží ju do tabuľky
 htab_item_t* make_const(char* name, int type);
 
+// ak ešte neexistuje, vytvorí premennú a vygeneruje pre ňu inštrukciu
+htab_item_t* generate_var(tList* list, char* name, int type, int frame);
+
 // pridá inštrukciu do listu, predanú cez enum, následuje počet parametrov 
 // a parametre cez htab_item_t*
 void generate_instr(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned count, ...);
@@ -221,7 +251,29 @@ void func_call(tList* list, htab_item_t* func);
 // a následne odkazy do hash table na jednotlivé argumenty
 void generate_func_call(tList* list, htab_item_t* label, unsigned count, ...);
 
-// volá sa na záver
+// TODO
+void generate_condition(tList* list);
+
+// na začiatku while, po ňom sa vytvorí podmienka a telo cyklu
+void generate_while_start(tList* list);
+
+// na konci cyklu
+void generate_while_end(tList* list);
+
+// na začiatku 
+// vytovrí kostru pre if-else
+void start_if_else(tList* list);	
+
+// volá sa, keď sa ide generovať telo if-u
+void generate_if(tList* list);
+
+// volá sa, keď sa ide generovať telo else-u
+void generate_else(tList* list);
+
+// volá sa na konci po vygenerovaní else
+void end_if_else(tList* list);
+
+// volá sa na záver programu
 // vypíše všetky nagenerované inštrukcie na výstup
 void printInstructions(tList* list);
 
