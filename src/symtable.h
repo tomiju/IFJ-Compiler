@@ -28,11 +28,15 @@ struct htab{
 	struct htab_item* ptr[SIZE]; 
 };
 
+typedef union value {
+	int* ival;
+	double* dval;
+	char* sval;
+} tValue;
+
 // položky
 typedef struct htab_item {
-	int ival;
-	double dval;
-	char* sval;
+	tValue value;
 	char* key;
 	int type;
 	int frame;	
@@ -66,7 +70,7 @@ htab_item_t* htab_find(htab_t *t, char *key);
 // typom, príznakom isConst a isLabel a defined
 // ak sa nachádza, zmení jeho hodnoty
 // pri úspechu vracia 0, pri chybe INTERNAL_ERROR
-int htab_insert(htab_t *t, char *key, int type, int frame, bool isConst, bool isLabel, bool defined);
+int htab_insert(htab_t *t, char *key, void* val, int type, int frame, bool isConst, bool isLabel, bool defined);
 
 // vyčistí tabuľku (tabuľka je po vykonaní prázdna)
 void htab_clear(htab_t * t);	
