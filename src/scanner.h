@@ -191,7 +191,7 @@ int updateDynamicString(char currentChar, TokenPTR token);
 /**
  * Funkce pro převod číselné hodnoty z "char" do int
 **/
-void ProcessCharToNumber(TokenPTR token);
+void computeNumberWithExponent(TokenPTR token);
 
 /**
  * Funkce, která zkontroluje, zda identifikátor není klíčovým slovem

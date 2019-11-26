@@ -155,7 +155,7 @@ int updateDynamicString(char currentChar, TokenPTR token)
 	return 0;
 }*/
 
-void ProcessCharToNumber(TokenPTR token)
+void computeNumberWithExponent(TokenPTR token)
 {
 	token->number_value = (atof(token->dynamic_value));
 }
@@ -219,7 +219,6 @@ void debugToken(TokenPTR* token, iStack* indent_stack)
     printf("type: %s\n",typeNames[(*token)->type] );
     printf("indent stack top: %d\n", (*indent_stack)->value );
     printf("indent stack level: %d\n", (*indent_stack)->level );
-    //printf("number value: %f", (*token)->number_value);
 }
 
 int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
@@ -834,14 +833,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				else if (isalpha(currentChar))
 				{
 					newToken->type = TOKEN_INT;
-					ProcessCharToNumber(newToken);
 					ungetc(currentChar, source_f);
 					return TOKEN_OK;
 				}
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
 				{
 					newToken->type = TOKEN_INT;
-					ProcessCharToNumber(newToken);
 					ungetc(currentChar, source_f);
 					return TOKEN_OK;
 				}
@@ -873,14 +870,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar == '\f')
 				{
 					newToken->type = TOKEN_DOUBLE;
-					ProcessCharToNumber(newToken);
 					ungetc(currentChar, source_f);
 					return TOKEN_OK;
 				}
 				else if (!isdigit(currentChar))
 				{
 					newToken->type = TOKEN_DOUBLE;
-					ProcessCharToNumber(newToken);
 					ungetc(currentChar, source_f);
 					return TOKEN_OK;
 				}
@@ -915,7 +910,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					newToken->type = TOKEN_DOUBLE;
 					ungetc(currentChar, source_f);
-					ProcessCharToNumber(newToken);
+					computeNumberWithExponent(newToken);
 					return TOKEN_OK;
 				}
 			break;
