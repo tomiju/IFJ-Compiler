@@ -5,7 +5,9 @@
 
 /********************* LIST INŠTRUKCIÍ *********************/
 typedef struct InstrPar{
-	tValue value;
+	int ival;
+	double dval;
+	char* sval;
 	char* key;
 	int type;
 	int frame;	
@@ -179,6 +181,10 @@ void generate_substr(tList* list);
 /********************  GENEROVANIE  ********************/
 /*******************************************************/
 
+// vracia ukazateľ do tabuľky symbolov na konštantu s názvom name
+// ak už existuje, nájde ju a vráti. Ak nie, vľoží ju do tabuľky
+htab_item_t* make_const(char* name, int type);
+
 // pridá inštrukciu do listu, predanú cez enum, následuje počet parametrov 
 // a parametre cez htab_item_t*
 void generate_instr(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned count, ...);
@@ -201,6 +207,13 @@ void generate_func_end(tList* list);
 
 // výsledok funkcie uloží do premmenej var
 void generate_save_return_value(tList* list, htab_item_t* var);
+
+// pošle parameter do funkcie pred jej zavolaním
+void send_param(htab_item_t* par);
+
+// zastaví posielanie parametrov, predá sa funkcia
+// vygeneruje sa jej volanie zo zadanými parametrami
+void func_call(tList* list, htab_item_t* func);
 
 // nageneruje volanie funkcie
 // vytvorí rámec a na ňom predá parametre do funkcie, zavolá funckiu
