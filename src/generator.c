@@ -542,9 +542,9 @@ htab_item_t* get_param_tf(unsigned idx){
 	return param;
 }
 
-/*void generate_condition(tList* list){
-	
-}*/
+void generate_condition(tList* list){
+	SetActive(list, if_condition);	
+}
 
 void start_if_else(tList* list){
 	get_if_bool(list);
@@ -639,20 +639,36 @@ void func_call(tList* list, htab_item_t* func){
 	htab_item_t* param;
 	htab_item_t* val_to_copy;
 
-	generate_instr(list, CREATEFRAME, 0);
+	if(strcmp(func->key, "print") == 0){
+		for(unsigned i = 0; i < param_idx; i++){
+			generate_instr(list, CREATEFRAME, 0);
 
-	for(unsigned i = 0; i < param_idx; i++){
-		val_to_copy = params[i];
-		param = get_param_tf(i);
+			val_to_copy = params[i];
+			param = get_param_tf(0);
 
-		generate_instr(list, DEFVAR, 1, param);
-		generate_instr(list, MOVE, 2, param, val_to_copy);
+			generate_instr(list, DEFVAR, 1, param);
+			generate_instr(list, MOVE, 2, param, val_to_copy);
+
+			generate_instr(list, CALL, 1, func);
+		}
+		par_count = 0;
+		param_idx = 0;
+	} else {
+		generate_instr(list, CREATEFRAME, 0);
+
+		for(unsigned i = 0; i < param_idx; i++){
+			val_to_copy = params[i];
+			param = get_param_tf(i);
+
+			generate_instr(list, DEFVAR, 1, param);
+			generate_instr(list, MOVE, 2, param, val_to_copy);
+		}
+
+		generate_instr(list, CALL, 1, func);
+
+		par_count = param_idx;
+		param_idx = 0;
 	}
-
-	generate_instr(list, CALL, 1, func);
-
-	par_count = param_idx;
-	param_idx = 0;
 }
 
 void generate_func_call(tList* list, htab_item_t* label, unsigned count, ...){
@@ -684,14 +700,14 @@ void generate_inputs(tList* list){
 	htab_item_t* func = htab_find(htab_built_in, "inputs");
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
 	htab_item_t* string_label = htab_find(htab_built_in, "string");
-	htab_item_t* label_len = htab_find(htab_built_in, "len");
-	htab_item_t* label_substr = htab_find(htab_built_in, "substr");
+	//htab_item_t* label_len = htab_find(htab_built_in, "len");
+	//htab_item_t* label_substr = htab_find(htab_built_in, "substr");
 
 	generate_func_start(list, func);
 	
 	generate_instr(list, READ, 2, retval, string_label);
 	
-	htab_item_t* dlzka = generate_var(list, "dlzka", INT, LF);
+	/*htab_item_t* dlzka = generate_var(list, "dlzka", INT, LF);
 
 	generate_func_call(list, label_len, 1, retval);
 	generate_save_return_value(list, dlzka);
@@ -703,7 +719,7 @@ void generate_inputs(tList* list){
 	con = make_const("zero", INT);
 	con->ival = 0;
 	generate_func_call(list, label_substr, 3, retval, con, dlzka);
-	generate_save_return_value(list, retval);
+	generate_save_return_value(list, retval);*/
 
 	generate_func_end(list);
 }
@@ -837,18 +853,15 @@ void generate_substr(tList* list){
 }
 
 void generate_print(tList* list){
-	/*htab_item_t* func = htab_find(htab_built_in, "print");
-	htab_item_t* retval = htab_find(htab_built_in, "%retval");	// vrací None
+	htab_item_t* func = htab_find(htab_built_in, "print");
 	
 	generate_func_start(list, func);
 	
-	for(unsigned i = 0; i < par_count; i++){
-		htab_item_t* param = get_param()
-	}
-	//generate_instr(list, INT2CHAR, 2, retval, get_param(0));
-	
+	htab_item_t* param = get_param(0);
 
-	generate_func_end(list);*/
+	generate_instr(list, WRITE, 1, param);
+
+	generate_func_end(list);
 }
 
 /*********************** INŠTRUKCIE ************************/
