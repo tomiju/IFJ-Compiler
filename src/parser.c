@@ -100,7 +100,6 @@ int checkAllDefinitions(htab_t* table){
         }
     }
     return 1;
-
 }
 
 int param(){
@@ -112,6 +111,9 @@ int param(){
     if(inFunDefHead){
         if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
         if(htab_insert(localSymtable,token_ptr->dynamic_value,UNKNOWN,LF,0,0,1) == INTERNAL_ERROR)return INTERNAL_ERROR;
+
+        generate_instr(&list, DEFVAR,1,localSymtable);
+        generate_instr(&list,MOVE,2,localSymtable,get_param(paramCount-1));
 
         result = getToken(&token_ptr, &indent_stack );
         return result;
@@ -125,7 +127,7 @@ int param(){
                 identifier = htab_find(localSymtable,token_ptr->dynamic_value);
                 if(identifier != NULL){
                     if(identifier->type == FUNC){
-                        fprintf(stderr,"%s already used as func call\n",token_ptr->dynamic_value);
+                        fprintf(stderr,"%s already used as function call\n",token_ptr->dynamic_value);
                         return SEMANTIC_UNDEF_VALUE_ERROR;
                     }
                 }else{
@@ -135,7 +137,7 @@ int param(){
                         return SEMANTIC_UNDEF_VALUE_ERROR;
                     }
                      if(identifier->type == FUNC){
-                        fprintf(stderr,"%s is function call\n",token_ptr->dynamic_value);
+                        fprintf(stderr,"%s is function\n",token_ptr->dynamic_value);
                         return SEMANTIC_UNDEF_VALUE_ERROR;
                     }
 
@@ -150,7 +152,9 @@ int param(){
                     fprintf(stderr,"Cant use function %s in param\n",token_ptr->dynamic_value);
                     return SEMANTIC_UNDEF_VALUE_ERROR;
                 }
+                
             }
+            send_param(identifier);
             result = getToken(&token_ptr, &indent_stack );
             return result;
         break;
@@ -331,6 +335,7 @@ int assignment(){
     TokenPTR next_token;
     int result;
     TokenTYPE expressionType = UNKNOWN;
+    int created = 0;
     //pravidlo id = neco
 
     if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
@@ -343,6 +348,7 @@ int assignment(){
         varInLocalTable = htab_find(localSymtable,token_ptr->dynamic_value);
         if(varInGlobalTable == NULL && varInLocalTable == NULL){
             htab_insert(localSymtable, token_ptr->dynamic_value,expressionType,LF,0,0,1);
+            created = 1;
             varInLocalTable = htab_find(localSymtable,token_ptr->dynamic_value);
             if(varInLocalTable == NULL)return INTERNAL_ERROR;
         }else if(varInGlobalTable != NULL && varInLocalTable == NULL){
@@ -355,6 +361,7 @@ int assignment(){
                 return SEMANTIC_UNDEF_VALUE_ERROR;
             }
             htab_insert(localSymtable, token_ptr->dynamic_value, expressionType,LF,0,0,1);
+            created = 1;
             varInLocalTable = htab_find(localSymtable,token_ptr->dynamic_value);
             if(varInLocalTable == NULL)return INTERNAL_ERROR;      
         }else if(varInGlobalTable == NULL && varInLocalTable != NULL){
@@ -371,15 +378,12 @@ int assignment(){
             }
         }else{
             htab_insert(globalSymtable, token_ptr->dynamic_value, expressionType,GF,0,0,1);
+            created = 1;
             varInGlobalTable = htab_find(globalSymtable,token_ptr->dynamic_value);
             if(varInGlobalTable == NULL)return INTERNAL_ERROR;
         }
     }
     
-    
-
-    
-
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
     
@@ -399,8 +403,10 @@ int assignment(){
         }
         if(inFunDef){
             varInLocalTable->type = expressionType;
+            if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
         }else{
             varInGlobalTable->type = expressionType;
+             if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
         }
         return result;
     }else{
@@ -411,8 +417,12 @@ int assignment(){
             result = funcCall();
             if(inFunDef){
                 varInLocalTable->type = UNKNOWN;
+                if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
+                generate_save_return_value(&list, varInLocalTable);
             }else{
                 varInGlobalTable->type = UNKNOWN;
+                if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
+                generate_save_return_value(&list, varInGlobalTable);
             }
             return result;
         }else{
@@ -425,8 +435,10 @@ int assignment(){
             }
             if(inFunDef){
                 varInLocalTable->type = expressionType;
+                 if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
             }else{
                 varInGlobalTable->type = expressionType;
+                 if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
             }
             return result;
         }
@@ -730,6 +742,8 @@ int funcDef(){
         localSymtable = func->local_vars;
 
 
+    generate_func_start(&list, func);
+
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
 
@@ -791,6 +805,8 @@ int funcDef(){
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;   
+
+    generate_func_end(&list);
 
     inFunDef = 0;
     localSymtable = NULL;
