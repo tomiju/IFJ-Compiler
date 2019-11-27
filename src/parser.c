@@ -25,6 +25,8 @@ int inFunDefHead = 0;
 int paramCount = 0;
 tList list;
 
+
+
 void unreviewVariables(htab_t* table){
     htab_item_t* item;
     for(int i = 0; i < SIZE; i++){
@@ -40,7 +42,10 @@ void unreviewVariables(htab_t* table){
 }
 
 int checkCompleteDefinition(htab_item_t* func){
-    if(func->defined == 0)return 0;
+    if(func->defined == 0){
+        fprintf(stderr,"Function %s not defined\n",func->key);
+        return 0;
+    }
     if(func->reviewed == 1)return 1;
     func->reviewed = 1;
 
@@ -70,6 +75,32 @@ int checkCompleteDefinition(htab_item_t* func){
     }
 
     return 1;
+}
+
+int checkAllDefinitions(htab_t* table){
+    
+    htab_item_t* func;
+    //fprintf(stderr,"here %s\n", func->key);
+
+    for(int i = 0; i < SIZE; i++){
+        func =  table->ptr[i];
+        while(func != NULL){
+            if(func->type == FUNC){
+                if(func == NULL){
+                    fprintf(stderr,"function %s not defind\n",func->key);
+                    return 0;
+                }
+                if(func->type != FUNC){
+                    fprintf(stderr,"%s not function\n",func->key);
+                }
+                if(checkCompleteDefinition(func) == 0)return 0;
+            }
+            
+            func = func->next;
+        }
+    }
+    return 1;
+
 }
 
 int param(){
@@ -361,6 +392,11 @@ int assignment(){
 
     if(token_ptr->type != TOKEN_IDENTIFIER){
         result = expression(&expressionType);
+        fprintf(stderr,"Type: %d\n",expressionType);
+        if(expressionType == BOOL){
+            fprintf(stderr,"Cant assign bool to variable\n");
+            return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
+        }
         if(inFunDef){
             varInLocalTable->type = expressionType;
         }else{
@@ -382,6 +418,11 @@ int assignment(){
         }else{
             //prirazujeme vyraz
             result = expression(&expressionType);
+            
+            if(expressionType == BOOL){
+                fprintf(stderr,"Cant assign bool to variable\n");
+                return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
+            }
             if(inFunDef){
                 varInLocalTable->type = expressionType;
             }else{
@@ -790,7 +831,10 @@ int program(){
     switch(token_ptr->type){
         //pravidlo:     Program -> eof
         case TOKEN_EOF:
-            return TOKEN_OK;
+            if(checkAllDefinitions(globalSymtable)){
+                return TOKEN_OK;
+            }
+            return SEMANTIC_UNDEF_VALUE_ERROR;
         break;
 
         //pravidlo:     Program -> StatList Program
@@ -853,6 +897,7 @@ int parse(){
     //TokenPTR firstToken = token_ptr;
 
     int result = program();
+
     //printing instruction is very dangerous prints many instructions
     //printInstructions(&list);
     //cleaning
