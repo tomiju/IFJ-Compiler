@@ -518,6 +518,9 @@ int stat(){
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
 
+            generate_while_start(&list);
+            
+
             result = expression(&expressionType);
             if(result != TOKEN_OK)return result;
                      
@@ -544,6 +547,7 @@ int stat(){
 
             if(token_ptr->type != TOKEN_DEDENT)return SYNTAX_ERROR;
 
+            generate_while_end(&list);
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
         
@@ -556,6 +560,10 @@ int stat(){
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
+
+            start_if_else(&list);
+            //TODO
+            //generate_condition(&list);
 
             result = expression(&expressionType);
             if(result != TOKEN_OK)return result;
@@ -574,6 +582,8 @@ int stat(){
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
+
+            generate_if(&list);
 
             result = stat();
             if(result != TOKEN_OK)return result;
@@ -606,7 +616,9 @@ int stat(){
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
-            
+
+            generate_else(&list);
+
             result = stat();
             if(result != TOKEN_OK)return result;
             
@@ -614,6 +626,8 @@ int stat(){
             if(result != TOKEN_OK)return result;
 
             if(token_ptr->type != TOKEN_DEDENT)return SYNTAX_ERROR;
+
+            end_if_else(&list);
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
