@@ -305,7 +305,7 @@ void InstrSetParam(tInstrPar** param, htab_item_t* htab_instr){
 }
 
 /************************** STACK **************************/
-void pushStack(tStack** stack, tNode* node){
+void tPushStack(tStack** stack, tNode* node){
 	tStack* temp = malloc(sizeof(struct stack)); 
 
 	temp->node = node;
@@ -314,7 +314,7 @@ void pushStack(tStack** stack, tNode* node){
 	*stack = temp;
 }
 
-tNode* popStack(tStack** stack){
+tNode* tPopStack(tStack** stack){
 	tStack* temp;
 
 	temp = *stack;
@@ -332,7 +332,7 @@ tNode* popStack(tStack** stack){
     
     while (temp->node != NULL)
     {
-        popStack(stack);
+        tPopStack(stack);
 
         temp = temp->link;
     }
@@ -553,30 +553,30 @@ void start_if_else(tList* list){
 
 	generate_instr(list, LABEL, 1, get_if_label());
 
-	pushStack(&if_nodes, list->active);
+	tPushStack(&if_nodes, list->active);
 
 	generate_instr(list, JUMP, 1, get_if_end());
 	generate_instr(list, LABEL, 1, get_else_label());
 
-	pushStack(&else_nodes, list->active);
+	tPushStack(&else_nodes, list->active);
 
 	generate_instr(list, LABEL, 1, get_if_end());
 
-	pushStack(&if_else_end_nodes, list->active);
+	tPushStack(&if_else_end_nodes, list->active);
 
 	if_label_idx++;
 }	
 
 void generate_if(tList* list){
-	SetActive(list, popStack(&if_nodes));
+	SetActive(list, tPopStack(&if_nodes));
 }
 
 void generate_else(tList* list){
-	SetActive(list, popStack(&else_nodes));
+	SetActive(list, tPopStack(&else_nodes));
 }
 
 void end_if_else(tList* list){
-	SetActive(list, popStack(&if_else_end_nodes));
+	SetActive(list, tPopStack(&if_else_end_nodes));
 }	
 
 void generate_while_start(tList* list){
@@ -589,14 +589,14 @@ void generate_while_start(tList* list){
 	generate_instr(list, JUMP, 1, get_while_label());
 	generate_instr(list, LABEL, 1, get_while_end());
 
-	pushStack(&while_nodes, list->active);
+	tPushStack(&while_nodes, list->active);
 
 	SetActive(list, node);
 	while_label_idx++;
 }	
 
 void generate_while_end(tList* list){
-	SetActive(list, popStack(&while_nodes));
+	SetActive(list, tPopStack(&while_nodes));
 }
 
 void generate_return_variable(tList* list_instr){

@@ -113,13 +113,9 @@ typedef struct stack{
 	struct stack* link;
 }tStack;
 
-tStack* initStack();
+void tPushStack(tStack** stack, tNode* node);
 
-void pushStack(tStack** stack, tNode* node);
-
-tNode* popStack(tStack** stack);
-
-void destroyStack(tStack* stack);
+tNode* tPopStack(tStack** stack);
 
 /*********************** INŠTRUKCIE ************************/
 
