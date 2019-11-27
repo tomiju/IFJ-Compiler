@@ -27,7 +27,7 @@ htab_t* htab_tf;
 tNode* main_func_node;
 tNode* if_condition;
 
-tNode* aaaa;
+tNode* before_while = NULL;
 
 tStack* while_nodes = NULL;
 tStack* if_nodes = NULL;
@@ -436,7 +436,7 @@ htab_item_t* get_param(unsigned idx){
 	return param;
 }
 
-htab_item_t* get_while_cond(tList* list){
+htab_item_t* get_while_cond(){
 	char cond_string[7] = "cond";
 
 	char idx_string[3];
@@ -444,7 +444,15 @@ htab_item_t* get_while_cond(tList* list){
 
 	strcat(cond_string, idx_string);
 
-	return generate_var(list, cond_string, BOOL, GF);
+	htab_item_t* item = htab_find(htab_built_in, cond_string);
+
+	if(item == NULL){
+		htab_insert(htab_built_in, cond_string, BOOL, GF, false, false, true);
+		return htab_find(htab_built_in, cond_string);
+	}
+
+	return item;
+	//return generate_var(list, cond_string, BOOL, GF);
 }
 
 htab_item_t* get_while_end(){
@@ -579,9 +587,28 @@ void end_if_else(tList* list){
 	SetActive(list, tPopStack(&if_else_end_nodes));
 }	
 
+void generate_before_whiles(tList* list, htab_item_t* item){
+	tNode* temp = list->active;
+
+	if(before_while != NULL){
+		SetActive(list, before_while);
+	}
+
+	generate_instr(list, DEFVAR, 1, item);
+	
+	if(before_while != NULL){
+		SetActive(list, temp);
+		before_while = before_while->next;
+	}
+}
+
 void generate_while_start(tList* list){
-	//htab_item_t* podmienka = get_while_cond(list);
-	get_while_cond(list);
+	generate_before_whiles(list, get_while_cond());
+
+	if(before_while == NULL){
+		before_while = list->active;
+	}
+
 	generate_instr(list, LABEL, 1, get_while_label());
 
 	tNode* node = list->active;
@@ -597,6 +624,10 @@ void generate_while_start(tList* list){
 
 void generate_while_end(tList* list){
 	SetActive(list, tPopStack(&while_nodes));
+
+	if(while_nodes == NULL){
+		before_while = NULL;
+	}
 }
 
 void generate_return_variable(tList* list_instr){

@@ -250,6 +250,13 @@ void generate_func_call(tList* list, htab_item_t* label, unsigned count, ...);
 // TODO
 void generate_condition(tList* list);
 
+// vráti premennú pre podmienku aktuálne spracovávaného cyklu
+void htab_item_t* get_while_cond();
+
+// if there is declaration inside while, call this function
+// to generate var item before while
+void generate_before_whiles(tList* list, htab_item_t* item);
+
 // na začiatku while, po ňom sa vytvorí podmienka a telo cyklu
 void generate_while_start(tList* list);
 
