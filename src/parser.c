@@ -43,7 +43,7 @@ void unreviewVariables(htab_t* table){
 }
 
 int checkCompleteDefinition(htab_item_t* func){
-    fprintf(stderr,"here %s\n", func->key);
+    //fprintf(stderr,"here %s\n", func->key);
     if(func->defined == 0){
         fprintf(stderr,"Function %s not defined\n",func->key);
         return 0;
@@ -61,8 +61,8 @@ int checkCompleteDefinition(htab_item_t* func){
     for(int i = 0; i < SIZE; i++){
         call =  funcCalls->ptr[i];
         while(call != NULL){
-            fprintf(stderr,"call %s\n", call->key);
-            fprintf(stderr,"call type%d\n", call->type);
+            //fprintf(stderr,"call %s\n", call->key);
+            //fprintf(stderr,"call type%d\n", call->type);
             if(call->type == FUNC){
                 
                 def = htab_find(globalSymtable,call->key);
@@ -121,8 +121,8 @@ int param(){
         if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
         if(htab_insert(localSymtable,token_ptr->dynamic_value,UNKNOWN,LF,0,0,1) == INTERNAL_ERROR)return INTERNAL_ERROR;
         identifier = htab_find(localSymtable,token_ptr->dynamic_value);
-        fprintf(stderr,"NAME::%s\n",identifier->key);
-        fprintf(stderr,"TYPE::%d\n",identifier->type);
+        //fprintf(stderr,"NAME::%s\n",identifier->key);
+        //fprintf(stderr,"TYPE::%d\n",identifier->type);
         generate_instr(&list, DEFVAR,1,localSymtable);
         generate_instr(&list,MOVE,2,localSymtable,get_param(paramCount-1));
 
@@ -523,7 +523,7 @@ int stat(){
         case TOKEN_DOUBLE: 
         case TOKEN_STRING: 
             result = expression(&expressionType);
-            fprintf(stderr,"result: %d\n",result);
+            //fprintf(stderr,"result: %d\n",result);
             if(result != TOKEN_OK)return result;
 
             if(token_ptr->type == TOKEN_DEDENT)return result;
@@ -771,7 +771,7 @@ int funcDef(){
     result = paramList();
     if(result != TOKEN_OK)return result;
 
-    fprintf(stderr,"Param count: %d\n",paramCount);
+    //fprintf(stderr,"Param count: %d\n",paramCount);
     
         
     if(alreadyCalled){
