@@ -23,6 +23,7 @@ int currentLine = 1;
 int inFunDef = 0;
 int inFunDefHead = 0;
 int paramCount = 0;
+int numberOfWhiles = 0;
 tList list;
 
 
@@ -48,7 +49,7 @@ int checkCompleteDefinition(htab_item_t* func){
     }
     if(func->reviewed == 1)return 1;
     func->reviewed = 1;
-
+    
     htab_t *funcCalls = func->local_vars;
     if(funcCalls == NULL)return 1;
     htab_item_t* call;
@@ -58,6 +59,8 @@ int checkCompleteDefinition(htab_item_t* func){
     for(int i = 0; i < SIZE; i++){
         call =  funcCalls->ptr[i];
         while(call != NULL){
+            //fprintf(stderr,"call %s\n", call->key);
+            //fprintf(stderr,"call type%d\n", call->type);
             if(call->type == FUNC){
                 def = htab_find(globalSymtable,call->key);
                 if(def == NULL){
@@ -111,7 +114,9 @@ int param(){
     if(inFunDefHead){
         if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
         if(htab_insert(localSymtable,token_ptr->dynamic_value,UNKNOWN,LF,0,0,1) == INTERNAL_ERROR)return INTERNAL_ERROR;
-
+        identifier = htab_find(localSymtable,token_ptr->dynamic_value);
+        fprintf(stderr,"NAME::%s\n",identifier->key);
+        fprintf(stderr,"TYPE::%d\n",identifier->type);
         generate_instr(&list, DEFVAR,1,localSymtable);
         generate_instr(&list,MOVE,2,localSymtable,get_param(paramCount-1));
 
@@ -201,7 +206,7 @@ int paramList2(){
     //pravidlo paramList2 -> , param paramList2
     case TOKEN_COMMA:
         if(token_ptr->type != TOKEN_COMMA)return SYNTAX_ERROR;
-
+        
         result = getToken(&token_ptr, &indent_stack );
         if(result != TOKEN_OK)return result;
 
@@ -217,7 +222,7 @@ int paramList2(){
     default:
     break;
     }
-
+    
     return SYNTAX_ERROR;
 }
 
@@ -275,8 +280,9 @@ int funcCall(){
 
     result = paramList();
     if(result != TOKEN_OK)return result;
-
+    
     if(inFunDef == 0){
+        
         if(funcInTable == NULL){
             fprintf(stderr,"Not defined %s\n",funcName->dynamic_value);
             return SEMANTIC_UNDEF_VALUE_ERROR;
@@ -285,8 +291,9 @@ int funcCall(){
             fprintf(stderr,"Not function %s\n",funcName->dynamic_value);
             return SEMANTIC_UNDEF_VALUE_ERROR;
         }
+        
         if(checkCompleteDefinition(funcInTable) == 0){
-            fprintf(stderr,"Not completely defined %s\n",funcName->dynamic_value);
+            fprintf(stderr,"Not completely defined %s\n",funcName->dynamic_value);         
             return SEMANTIC_UNDEF_VALUE_ERROR;
         }
     }else{
@@ -396,17 +403,31 @@ int assignment(){
 
     if(token_ptr->type != TOKEN_IDENTIFIER){
         result = expression(&expressionType);
-        fprintf(stderr,"Type: %d\n",expressionType);
+        //fprintf(stderr,"Type: %d\n",expressionType);
         if(expressionType == BOOL){
             fprintf(stderr,"Cant assign bool to variable\n");
             return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
         }
         if(inFunDef){
             varInLocalTable->type = expressionType;
-            if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
+
+            if(created){
+                if(numberOfWhiles){
+                    generate_before_whiles(&list, varInLocalTable);
+                }else{
+                    generate_instr(&list, DEFVAR,1,varInLocalTable);
+                }
+            }
+            
         }else{
             varInGlobalTable->type = expressionType;
-             if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
+            if(created){
+                if(numberOfWhiles){
+                    generate_before_whiles(&list, varInGlobalTable);
+                }else{
+                    generate_instr(&list, DEFVAR,1,varInGlobalTable);
+                }
+            }
         }
         return result;
     }else{
@@ -417,11 +438,23 @@ int assignment(){
             result = funcCall();
             if(inFunDef){
                 varInLocalTable->type = UNKNOWN;
-                if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
+                if(created){
+                    if(numberOfWhiles){
+                        generate_before_whiles(&list, varInLocalTable);
+                    }else{
+                        generate_instr(&list, DEFVAR,1,varInLocalTable);
+                    }
+                }
                 generate_save_return_value(&list, varInLocalTable);
             }else{
                 varInGlobalTable->type = UNKNOWN;
-                if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
+                if(created){
+                    if(numberOfWhiles){
+                        generate_before_whiles(&list, varInGlobalTable);
+                    }else{
+                        generate_instr(&list, DEFVAR,1,varInGlobalTable);
+                    }
+                }
                 generate_save_return_value(&list, varInGlobalTable);
             }
             return result;
@@ -435,10 +468,22 @@ int assignment(){
             }
             if(inFunDef){
                 varInLocalTable->type = expressionType;
-                 if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
+                 if(created){
+                    if(numberOfWhiles){
+                        generate_before_whiles(&list, varInLocalTable);
+                    }else{
+                        generate_instr(&list, DEFVAR,1,varInLocalTable);
+                    }
+                }
             }else{
                 varInGlobalTable->type = expressionType;
-                 if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
+                if(created){
+                    if(numberOfWhiles){
+                        generate_before_whiles(&list, varInGlobalTable);
+                    }else{
+                        generate_instr(&list, DEFVAR,1,varInGlobalTable);
+                    }
+                }
             }
             return result;
         }
@@ -525,6 +570,7 @@ int stat(){
         //pravidlo: Stat -> while (Expression) : eol indent Stat StatList dedent
         case KEYWORD_WHILE:
             fprintf(stderr,"while\n");
+            numberOfWhiles += 1;
             if(token_ptr->type != KEYWORD_WHILE)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
@@ -562,7 +608,9 @@ int stat(){
             generate_while_end(&list);
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
-        
+
+            numberOfWhiles -= 1;
+
             return result;
         break;
         //pravidlo stat -> if expression : eol dedent stat statList indent else : dedent stat statList indent
