@@ -1,3 +1,18 @@
+/**
+ * Předmět:  IFJ
+ * Projekt:  Implementace překladače imperativního jazyka IFJ19
+ * Varianta: Tým 018, varianta II
+ * Soubor:   symtable.h
+ *
+ *
+ * Datum:    xx.xx.xxxx
+ *
+ * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
+ *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
+ *           Tomáš Kantor    <xkanto14@stud.fit.vutbr.cz>
+ *           Lukáš Kuchta    <xkucht09@stud.fit.vutbr.cz>
+ */
+
 #ifndef __HTABLE_H__
 #define __HTABLE_H__
 
@@ -19,13 +34,13 @@
 #define FLOAT 1
 #define STRING 2
 #define BOOL 3
-#define NIL 4	
+#define NIL 4
 #define UNKNOWN 5
 #define FUNC 6
 #define TYPE_NAME 7
 
 struct htab{
-	struct htab_item* ptr[SIZE]; 
+	struct htab_item* ptr[SIZE];
 };
 
 // položky
@@ -35,12 +50,12 @@ typedef struct htab_item {
 	char* sval;
 	char* key;
 	int type;
-	int frame;	
+	int frame;
 	bool isLabel;
 	bool isConst;
 	struct htab_item *next;		// ďalšia položka (synonymum)
 	int reviewed;
-	bool defined;			
+	bool defined;
 	struct htab* local_vars;	// symtable pre lokálne premenné
 } htab_item_t;
 
@@ -55,23 +70,23 @@ unsigned int htab_hash_function(char *str);
 
 // inicializuje tabuľku predanú ukazovateľom
 // pri úspechu vracia 0, pri chybe INTERNAL_ERROR
-int htab_init(htab_t **htab);           
+int htab_init(htab_t **htab);
 
 // vyhľadá a vráti ukazateľ na konkrétny prvok
 // ak sa nenašiel, vráti NULL
 htab_item_t* htab_find(htab_t *t, char *key);
 
 // ak sa v tabuľke prvok s kľúčom key nenachádza
-// vloží do tabuľky t prvok s klúčom key, hodnotou val 
+// vloží do tabuľky t prvok s klúčom key, hodnotou val
 // typom, príznakom isConst a isLabel a defined
 // ak sa nachádza, zmení jeho hodnoty
 // pri úspechu vracia 0, pri chybe INTERNAL_ERROR
 int htab_insert(htab_t *t, char *key, int type, int frame, bool isConst, bool isLabel, bool defined);
 
 // vyčistí tabuľku (tabuľka je po vykonaní prázdna)
-void htab_clear(htab_t * t);	
+void htab_clear(htab_t * t);
 
 // uvoľní tabuľku z pamäte (volá htab_clear)
-void htab_free(htab_t * t);		
+void htab_free(htab_t * t);
 
 #endif // __HTABLE_H__
