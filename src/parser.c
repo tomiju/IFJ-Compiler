@@ -121,8 +121,8 @@ int param(){
         identifier = htab_find(localSymtable,token_ptr->dynamic_value);
         //fprintf(stderr,"NAME::%s\n",identifier->key);
         //fprintf(stderr,"TYPE::%d\n",identifier->type);
-        generate_instr(&list, DEFVAR,1,localSymtable);
-        generate_instr(&list,MOVE,2,localSymtable,get_param(paramCount-1));
+        generate_instr(&list, DEFVAR,1,identifier);
+        generate_instr(&list,MOVE,2,identifier,get_param(paramCount-1));
 
         result = getToken(&token_ptr, &indent_stack );
         return result;
@@ -418,12 +418,12 @@ int assignment(){
             varInLocalTable->type = expressionResult.type;
             if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
 
-            generate_instr(&list,MOVE,2,varInLocalTable->key, expressionResult.key);      
+            generate_instr(&list,MOVE,2,varInLocalTable, &expressionResult);      
         }else{
             varInGlobalTable->type = expressionResult.type;
             if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
             
-            generate_instr(&list,MOVE,2,varInGlobalTable->key, expressionResult.key);
+            generate_instr(&list,MOVE,2,varInGlobalTable, &expressionResult);
         }
         return result;
     }else{
@@ -454,12 +454,12 @@ int assignment(){
                 varInLocalTable->type = expressionResult.type;
                  if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
 
-                 generate_instr(&list,MOVE,2,varInLocalTable->key, expressionResult.key);
+                 generate_instr(&list,MOVE,2,varInLocalTable, &expressionResult);
             }else{
                 varInGlobalTable->type = expressionResult.type;
                 if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
 
-                generate_instr(&list,MOVE,2,varInGlobalTable->key, expressionResult.key);
+                generate_instr(&list,MOVE,2,varInGlobalTable, &expressionResult);
             }
             return result;
         }
@@ -529,7 +529,8 @@ int stat(){
         case TOKEN_LEFT_BRACKET:
         case TOKEN_INT: 
         case TOKEN_DOUBLE: 
-        case TOKEN_STRING: 
+        case TOKEN_STRING:
+        case KEYWORD_NONE:
             result = expression(&expressionResult);
             //fprintf(stderr,"result: %d\n",result);
             if(result != TOKEN_OK)return result;
@@ -862,6 +863,8 @@ int statList(){
         case KEYWORD_WHILE: 
         case KEYWORD_IF:
         case KEYWORD_RETURN:
+        case KEYWORD_NONE:
+
             result = stat();
             if(result != TOKEN_OK)return result;
 
@@ -907,7 +910,8 @@ int program(){
         case TOKEN_DOUBLE: 
         case TOKEN_STRING: 
         case KEYWORD_WHILE: 
-        case KEYWORD_IF: 
+        case KEYWORD_IF:
+        case KEYWORD_NONE:
             result = statList();
             if(result != TOKEN_OK)return result;
 
