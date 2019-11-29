@@ -3,9 +3,9 @@
  * Projekt:  Implementace překladače imperativního jazyka IFJ19
  * Varianta: Tým 018, varianta II
  * Soubor:   errors.h
- * 
  *
- * Datum:    xx.xx.xxxx
+ *
+ * Datum:    29.11.2019
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>

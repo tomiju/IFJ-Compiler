@@ -5,7 +5,7 @@
  * Soubor:   scanner.c
  *
  *
- * Datum:    xx.xx.xxxx
+ * Datum:    29.11.2019
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -228,7 +228,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 	int dedentFound; // TRUE = na stacku byla hodnota zanoření (při DEDENT), FALSE = na stacku nebyla -> error
 	int currentIndent = 0;
 	char currentChar, previousChar;
-	static char StaticPrevChar; // pro \n v řetězci
+	//static char docStringPrevChar; // odkomentovat, pro případ, že by """ ss """ byl komentář :)
 	static int FirstToken = TRUE;
 
 	TokenPTR newToken = makeToken(token);
@@ -306,7 +306,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				else if (currentChar == '\"' && previousChar != '\\')
 				{
 					// odkomentovat pro případ, že by """ sss """ byl komentář :)
-					//if (StaticPrevChar == '(')
+					//if (docStringPrevChar == '(')
 					//{
 						FirstToken = FALSE;
 						state = STATE_DOC_STRING;
@@ -474,7 +474,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						ungetc(currentChar, source_f);
 						break;
 					}
-					//StaticPrevChar = currentChar; // odkomentovat, pro případ, že by """ ss """ byl komentář :)
+					//docStringPrevChar = currentChar; // odkomentovat, pro případ, že by """ ss """ byl komentář :)
 					newToken->type = TOKEN_LEFT_BRACKET;
 					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
@@ -955,15 +955,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 			case(STATE_STRING):
 
-				if (currentChar == 'n' && StaticPrevChar == '\\')
-				{
-					if(updateDynamicString('\n', newToken))
-					{
-						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
-					}
-					break;
-				}
 
 				if (currentChar == '\'' && previousChar != '\\') // otestovat
 				{
@@ -977,7 +968,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				else if (currentChar == '\\')
 				{
 					previousChar = currentChar;
-					StaticPrevChar = currentChar;
 					break;
 				}
 				else
@@ -988,15 +978,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						return LEX_ERROR;
 					}
 					previousChar = currentChar;
-					StaticPrevChar = currentChar;
 					break;
 				}
 				previousChar = currentChar;
-				StaticPrevChar = currentChar;
 			break;
 
 			case(STATE_ESCAPE_SEQUENCE): // TODO?
-			printf("Test");
 				if (currentChar == '\"')
 				{
 					if(updateDynamicString(currentChar, newToken))
@@ -1017,16 +1004,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					state = STATE_START;
 					break;
 				}
-				else if (currentChar == 'n')
+				else if (currentChar == '\n')
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
-					newToken->type = TOKEN_EOL;
-					return TOKEN_OK;
-
 					state = STATE_START;
 					break;
 				}
