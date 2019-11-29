@@ -693,14 +693,14 @@ int stat(){
                 //return
                 if(token_ptr->type == TOKEN_DEDENT || token_ptr->type == TOKEN_EOF){
 
-                    generate_func_end(&list);
+                    generate_return(&list);
                     return TOKEN_OK;
                 }
                 
 
                 if(token_ptr->type == TOKEN_EOL){
 
-                    generate_func_end(&list);
+                    generate_return(&list);
 
                     result = getToken(&token_ptr, &indent_stack );
                     if(result != TOKEN_OK)return result;
@@ -713,7 +713,7 @@ int stat(){
                 if(result != TOKEN_OK)return result;
 
                 generate_save_to_return(&list,&expressionResult);
-                generate_func_end(&list);
+                generate_return(&list);
                 
                 if(token_ptr->type == TOKEN_DEDENT)return TOKEN_OK;
                 if(token_ptr->type == TOKEN_EOF)return TOKEN_OK;
