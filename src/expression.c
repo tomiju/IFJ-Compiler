@@ -107,7 +107,7 @@ extern int currentLine;
 
 int expression(htab_item_t* htab_symbol)
 {
-    printf("expression\n");
+    // printf("expression\n");
     int result;
     bool success = FALSE;
     int count;
@@ -208,7 +208,7 @@ int expression(htab_item_t* htab_symbol)
 
 	*htab_symbol = *(Stack->top->table_symbol);
 
-    printf("END OF EXPRESSION, final data type: %d\n", htab_symbol->type);
+    // printf("END OF EXPRESSION, final data type: %d\n", htab_symbol->type);
 
     destroyTokenStack(Stack);
 
