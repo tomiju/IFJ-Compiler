@@ -528,11 +528,13 @@ int reduce(TStackToken *stack)
 			
 			if (localSymtable != NULL)
 			{
-				htab_symbol = generate_var(&list, constant_name, UNKNOWN, LF);
+				htab_symbol = make_var(constant_name, UNKNOWN, LF);
+				generate_before_whiles(&list, htab_symbol);
 			}
 			else
 			{
-				htab_symbol = generate_var(&list, constant_name, UNKNOWN, GF);
+				htab_symbol = make_var(constant_name, UNKNOWN, GF);
+				generate_before_whiles(&list, htab_symbol);
 			}
 			
 		}

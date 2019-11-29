@@ -357,6 +357,19 @@ htab_item_t* generate_var(tList* list, char* name, int type, int frame){
 	return var;
 }
 
+htab_item_t* make_var(char* name, int type, int frame){
+	htab_item_t* var = htab_find(htab_built_in, name);
+
+	if(var == NULL){
+		htab_insert(htab_built_in, name, type, frame, false, false, true);
+		var = htab_find(htab_built_in, name);
+	} else{
+		var->frame = frame;
+	} 
+
+	return var;
+}
+
 htab_item_t* make_const(char* name, int type){
 	htab_item_t* var = htab_find(htab_built_in, name);
 	if(var != NULL){
