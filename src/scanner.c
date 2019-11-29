@@ -598,10 +598,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					state = STATE_START;
 
-					if (debug)
+					/*if (debug)
 					{
 						printf("normální komentář\n"); //debug
-					}
+					}*/
 
 					ungetc(currentChar, source_f);
 					currentIndent = 0;
@@ -629,10 +629,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					ungetc(currentChar, source_f);
 					commentaryCounter = 0;
 
-					if (debug)
+					/*if (debug)
 					{
 						printf("text komentáře\n"); //debug
-					}
+					}*/
 
 					break;
 				}
@@ -662,10 +662,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						state = STATE_START;
 						commentaryCounter = 0;
 
-						if (debug)
+						/*if (debug)
 						{
 							printf("konec blok. komentáře! \n"); //debug
-						}
+						}*/
 
 						currentIndent = 0;
 						break;
@@ -1256,10 +1256,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 		previousChar = currentChar;
 	}
 
-	if (debug)
+	/*if (debug)
 	{
 		printf("konec scanneru error\n");
-	}
+	}*/
 
 	freeMemory(newToken, indent_stack);
 	return LEX_ERROR;
