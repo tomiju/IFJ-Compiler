@@ -558,6 +558,8 @@ int stat(){
 
             result = expression(&expressionResult);
             if(result != TOKEN_OK)return result;
+
+            generate_condition_check(&list, &expressionResult,1);
                      
             if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
 
@@ -601,8 +603,9 @@ int stat(){
             start_if_else(&list);
             
             result = expression(&expressionResult);
-
             if(result != TOKEN_OK)return result;
+
+            generate_condition_check(&list, &expressionResult,0);
             
             if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
 
