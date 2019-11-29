@@ -971,12 +971,7 @@ int parse(){
     if(result == TOKEN_OK){
         printInstructions(&list);
     }else{
-        if(result == LEX_ERROR){
-            fprintf(stderr,"LEX_ERROR\n");
-        }
-        if(result == SYNTAX_ERROR){
-            fprintf(stderr,"SYNTAX_ERROR\n");
-        }
+        fprintf(stderr,"ERROR CODE: %d\n",result);
     }
     
     //cleaning
