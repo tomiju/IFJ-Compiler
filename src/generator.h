@@ -209,6 +209,8 @@ htab_item_t* make_const(char* name, int type);
 // ak ešte neexistuje, vytvorí premennú a vygeneruje pre ňu inštrukciu
 htab_item_t* generate_var(tList* list, char* name, int type, int frame);
 
+htab_item_t* make_var(char* name, int type, int frame);
+
 // pridá inštrukciu do listu, predanú cez enum, následuje počet parametrov 
 // a parametre cez htab_item_t*
 void generate_instr(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned count, ...);
