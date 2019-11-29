@@ -600,10 +600,9 @@ int stat(){
             if(result != TOKEN_OK)return result;
 
             start_if_else(&list);
-            //TODO
-            generate_condition(&list);
-
+            
             result = expression(&expressionResult);
+
             if(result != TOKEN_OK)return result;
             
             if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
@@ -690,10 +689,17 @@ int stat(){
                 result = getToken(&token_ptr, &indent_stack );
                 if(result != TOKEN_OK)return result;
                 //return
-                if(token_ptr->type == TOKEN_DEDENT)return TOKEN_OK;
-                if(token_ptr->type == TOKEN_EOF)return TOKEN_OK;
+                if(token_ptr->type == TOKEN_DEDENT || token_ptr->type == TOKEN_EOF){
+
+                    generate_func_end(&list);
+                    return TOKEN_OK;
+                }
+                
 
                 if(token_ptr->type == TOKEN_EOL){
+
+                    generate_func_end(&list);
+
                     result = getToken(&token_ptr, &indent_stack );
                     if(result != TOKEN_OK)return result;
                     return TOKEN_OK;
@@ -702,8 +708,10 @@ int stat(){
                 //return expression
                 
                 result = expression(&expressionResult);
-                
                 if(result != TOKEN_OK)return result;
+
+                generate_save_to_return(&list,&expressionResult);
+                generate_func_end(&list);
                 
                 if(token_ptr->type == TOKEN_DEDENT)return TOKEN_OK;
                 if(token_ptr->type == TOKEN_EOF)return TOKEN_OK;
