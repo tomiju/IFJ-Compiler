@@ -347,7 +347,7 @@ int assignment(){
     fprintf(stderr,"assignment ");
     TokenPTR next_token;
     int result;
-    TokenTYPE expressionType = UNKNOWN;
+    htab_item_t expressionResult;
     int created = 0;
     //pravidlo id = neco
 
@@ -360,7 +360,7 @@ int assignment(){
     if(inFunDef){
         varInLocalTable = htab_find(localSymtable,token_ptr->dynamic_value);
         if(varInGlobalTable == NULL && varInLocalTable == NULL){
-            htab_insert(localSymtable, token_ptr->dynamic_value,expressionType,LF,0,0,1);
+            htab_insert(localSymtable, token_ptr->dynamic_value,UNKNOWN,LF,0,0,1);
             created = 1;
             varInLocalTable = htab_find(localSymtable,token_ptr->dynamic_value);
             if(varInLocalTable == NULL)return INTERNAL_ERROR;
@@ -373,7 +373,7 @@ int assignment(){
                 fprintf(stderr,"Already used as global variable in this function\n");
                 return SEMANTIC_UNDEF_VALUE_ERROR;
             }
-            htab_insert(localSymtable, token_ptr->dynamic_value, expressionType,LF,0,0,1);
+            htab_insert(localSymtable, token_ptr->dynamic_value, UNKNOWN,LF,0,0,1);
             created = 1;
             varInLocalTable = htab_find(localSymtable,token_ptr->dynamic_value);
             if(varInLocalTable == NULL)return INTERNAL_ERROR;      
@@ -390,7 +390,7 @@ int assignment(){
                 return SEMANTIC_UNDEF_VALUE_ERROR;
             }
         }else{
-            htab_insert(globalSymtable, token_ptr->dynamic_value, expressionType,GF,0,0,1);
+            htab_insert(globalSymtable, token_ptr->dynamic_value, UNKNOWN,GF,0,0,1);
             created = 1;
             varInGlobalTable = htab_find(globalSymtable,token_ptr->dynamic_value);
             if(varInGlobalTable == NULL)return INTERNAL_ERROR;
@@ -408,17 +408,19 @@ int assignment(){
     if(result != TOKEN_OK)return result;
 
     if(token_ptr->type != TOKEN_IDENTIFIER){
-        result = expression(&expressionType);
-        //fprintf(stderr,"Type: %d\n",expressionType);
-        if(expressionType == BOOL){
+        result = expression(&expressionResult);
+        if(result != TOKEN_OK)return result;
+        fprintf(stderr,"TYPE: %d\n", expressionResult.type);
+        fprintf(stderr,"KEY: %s\n", expressionResult.key);
+        if(expressionResult.type == BOOL){
             fprintf(stderr,"Cant assign bool to variable\n");
             return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
         }
         if(inFunDef){
-            varInLocalTable->type = expressionType;
+            varInLocalTable->type = expressionResult.type;
             if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);          
         }else{
-            varInGlobalTable->type = expressionType;
+            varInGlobalTable->type = expressionResult.type;
             if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
         }
         return result;
@@ -440,17 +442,17 @@ int assignment(){
             return result;
         }else{
             //prirazujeme vyraz
-            result = expression(&expressionType);
+            result = expression(&expressionResult);
             
-            if(expressionType == BOOL){
+            if(expressionResult.type == BOOL){
                 fprintf(stderr,"Cant assign bool to variable\n");
                 return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
             }
             if(inFunDef){
-                varInLocalTable->type = expressionType;
+                varInLocalTable->type = expressionResult.type;
                  if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
             }else{
-                varInGlobalTable->type = expressionType;
+                varInGlobalTable->type = expressionResult.type;
                 if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
             }
             return result;
@@ -466,7 +468,7 @@ int statWithId(){
 
     TokenPTR next_token;
     int result;
-    TokenTYPE expressionType;
+    htab_item_t expressionResult;
 
     result = preloadToken(&next_token, &indent_stack );
     if(result != TOKEN_OK)return result;
@@ -486,7 +488,7 @@ int statWithId(){
         break;
         
         default:
-            result = expression(&expressionType);
+            result = expression(&expressionResult);
 
             return result;
         break;
@@ -498,7 +500,7 @@ int statWithId(){
 int stat(){
     fprintf(stderr,"stat\n");
     int result;
-    TokenTYPE expressionType;
+    htab_item_t expressionResult;
     switch(token_ptr->type){
         //pravidlo: Stat -> StatWithId eol
         case TOKEN_IDENTIFIER: 
@@ -522,7 +524,7 @@ int stat(){
         case TOKEN_INT: 
         case TOKEN_DOUBLE: 
         case TOKEN_STRING: 
-            result = expression(&expressionType);
+            result = expression(&expressionResult);
             //fprintf(stderr,"result: %d\n",result);
             if(result != TOKEN_OK)return result;
 
@@ -547,7 +549,7 @@ int stat(){
             generate_while_start(&list);
             
 
-            result = expression(&expressionType);
+            result = expression(&expressionResult);
             if(result != TOKEN_OK)return result;
                      
             if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
@@ -591,9 +593,9 @@ int stat(){
 
             start_if_else(&list);
             //TODO
-            //generate_condition(&list);
+            generate_condition(&list);
 
-            result = expression(&expressionType);
+            result = expression(&expressionResult);
             if(result != TOKEN_OK)return result;
             
             if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
@@ -691,7 +693,7 @@ int stat(){
                 
                 //return expression
                 
-                result = expression(&expressionType);
+                result = expression(&expressionResult);
                 
                 if(result != TOKEN_OK)return result;
                 
