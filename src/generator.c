@@ -21,11 +21,10 @@
 #include <stdarg.h>
 #include <string.h>
 
-htab_t* htab_built_in;
-htab_t* htab_tf;
+htab_t* htab_built_in; // symtable pre vstavané funkcie a 
+htab_t* htab_tf;	   // symtable pre dočasné parametre na frame
 
 tNode* main_func_node;
-tNode* if_condition;
 
 tNode* before_while = NULL;
 
@@ -44,9 +43,13 @@ unsigned par_count = 0;
 unsigned while_label_idx = 0;
 unsigned if_label_idx = 0;
 
-//tList list;
-
 #define NUM_OF_ARGS 3
+
+/************************ MAKRO ***********************/
+
+static const char* INSTR_STRING[] = {
+    INSTR(GENERATE_STRING)
+};
 
 /********************* LIST INŠTRUKCIÍ *********************/
 
@@ -477,7 +480,7 @@ htab_item_t* get_while_label(){
 	return make_label(label_string);
 }
 
-htab_item_t* get_if_cond(tList* list){
+/*htab_item_t* get_if_cond(){
 	char cond_string[10] = "cond_if";
 
 	char idx_string[3];
@@ -485,8 +488,8 @@ htab_item_t* get_if_cond(tList* list){
 
 	strcat(cond_string, idx_string);
 
-	return generate_var(list, cond_string, BOOL, GF);
-}
+	return make_const(cond_string, BOOL);
+}*/
 
 htab_item_t* get_if_end(){
 	char label_string[9] = "if_end";
@@ -550,14 +553,21 @@ htab_item_t* get_param_tf(unsigned idx){
 	return param;
 }
 
-void generate_condition(tList* list){
+/*void generate_condition(tList* list){
 	SetActive(list, if_condition);	
-}
+}*/
 
 void start_if_else(tList* list){
-	get_if_bool(list);
+	//get_if_bool(list);
 
-	if_condition = list->active;
+	htab_item_t* true_const = make_const("true", BOOL);
+	true_const->sval = "true";
+
+	htab_item_t* if_bool = get_if_bool(list);
+	tNode* if_condition = list->active;
+
+	generate_instr(list, JUMPIFEQ, 3, get_if_label(), if_bool, true_const);
+	generate_instr(list, JUMP, 1, get_else_label());
 
 	generate_instr(list, LABEL, 1, get_if_label());
 
@@ -573,6 +583,8 @@ void start_if_else(tList* list){
 	tPushStack(&if_else_end_nodes, list->active);
 
 	if_label_idx++;
+
+	SetActive(list, if_condition);
 }	
 
 void generate_if(tList* list){
@@ -646,6 +658,12 @@ void generate_func_start(tList* list, htab_item_t* label){
 	generate_instr(list, PUSHFRAME, 0);
 
 	generate_return_variable(list);
+}
+
+void generate_save_to_return(tList* list, htab_item_t* value_to_save){
+	htab_item_t* ret_val = htab_find(htab_built_in, "%retval");
+
+	generate_instr(list, MOVE, 2, ret_val, value_to_save);
 }
 
 void generate_func_end(tList* list){
@@ -731,27 +749,9 @@ void generate_inputs(tList* list){
 	htab_item_t* func = htab_find(htab_built_in, "inputs");
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
 	htab_item_t* string_label = htab_find(htab_built_in, "string");
-	//htab_item_t* label_len = htab_find(htab_built_in, "len");
-	//htab_item_t* label_substr = htab_find(htab_built_in, "substr");
 
 	generate_func_start(list, func);
-	
 	generate_instr(list, READ, 2, retval, string_label);
-	
-	/*htab_item_t* dlzka = generate_var(list, "dlzka", INT, LF);
-
-	generate_func_call(list, label_len, 1, retval);
-	generate_save_return_value(list, dlzka);
-
-	htab_item_t* con = make_const("one", INT);
-	con->ival = 1;
-	generate_instr(list, SUB, 3, dlzka, dlzka, con);
-
-	con = make_const("zero", INT);
-	con->ival = 0;
-	generate_func_call(list, label_substr, 3, retval, con, dlzka);
-	generate_save_return_value(list, retval);*/
-
 	generate_func_end(list);
 }
 

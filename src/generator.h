@@ -135,31 +135,31 @@ tNode* tPopStack(tStack** stack);
         x(MUL)  		/* <var> <symb1> <symb2> */		\
         x(DIV)  		/* <var> <symb1> <symb2> */		\
         x(IDIV)  		/* <var> <symb1> <symb2> */		\
-        x(ADDS)  		/* <var> <symb1> <symb2> */		\
-        x(SUBS)  		/* <var> <symb1> <symb2> */		\
-        x(MULS)  		/* <var> <symb1> <symb2> */		\
-        x(DIVS)  		/* <var> <symb1> <symb2> */		\
-        x(IDIVS)  		/* <var> <symb1> <symb2> */		\
+        x(ADDS)  										\
+        x(SUBS)  										\
+        x(MULS)  										\
+        x(DIVS)  										\
+        x(IDIVS)  										\
         x(LT)  			/* <var> <symb1> <symb2> */		\
         x(GT)  			/* <var> <symb1> <symb2> */		\
         x(EQ)	  		/* <var> <symb1> <symb2> */		\
-        x(LTS)  		/* <var> <symb1> <symb2> */		\
-        x(GTS)  		/* <var> <symb1> <symb2> */		\
-        x(EQS)  		/* <var> <symb1> <symb2> */		\
+        x(LTS)  										\
+        x(GTS)  										\
+        x(EQS)  										\
         x(AND)  		/* <var> <symb1> <symb2> */		\
         x(OR)	  		/* <var> <symb1> <symb2> */		\
         x(NOT)  		/* <var> <symb1> <symb2> */		\
-        x(ADNS)  		/* <var> <symb1> <symb2> */		\
-        x(ORS)  		/* <var> <symb1> <symb2> */		\
-        x(NOTS)  		/* <var> <symb1> <symb2> */		\
+        x(ADNS)  										\
+        x(ORS)  										\
+        x(NOTS)  										\
         x(INT2FLOAT)	/* <var> <symb> */				\
 		x(FLOAT2INT)	/* <var> <symb> */				\
 		x(INT2CHAR)		/* <var> <symb> */				\
 		x(STRI2INT)		/* <var> <symb1> <symb2> */		\
-		x(INT2FLOATS)	/* <var> <symb> */				\
-		x(FLOAT2INTS)	/* <var> <symb> */				\
-		x(INT2CHARS)	/* <var> <symb> */				\
-		x(STRI2INTS)	/* <var> <symb1> <symb2> */		\
+		x(INT2FLOATS)									\
+		x(FLOAT2INTS)									\
+		x(INT2CHARS)									\
+		x(STRI2INTS)									\
 		x(READ)			/* <var> <type> */				\
 		x(WRITE)		/* <symb> */ 					\
 		x(CONCAT)		/* <var> <symb1> <symb2> */		\
@@ -171,8 +171,8 @@ tNode* tPopStack(tStack** stack);
 		x(JUMP)			/* <label> */					\
 		x(JUMPIFEQ)		/* <label> <symb1> <symb2> */	\
 		x(JUMPIFNEQ)	/* <label> <symb1> <symb2> */	\
-		x(JUMPIFEQS)	/* <label> */					\
-		x(JUMPIFNEQS)	/* <label> */					\
+		x(JUMPIFEQS)									\
+		x(JUMPIFNEQS)									\
 		x(EXIT)			/* <symb> */					\
 		x(BREAK)										\
 		x(DPRINT)		/* <symb> */					\
@@ -182,10 +182,6 @@ tNode* tPopStack(tStack** stack);
 
 enum INSTR_ENUM {
     INSTR(GENERATE_ENUM)
-};
-
-static const char* INSTR_STRING[] = {
-    INSTR(GENERATE_STRING)
 };
 
 void generate_return_variable(tList* list_instr);
@@ -228,6 +224,9 @@ htab_item_t* get_param(unsigned idx);
 // vytvorí zarážku, frame a návratovú hodnotu pre funkciu
 void generate_func_start(tList* list, htab_item_t* label);
 
+// uloží hodnotu do ktorú funkcia vracia cez return
+void generate_save_to_return(tList* list, htab_item_t* value_to_save);
+
 // volá sa na konci funkcie pri dedente 
 void generate_func_end(tList* list);
 
@@ -246,9 +245,6 @@ void func_call(tList* list, htab_item_t* func);
 // list, odkaz na funkciu v hashtable, počet argumentov 
 // a následne odkazy do hash table na jednotlivé argumenty
 void generate_func_call(tList* list, htab_item_t* label, unsigned count, ...);
-
-// TODO
-void generate_condition(tList* list);
 
 // vráti premennú pre podmienku aktuálne spracovávaného cyklu
 htab_item_t* get_while_cond();
