@@ -148,7 +148,7 @@ tNode* tPopStack(tStack** stack);
         x(EQS)  										\
         x(AND)  		/* <var> <symb1> <symb2> */		\
         x(OR)	  		/* <var> <symb1> <symb2> */		\
-        x(NOT)  		/* <var> <symb1> <symb2> */		\
+        x(NOT)  		/* <var> <symb1> */				\
         x(ADNS)  										\
         x(ORS)  										\
         x(NOTS)  										\
@@ -176,6 +176,8 @@ tNode* tPopStack(tStack** stack);
 		x(EXIT)			/* <symb> */					\
 		x(BREAK)										\
 		x(DPRINT)		/* <symb> */					\
+
+/************************ MAKRÁ *************************/
 
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
@@ -258,6 +260,9 @@ void generate_while_start(tList* list);
 
 // na konci cyklu
 void generate_while_end(tList* list);
+
+// nageneruje kontrolu podmienky a skoky
+void generate_condition_check(tList* list, htab_item_t* podmienka, bool isWhile);
 
 // na začiatku 
 // vytovrí kostru pre if-else

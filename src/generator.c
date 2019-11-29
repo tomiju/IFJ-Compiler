@@ -585,6 +585,23 @@ void start_if_else(tList* list){
 	if_label_idx++;
 
 	SetActive(list, if_condition);
+}
+
+void generate_condition_check(tList* list, htab_item_t* podmienka, bool isWhile){
+	htab_item_t* con_true = make_const("const_true", BOOL);
+	con_true->sval = "true";
+
+	if(isWhile){
+		htab_item_t* label_while_end = get_while_end();
+
+		generate_instr(list, JUMPIFNEQ, 3, label_while_end, podmienka, con_true);
+	} else {
+		htab_item_t* label_if = get_if_label();
+		htab_item_t* label_else = get_else_label();
+
+		generate_instr(list, JUMPIFEQ, 3, label_if, podmienka, con_true);
+		generate_instr(list, JUMP, 1, label_else);
+	}
 }	
 
 void generate_if(tList* list){
@@ -943,6 +960,9 @@ void generator_start(tList* list){
 	generate_inputf(list);
 	generate_inputi(list);
 	generate_print(list);
+
+	// pomocná premenná na kontrolu typov
+	//generate_var(list, "%typ", BOOL, GF);
 }
 
 char* replace_by_escape(char* string){
@@ -951,9 +971,35 @@ char* replace_by_escape(char* string){
 	unsigned rep_idx = 0;
 	for(unsigned str_idx = 0; str_idx < strlen(string); str_idx++, rep_idx++){
 		switch(string[str_idx]){
-		    case ' ': replaced[rep_idx++] = '\\';
+		    case ' ': 
+		    	replaced[rep_idx++] = '\\';
+		    	replaced[rep_idx++] = '0';
 			    replaced[rep_idx++] = '3';
 			    replaced[rep_idx] = '2';
+			    break;
+			case '\t': 
+				replaced[rep_idx++] = '\\';
+			    replaced[rep_idx++] = '0';
+			    replaced[rep_idx++] = '0';
+			    replaced[rep_idx] = '9';
+			    break;
+			case '\n': 
+				replaced[rep_idx++] = '\\';
+			    replaced[rep_idx++] = '0';
+			    replaced[rep_idx++] = '1';
+			    replaced[rep_idx] = '0';
+			    break;
+			case '\\': 
+				replaced[rep_idx++] = '\\';
+			    replaced[rep_idx++] = '0';
+			    replaced[rep_idx++] = '9';
+			    replaced[rep_idx] = '2';
+			    break;
+			case '#': 
+				replaced[rep_idx++] = '\\';
+			    replaced[rep_idx++] = '0';
+			    replaced[rep_idx++] = '3';
+			    replaced[rep_idx] = '5';
 			    break;
 		    default: replaced[rep_idx] = string[str_idx];
 		}
@@ -962,6 +1008,24 @@ char* replace_by_escape(char* string){
 	
 	return replaced;
 }
+
+/*void check_types(tList* list, tInstr* instr){
+	switch(instr->type){
+		case ADD: case SUB: case MUL:	// oba int alebo float 
+			break;
+		case DIV:						// oba float
+			break;	
+		case IDIV:						// oba int
+			break;	
+		case CONCAT:					// oba string
+			if(instr->param[0]->type == UNKNOWN){
+				//generate_instr(list, TYPE, )
+			}
+			break;
+	}	
+
+	return;
+}*/
 
 void printInstructions(tList* list){
 	printf(".IFJcode19\n");
@@ -987,20 +1051,14 @@ void printInstructions(tList* list){
 						case STRING: printf("string@%s", replace_by_escape(instr.param[i]->sval)); break;
 						case BOOL: printf("bool@%s", instr.param[i]->sval); break;
 						case NIL: printf("nil@%s", instr.param[i]->sval); break;
-						//default: printf("CHYBA_TYPE@"); break;
 					};
 				} else {
-					//if(instr.param[i]->type != NIL){
 					switch(instr.param[i]->frame){
 						case GF: printf("GF@"); break;
 						case LF: printf("LF@"); break;
 						case TF: printf("TF@"); break;
-						//default: printf("CHYBA_FRAME@"); break;
 					}
 					printf("%s ", instr.param[i]->key);
-					/*} else {
-						printf("%s ", "TODO");
-					}*/
 				}
 			}
 		}
