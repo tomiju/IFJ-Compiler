@@ -36,7 +36,7 @@ int main(int argc, char const *argv[]){
 
     fclose(f);
 
-    printf("result: %d\n",result);
+    //fprintf(stderr,"result: %d\n",result);
     return result;
 }
     
