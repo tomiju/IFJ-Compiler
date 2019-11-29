@@ -260,6 +260,9 @@ void generate_before_whiles(tList* list, htab_item_t* item);
 // na začiatku while, po ňom sa vytvorí podmienka a telo cyklu
 void generate_while_start(tList* list);
 
+// pri každom returne
+void generate_return(tList* list);
+
 // na konci cyklu
 void generate_while_end(tList* list);
 

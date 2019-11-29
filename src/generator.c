@@ -40,8 +40,8 @@ htab_item_t* params[20];
 unsigned param_idx = 0;
 unsigned par_count = 0;
 
-unsigned while_label_idx = 0;
-unsigned if_label_idx = 0;
+int while_label_idx = -1;
+int if_label_idx = -1;
 
 #define NUM_OF_ARGS 3
 
@@ -571,7 +571,7 @@ htab_item_t* get_param_tf(unsigned idx){
 }*/
 
 void start_if_else(tList* list){
-	//get_if_bool(list);
+	if_label_idx++;
 
 	htab_item_t* true_const = make_const("true", BOOL);
 	true_const->sval = "true";
@@ -594,8 +594,6 @@ void start_if_else(tList* list){
 	generate_instr(list, LABEL, 1, get_if_end());
 
 	tPushStack(&if_else_end_nodes, list->active);
-
-	if_label_idx++;
 
 	SetActive(list, if_condition);
 }
@@ -645,6 +643,8 @@ void generate_before_whiles(tList* list, htab_item_t* item){
 }
 
 void generate_while_start(tList* list){
+	while_label_idx++;
+
 	generate_before_whiles(list, get_while_cond());
 
 	if(before_while == NULL){
@@ -661,7 +661,6 @@ void generate_while_start(tList* list){
 	tPushStack(&while_nodes, list->active);
 
 	SetActive(list, node);
-	while_label_idx++;
 }	
 
 void generate_while_end(tList* list){
@@ -694,6 +693,11 @@ void generate_save_to_return(tList* list, htab_item_t* value_to_save){
 	htab_item_t* ret_val = htab_find(htab_built_in, "%retval");
 
 	generate_instr(list, MOVE, 2, ret_val, value_to_save);
+}
+
+void generate_return(tList* list){
+	generate_instr(list, POPFRAME, 0);
+	generate_instr(list, RETURN, 0);
 }
 
 void generate_func_end(tList* list){
