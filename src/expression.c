@@ -105,7 +105,8 @@ Prec_table_index_enum get_prec_table_index(TokenTYPE symbol)
 
 extern int currentLine;
 
-int expression(TokenTYPE *expression_type){
+int expression(htab_item_t* htab_symbol)
+{
     printf("expression\n");
     int result;
     bool success = FALSE;
@@ -207,23 +208,8 @@ int expression(TokenTYPE *expression_type){
     } while(success == FALSE);
 
 
-	switch(Stack->top->data_type)
-	{
-		case TOKEN_NONTERM_INT:
-			*expression_type = INT;
-			break;
-		case TOKEN_NONTERM_DOUBLE:
-			*expression_type = FLOAT;
-			break;
-		case TOKEN_NONTERM_STRING:
-			*expression_type = STRING;
-			break;
-		case TOKEN_NONTERM_BOOL:
-			*expression_type = BOOL;
-			break;
-		default:
-			*expression_type = TOKEN_NONE;
-	}
+
+	htab_symbol = Stack->top->table_symbol;
 
     // printf("END OF EXPRESSION, final data type: %d\n", *expression_type);
     // printf("\n\n");
@@ -368,6 +354,7 @@ int reduce(TStackToken *stack)
 	TStackTokenItem op1 = NULL;
 	TStackTokenItem op2 = NULL;
 	TStackTokenItem op3 = NULL;
+	TStackTokenItem op4 = NULL;
 	TStackTokenItem tmpitem = NULL;
     htab_item_t* htab_symbol = NULL;
 
@@ -534,8 +521,16 @@ int reduce(TStackToken *stack)
 	}
 	else
 	{
-		
-		result = semantic(op1, op2, op3, gen_rule, &final_token_type);
+		char* constant_name = get_name(); 
+		if (constant_name == NULL)
+		{
+			return INTERNAL_ERROR;
+		}
+
+		htab_symbol = make_const(constant_name, UNKNOWN);
+
+
+		result = semantic(op1, op2, op3, htab_symbol, gen_rule, &final_token_type);
 		if (result != SYNTAX_OK)
 		{
 			return result;
@@ -547,44 +542,21 @@ int reduce(TStackToken *stack)
 		}
 
 
-		char* constant_name = get_name(); 
-		if (constant_name == NULL)
-		{
-			return INTERNAL_ERROR;
-		}
-
-
-		// htab_symbol = make_const(constant_name, final_token_type);
-		
-		// switch(token_ptr->type)
-		// {
-		// 	case TOKEN_INT:
-		// 		sscanf(token_ptr->dynamic_value, "%d", &int_value);
-		// 		htab_symbol->ival = int_value;
-		// 		break;
-		// 	case TOKEN_DOUBLE:
-		// 		sscanf(token_ptr->dynamic_value, "%lf", &double_value);
-		// 		htab_symbol->dval = double_value;
-		// 		break;
-		// 	case TOKEN_STRING:
-		// 		htab_symbol->sval = token_ptr->dynamic_value;
-		// 		break;
-		// 	default:
-		// 		break;
-		// }
 
 		result = pushTokenStack(stack, final_token_type, I_DATA, htab_symbol);	// DORIESIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		if (result != SYNTAX_OK)
     	{
     		return result;
     	}
+
+    	free(op4);
 	}
 
 	return SYNTAX_OK;
 }
 
 
-int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, Prec_rules_enum rule, TokenTYPE *final_token_type)
+int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab_item_t* htab_symbol, Prec_rules_enum rule, TokenTYPE *final_token_type)
 {
 	// bool op1_to_double = false;
 	// bool op3_to_double = false;

@@ -80,7 +80,7 @@ typedef struct stacktoken
 Prec_table_index_enum get_prec_table_index(TokenTYPE symbol);
 
 
-int expression(TokenTYPE *expression_type);
+int expression(htab_item_t* htab_symbol);
 
 
 int shift(TStackToken *stack);
@@ -89,7 +89,7 @@ int shift(TStackToken *stack);
 int reduce(TStackToken *stack);
 
 
-int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, Prec_rules_enum rule, TokenTYPE *final_token_type);
+int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab_item_t* htab_symbol, Prec_rules_enum rule, TokenTYPE *final_token_type);
 
 
 Prec_rules_enum test_rule(int count, TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3);
