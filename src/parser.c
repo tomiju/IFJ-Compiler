@@ -410,18 +410,22 @@ int assignment(){
     if(token_ptr->type != TOKEN_IDENTIFIER){
         result = expression(&expressionResult);
         if(result != TOKEN_OK)return result;
-        fprintf(stderr,"TYPE: %d\n", expressionResult.type);
-        fprintf(stderr,"KEY: %s\n", expressionResult.key);
+        //fprintf(stderr,"TYPE: %d\n", expressionResult.type);
+        //fprintf(stderr,"KEY: %s\n", expressionResult.key);
         if(expressionResult.type == BOOL){
             fprintf(stderr,"Cant assign bool to variable\n");
             return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
         }
         if(inFunDef){
             varInLocalTable->type = expressionResult.type;
-            if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);          
+            if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
+
+            generate_instr(&list,MOVE,2,varInLocalTable->key, expressionResult.key);      
         }else{
             varInGlobalTable->type = expressionResult.type;
             if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
+            
+            generate_instr(&list,MOVE,2,varInGlobalTable->key, expressionResult.key);
         }
         return result;
     }else{
@@ -451,9 +455,13 @@ int assignment(){
             if(inFunDef){
                 varInLocalTable->type = expressionResult.type;
                  if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
+
+                 generate_instr(&list,MOVE,2,varInLocalTable->key, expressionResult.key);
             }else{
                 varInGlobalTable->type = expressionResult.type;
                 if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
+
+                generate_instr(&list,MOVE,2,varInGlobalTable->key, expressionResult.key);
             }
             return result;
         }

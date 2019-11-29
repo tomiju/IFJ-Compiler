@@ -208,7 +208,7 @@ int expression(htab_item_t* htab_symbol)
 
 
 
-	htab_symbol = Stack->top->table_symbol;
+	*htab_symbol = *(Stack->top->table_symbol);
 
     printf("END OF EXPRESSION, final data type: %d\n", htab_symbol->type);
     printf("RETURN htab_symbol->type: %d ival: %d dval: %f\n", htab_symbol->type, htab_symbol->ival, htab_symbol->dval);
