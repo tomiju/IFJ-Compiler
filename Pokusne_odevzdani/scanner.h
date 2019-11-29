@@ -3,9 +3,9 @@
  * Projekt:  Implementace překladače imperativního jazyka IFJ19
  * Varianta: Tým 018, varianta II
  * Soubor:   scanner.h
+ * 
  *
- *
- * Datum:    29.11.2019
+ * Datum:    xx.xx.xxxx
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -84,7 +84,7 @@ typedef enum
 	TOKEN_LESS_THAN_OR_EQUAL, //15
 	TOKEN_MORE_THAN_OR_EQUAL,
 	TOKEN_NOT_EQUAL, // !=
-	TOKEN_EQUAL, // ==
+	TOKEN_EQUAL, // == 
 	TOKEN_ASSIGN, // =
 
 	// ostatní
@@ -102,7 +102,7 @@ typedef enum
 	KEYWORD_ELSE,
 	KEYWORD_RETURN,
 	KEYWORD_DEF, // def (definování funkce)
-	KEYWORD_NONE,
+	KEYWORD_NONE,	
 	KEYWORD_WHILE,
 	KEYWORD_INPUTS,//
 	KEYWORD_INPUTI,//
@@ -122,7 +122,7 @@ typedef enum
 	TOKEN_NONTERM_DOUBLE,
 	TOKEN_NONTERM_STRING,
 	TOKEN_NONTERM_IDENTIFIER, // 50
-	TOKEN_NONTERM_BOOL
+	TOKEN_NONTERM_BOOL	
 
 }TokenTYPE;
 

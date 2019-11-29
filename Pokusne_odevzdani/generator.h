@@ -5,7 +5,7 @@
  * Soubor:   generator.h
  *
  *
- * Datum:    29.11.2019
+ * Datum:    xx.xx.xxxx
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -148,7 +148,7 @@ tNode* tPopStack(tStack** stack);
         x(EQS)  										\
         x(AND)  		/* <var> <symb1> <symb2> */		\
         x(OR)	  		/* <var> <symb1> <symb2> */		\
-        x(NOT)  		/* <var> <symb1> <symb2> */		\
+        x(NOT)  		/* <var> <symb1> */				\
         x(ADNS)  										\
         x(ORS)  										\
         x(NOTS)  										\
@@ -176,6 +176,8 @@ tNode* tPopStack(tStack** stack);
 		x(EXIT)			/* <symb> */					\
 		x(BREAK)										\
 		x(DPRINT)		/* <symb> */					\
+
+/************************ MAKRÁ *************************/
 
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
@@ -206,6 +208,8 @@ htab_item_t* make_const(char* name, int type);
 
 // ak ešte neexistuje, vytvorí premennú a vygeneruje pre ňu inštrukciu
 htab_item_t* generate_var(tList* list, char* name, int type, int frame);
+
+htab_item_t* make_var(char* name, int type, int frame);
 
 // pridá inštrukciu do listu, predanú cez enum, následuje počet parametrov
 // a parametre cez htab_item_t*
@@ -256,8 +260,14 @@ void generate_before_whiles(tList* list, htab_item_t* item);
 // na začiatku while, po ňom sa vytvorí podmienka a telo cyklu
 void generate_while_start(tList* list);
 
+// pri každom returne
+void generate_return(tList* list);
+
 // na konci cyklu
 void generate_while_end(tList* list);
+
+// nageneruje kontrolu podmienky a skoky
+void generate_condition_check(tList* list, htab_item_t* podmienka, bool isWhile);
 
 // na začiatku
 // vytovrí kostru pre if-else
