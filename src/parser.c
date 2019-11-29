@@ -24,8 +24,6 @@ int inFunDef = 0;
 int inFunDefHead = 0;
 int paramCount = 0;
 
-tList list;
-
 
 
 void unreviewVariables(htab_t* table){

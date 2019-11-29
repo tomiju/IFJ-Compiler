@@ -111,7 +111,6 @@ int expression(htab_item_t* htab_symbol)
     int result;
     bool success = FALSE;
     int count;
-    // TStackTokenItem tmpitem;
 
 
     TStackToken *Stack = (TStackToken*) malloc(sizeof(struct stacktoken));
@@ -127,6 +126,10 @@ int expression(htab_item_t* htab_symbol)
     	return result;
     }
 
+    if (Stack->top->token_type == I_DOLLAR && get_prec_table_index(token_ptr->type) == I_DOLLAR)
+    {
+    	return SYNTAX_ERROR;
+    }
 
     do
     {	
@@ -134,8 +137,6 @@ int expression(htab_item_t* htab_symbol)
     	switch(prec_table[Stack->top->token_type][get_prec_table_index(token_ptr->type)])
     	{
 		case S:
-			// printf("OPERATION S\n");
-
 			result = shift(Stack);
 
 			if(result != SYNTAX_OK)
@@ -149,7 +150,6 @@ int expression(htab_item_t* htab_symbol)
 			break;
 
 		case E:
-			// printf("OPERATION E\n");
 			result = pushTokenStack(Stack, TOKEN_RIGHT_BRACKET, I_RIGHT_BRACKET, NULL);
 			if (result != SYNTAX_OK)
     		{
@@ -164,7 +164,6 @@ int expression(htab_item_t* htab_symbol)
 			break;
 
 		case R:
-			// printf("OPERATION R\n");
 			result = reduce(Stack);
 
 			if(result != SYNTAX_OK)
@@ -176,7 +175,6 @@ int expression(htab_item_t* htab_symbol)
 			break;
 
 		case N:
-			// printf("OPERATION N\n");
 			if (Stack->top->next_token->data_type == TOKEN_DOLLAR && get_prec_table_index(token_ptr->type) == I_DOLLAR)
 			{
 				success = TRUE;
@@ -211,13 +209,10 @@ int expression(htab_item_t* htab_symbol)
 	*htab_symbol = *(Stack->top->table_symbol);
 
     printf("END OF EXPRESSION, final data type: %d\n", htab_symbol->type);
-    printf("RETURN htab_symbol->type: %d ival: %d dval: %f\n", htab_symbol->type, htab_symbol->ival, htab_symbol->dval);
 
-    // printf("\n\n");
     destroyTokenStack(Stack);
 
 	return TOKEN_OK;
-    // return Stack->top->data_type;
 }
 
 int shift(TStackToken *stack)
@@ -247,8 +242,6 @@ int shift(TStackToken *stack)
 			htab_symbol = htab_find(localSymtable, token_ptr->dynamic_value);
 			if (htab_symbol != NULL)
 			{
-				printf("SOM V LOKALNEJ TABULKE\n");
-				printf("symbol: %d\n", htab_symbol->type);
 				found = TRUE;
 			}
 		}
@@ -258,8 +251,6 @@ int shift(TStackToken *stack)
 			htab_symbol = htab_find(globalSymtable, token_ptr->dynamic_value);
 			if (htab_symbol != NULL)
 			{
-				printf("SOM V GLOBALNEJ TABULKE\n");
-				printf("symbol: %d\n", htab_symbol->type);
 				found = TRUE;
 			}
 		}
@@ -268,7 +259,7 @@ int shift(TStackToken *stack)
 		{
 			return SEMANTIC_UNDEF_VALUE_ERROR;
 		}
-printf("htab_symbol->type: %d ival: %d dval: %f\n", htab_symbol->type, htab_symbol->ival, htab_symbol->dval);
+
 		switch(htab_symbol->type)
 		{
 			case INT:
@@ -359,7 +350,6 @@ int reduce(TStackToken *stack)
 	TStackTokenItem op1 = NULL;
 	TStackTokenItem op2 = NULL;
 	TStackTokenItem op3 = NULL;
-	TStackTokenItem op4 = NULL;
 	TStackTokenItem tmpitem = NULL;
     htab_item_t* htab_symbol = NULL;
 
@@ -535,8 +525,16 @@ int reduce(TStackToken *stack)
 			{
 				return INTERNAL_ERROR;
 			}
-	
-			htab_symbol = make_const(constant_name, UNKNOWN);
+			
+			if (localSymtable != NULL)
+			{
+				htab_symbol = generate_var(&list, constant_name, UNKNOWN, LF);
+			}
+			else
+			{
+				htab_symbol = generate_var(&list, constant_name, UNKNOWN, GF);
+			}
+			
 		}
 		
 
@@ -559,8 +557,6 @@ int reduce(TStackToken *stack)
     	{
     		return result;
     	}
-
-    	free(op4);
 	}
 
 	return SYNTAX_OK;
@@ -569,12 +565,6 @@ int reduce(TStackToken *stack)
 
 int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab_item_t* htab_symbol, Prec_rules_enum rule, TokenTYPE *final_token_type)
 {
-	// bool op1_to_double = false;
-	// bool op3_to_double = false;
-	// bool op1_to_integer = false;
-	// bool op3_to_integer = false;
-
-
 	switch (rule)
 	{
 		case OPERAND:
@@ -613,6 +603,8 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				htab_symbol->type = STRING;
 				*final_token_type = TOKEN_NONTERM_STRING;
+				generate_instr(&list, CONCAT, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+
 				break;
 			}
 
@@ -620,6 +612,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				htab_symbol->type = INT;
 				*final_token_type = TOKEN_NONTERM_INT;
+				generate_instr(&list, ADD, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
 	
@@ -628,6 +621,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				htab_symbol->type = FLOAT;
 				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				generate_instr(&list, ADD, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
 
@@ -635,6 +629,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				htab_symbol->type = FLOAT;
 				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				generate_instr(&list, ADD, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
 
@@ -642,6 +637,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				htab_symbol->type = FLOAT;
 				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				generate_instr(&list, ADD, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
 
@@ -659,6 +655,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				htab_symbol->type = INT;
 				*final_token_type = TOKEN_NONTERM_INT;
+				generate_instr(&list, SUB, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
 	
@@ -667,6 +664,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				htab_symbol->type = FLOAT;
 				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				generate_instr(&list, SUB, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
 
@@ -674,6 +672,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				htab_symbol->type = FLOAT;
 				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				generate_instr(&list, SUB, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
 
@@ -681,6 +680,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				htab_symbol->type = FLOAT;
 				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				generate_instr(&list, SUB, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
 
@@ -697,6 +697,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				htab_symbol->type = INT;
 				*final_token_type = TOKEN_NONTERM_INT;
+				generate_instr(&list, MUL, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
 	
@@ -705,6 +706,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				htab_symbol->type = FLOAT;
 				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				generate_instr(&list, MUL, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
 
@@ -712,6 +714,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				htab_symbol->type = FLOAT;
 				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				generate_instr(&list, MUL, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
 
@@ -719,6 +722,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				htab_symbol->type = FLOAT;
 				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				generate_instr(&list, MUL, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
 
@@ -733,6 +737,8 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 
+			generate_instr(&list, DIV, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+
 			break;
 	
 		case NT_IDIV_NT:
@@ -742,22 +748,47 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 	
+			generate_instr(&list, IDIV, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 
 			break;
 	
 		case NT_EQ_NT:
 			htab_symbol->type = BOOL;
 			*final_token_type = op1->data_type;
+			generate_instr(&list, EQ, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 			break;
 
 		case NT_NEQ_NT:
+			htab_symbol->type = BOOL;
+			*final_token_type = TOKEN_NONTERM_BOOL;
+			generate_instr(&list, EQ, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+			generate_instr(&list, NOT, 2, htab_symbol, htab_symbol);
+			break;
+
 		case NT_LEQ_NT:
+			htab_symbol->type = BOOL;
+			*final_token_type = TOKEN_NONTERM_BOOL;
+			generate_instr(&list, GT, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+			generate_instr(&list, NOT, 2, htab_symbol, htab_symbol);
+			break;
+
 		case NT_LTN_NT:
+			htab_symbol->type = BOOL;
+			*final_token_type = TOKEN_NONTERM_BOOL;
+			generate_instr(&list, LT, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+			break;
+
 		case NT_MEQ_NT:
+			htab_symbol->type = BOOL;
+			*final_token_type = TOKEN_NONTERM_BOOL;
+			generate_instr(&list, LT, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+			generate_instr(&list, NOT, 2, htab_symbol, htab_symbol);
+			break;
+
 		case NT_MTN_NT:
 			htab_symbol->type = BOOL;
 			*final_token_type = TOKEN_NONTERM_BOOL;
-	
+			generate_instr(&list, GT, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 			break;
 	
 		default:
