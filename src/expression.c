@@ -14,13 +14,18 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "stdbool.h"
 #include "scanner.h"
 #include "expression.h"
 #include "parser.h"
+#include "symtable.h"
+#include "generator.h"
 
 #define TAB_SIZE 8
 #define SYNTAX_OK 0
+
+int name_counter = 0;
 
 
 // Precedence table
@@ -103,32 +108,24 @@ extern int currentLine;
 int expression(TokenTYPE *expression_type){
     printf("expression\n");
     int result;
-    // sezere tri tokeny bez syntakticke kontroly
-    
-    // result = getToken(&token_ptr, &indent_stack );
-    // if(result != TOKEN_OK)return result;
+    bool success = FALSE;
+    int count;
+    // TStackTokenItem tmpitem;
 
-    // result = getToken(&token_ptr, &indent_stack );
-    // if(result != TOKEN_OK)return result;
-
-    // result = getToken(&token_ptr, &indent_stack );
-    // if(result != TOKEN_OK)return result;
 
     TStackToken *Stack = (TStackToken*) malloc(sizeof(struct stacktoken));
     if (Stack == NULL)
     {
-    	printf("Chyba alokácie\n");
-    	return 1;
+    	return INTERNAL_ERROR;
     }
 
     initTokenStack(Stack);
-    pushTokenStack(Stack, TOKEN_DOLLAR, I_DOLLAR);
+    result = pushTokenStack(Stack, TOKEN_DOLLAR, I_DOLLAR, NULL);
+    if (result != SYNTAX_OK)
+    {
+    	return result;
+    }
 
-
-    bool success = FALSE;
-    int count;
-    TStackTokenItem tmpitem;
-    
 
     do
     {	
@@ -138,16 +135,14 @@ int expression(TokenTYPE *expression_type){
 		case S:
 			// printf("OPERATION S\n");
 
-			if (get_prec_table_index(token_ptr->type) == I_DATA)
-			{
-				pushTokenStack(Stack, TOKEN_STOP, I_STOP);
-			}
-			pushTokenStack(Stack, token_ptr->type, get_prec_table_index(token_ptr->type));
+			result = shift(Stack);
 
-			if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
-    		    fprintf(stderr,"line: %d\n",currentLine);
-    		    return LEX_ERROR;
-    		}
+			if(result != SYNTAX_OK)
+			{
+				// TODO FREE
+				return result;
+			}
+
 
 			// TODO generate code
 
@@ -155,7 +150,11 @@ int expression(TokenTYPE *expression_type){
 
 		case E:
 			// printf("OPERATION E\n");
-			pushTokenStack(Stack, TOKEN_RIGHT_BRACKET, I_RIGHT_BRACKET);
+			result = pushTokenStack(Stack, TOKEN_RIGHT_BRACKET, I_RIGHT_BRACKET, NULL);
+			if (result != SYNTAX_OK)
+    		{
+    			return result;
+    		}
 
 			if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
     		    fprintf(stderr,"line: %d\n",currentLine);
@@ -208,34 +207,19 @@ int expression(TokenTYPE *expression_type){
     } while(success == FALSE);
 
 
-    // printf("\n\n");
-
-    // tmpitem = Stack->top;
-    // 	printf("TOKENY NA STACKU: ");
-    // 	while(tmpitem->token_type != I_DOLLAR)
-    // 	{
-    // 		printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
-    // 		tmpitem = tmpitem->next_token;
-    // 	}
-
-    // printf("\n\n");
-
-	// printf("Ďalší token: %s\n", token_ptr->dynamic_value);
-
-
 	switch(Stack->top->data_type)
 	{
 		case TOKEN_NONTERM_INT:
-			*expression_type = TOKEN_INT;
+			*expression_type = INT;
 			break;
 		case TOKEN_NONTERM_DOUBLE:
-			*expression_type = TOKEN_DOUBLE;
+			*expression_type = FLOAT;
 			break;
 		case TOKEN_NONTERM_STRING:
-			*expression_type = TOKEN_STRING;
+			*expression_type = STRING;
 			break;
 		case TOKEN_NONTERM_BOOL:
-			*expression_type = TOKEN_NONTERM_BOOL;
+			*expression_type = BOOL;
 			break;
 		default:
 			*expression_type = TOKEN_NONE;
@@ -243,31 +227,206 @@ int expression(TokenTYPE *expression_type){
 
     // printf("END OF EXPRESSION, final data type: %d\n", *expression_type);
     // printf("\n\n");
+    destroyTokenStack(Stack);
 
 	return TOKEN_OK;
     // return Stack->top->data_type;
+}
+
+int shift(TStackToken *stack)
+{
+	int datovy_typ;
+    int int_value;
+    int result;
+    double double_value;
+    bool found = FALSE;
+    htab_item_t* htab_symbol = NULL;
+
+
+	if (get_prec_table_index(token_ptr->type) == I_DATA || get_prec_table_index(token_ptr->type) == I_LEFT_BRACKET)
+	{
+		// printf("PUSHUJEM: TOKEN_STOP\n");
+		result = pushTokenStack(stack, TOKEN_STOP, I_STOP, NULL);
+		if (result != SYNTAX_OK)
+    	{
+    		return result;
+    	}
+	}
+
+	if (token_ptr->type == TOKEN_IDENTIFIER)
+	{
+		if (localSymtable != NULL)
+		{
+			htab_symbol = htab_find(localSymtable, token_ptr->dynamic_value);
+			if (htab_symbol != NULL)
+			{
+				found = TRUE;
+			}
+		}
+
+		if (found == FALSE)
+		{
+			htab_symbol = htab_find(globalSymtable, token_ptr->dynamic_value);
+			if (htab_symbol != NULL)
+			{
+				found = TRUE;
+			}
+		}
+
+		if (found == FALSE)
+		{
+			return SEMANTIC_UNDEF_VALUE_ERROR;
+		}
+
+		switch(htab_symbol->type)
+		{
+			case INT:
+				token_ptr->type = TOKEN_INT;
+				break;
+			case FLOAT:
+				token_ptr->type = TOKEN_DOUBLE;
+				break;
+			case STRING:
+				token_ptr->type = TOKEN_STRING;
+				break;
+			// case UNKNOWN:
+			// 	token_ptr->type = 
+			// 	break;
+			default:
+				return SYNTAX_ERROR;
+				break;
+		}
+	}
+
+	else if (token_ptr->type >= TOKEN_INT && token_ptr->type <= TOKEN_STRING)
+	{
+		char* constant_name = get_name(); 
+		if (constant_name == NULL)
+		{
+			return INTERNAL_ERROR;
+		}
+
+		switch(token_ptr->type)
+		{
+			case TOKEN_INT:
+				datovy_typ = INT;
+				break;
+			case TOKEN_DOUBLE:
+				datovy_typ = FLOAT;
+				break;
+			case TOKEN_STRING:
+				datovy_typ = STRING;
+				break;
+			default:
+				break;
+		}
+
+		htab_symbol = make_const(constant_name, datovy_typ);
+		
+		switch(token_ptr->type)
+		{
+			case TOKEN_INT:
+				sscanf(token_ptr->dynamic_value, "%d", &int_value);
+				htab_symbol->ival = int_value;
+				break;
+			case TOKEN_DOUBLE:
+				sscanf(token_ptr->dynamic_value, "%lf", &double_value);
+				htab_symbol->dval = double_value;
+				break;
+			case TOKEN_STRING:
+				htab_symbol->sval = token_ptr->dynamic_value;
+				break;
+			default:
+				break;
+		}
+	}
+
+
+	// printf("PUSHUJEM: %s\n", token_ptr->dynamic_value);
+	result = pushTokenStack(stack, token_ptr->type, get_prec_table_index(token_ptr->type), htab_symbol);
+	if (result != SYNTAX_OK)
+    {
+    	return result;
+    }
+
+
+	if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
+        fprintf(stderr,"line: %d\n",currentLine);
+        return LEX_ERROR;
+    }
+
+    return SYNTAX_OK;
 }
 
 int reduce(TStackToken *stack)
 {
 	int count = countTokenStack(stack);
 	int result;
+	bool change = FALSE;
 	Prec_rules_enum gen_rule;
 	TokenTYPE final_token_type;
 	TStackTokenItem op1 = NULL;
 	TStackTokenItem op2 = NULL;
 	TStackTokenItem op3 = NULL;
 	TStackTokenItem tmpitem = NULL;
+    htab_item_t* htab_symbol = NULL;
+
+	
+
+	if (stack->top->token_type == I_RIGHT_BRACKET)
+	{
+		if (stack->top->next_token->token_type == I_DOLLAR || stack->top->next_token->next_token->token_type == I_DOLLAR)
+		{
+			// printf("BRACKET SYNTAX_ERROR\n");
+			return SYNTAX_ERROR;
+		}
+
+		op1 = stack->top->next_token->next_token;	// (
+		op2 = stack->top->next_token;	// NT
+		op3 = stack->top;	// )
+
+		op2->next_token = op1->next_token;
+		stack->top = op2;
+		free(op1);
+		free(op3);
+
+		op1 = NULL;
+		op2 = NULL;
+		op3 = NULL;
+
+		count = countTokenStack(stack);
+		change = TRUE;
+	}
+
+
+
 	if (count == 1)
 	{
 		op1 = stack->top;
+
 		if (op1->data_type >= TOKEN_NONTERM && op1->data_type <= TOKEN_NONTERM_BOOL)
 		{
-			tmpitem = op1->next_token;
-			op1->next_token = tmpitem->next_token;
-			free(tmpitem);
+			if (op1->next_token->token_type == I_STOP)
+			{
+				tmpitem = op1->next_token;
+				op1->next_token = tmpitem->next_token;
+				free(tmpitem);
+
+				change = TRUE;
+			}
+			
 
 			count = countTokenStack(stack);
+
+
+			// tmpitem = stack->top;
+   //  		printf("TOKENY NA STACKU: ");
+   //  		while(tmpitem->token_type != I_DOLLAR)
+   //  		{
+   //  			printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
+   //  			tmpitem = tmpitem->next_token;
+   //  		}
+   //  		printf("\n");
 
 			if (count == 3)
 			{
@@ -276,16 +435,40 @@ int reduce(TStackToken *stack)
 				{
 					return result;
 				}
+				return SYNTAX_OK;
 			}
 
 			if (get_prec_table_index(token_ptr->type) != I_DOLLAR)
 			{
-				pushTokenStack(stack, token_ptr->type, get_prec_table_index(token_ptr->type));
+				if (get_prec_table_index(token_ptr->type) == I_LEFT_BRACKET)
+				{
+					// printf("PUSHUJEM: TOKEN_STOP\n");
+					result = pushTokenStack(stack, TOKEN_STOP, I_STOP, NULL);
+					if (result != SYNTAX_OK)
+    				{
+    					return result;
+    				}
+				}
+
+				// printf("PUSHUJEM: %s\n", token_ptr->dynamic_value);
+				result = pushTokenStack(stack, token_ptr->type, get_prec_table_index(token_ptr->type), NULL);
+				if (result != SYNTAX_OK)
+   				{
+   					return result;
+   				}
 
 				if(getToken(&token_ptr, &indent_stack) == LEX_ERROR){
 				    fprintf(stderr,"line: %d\n",currentLine);
 				    return LEX_ERROR;
 				}
+
+				change = TRUE;
+			}
+
+			if (change == FALSE)
+			{
+				// printf("SYNTAX_ERROR\n");
+				return SYNTAX_ERROR;
 			}
 
 			return SYNTAX_OK;
@@ -307,27 +490,41 @@ int reduce(TStackToken *stack)
 		{	
 
 			TStackTokenItem new_item = (TStackTokenItem) malloc(sizeof(struct stacktokenitem)); 
-
 			if (new_item == NULL)
 			{
-				printf("Alokacia sa nepodarila\n");
-				return -1;
+				return INTERNAL_ERROR;
 			}
 		
 			new_item->data_type = TOKEN_STOP;
 			new_item->token_type = I_STOP;
 			new_item->next_token = op2;
 			op3->next_token = new_item;
+			
+			result = shift(stack);
+
+			if(result != SYNTAX_OK)
+			{
+				// TODO FREE
+				return result;
+			}
+
 
 			return SYNTAX_OK;
 		}
 
 		gen_rule = test_rule(count, op1, op2, op3);
-
 	}
+
 
 	else
 	{
+		// tmpitem = stack->top;
+  //   	printf("KONIEC: TOKENY NA STACKU: ");
+  //   	while(tmpitem->token_type != I_DOLLAR)
+  //   	{
+  //   		printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
+  //   		tmpitem = tmpitem->next_token;
+  //   	}
 		return SYNTAX_ERROR;
 	}
 
@@ -337,14 +534,11 @@ int reduce(TStackToken *stack)
 	}
 	else
 	{
-		//TODO 
-		// kontrola semantiky
-		// generovanie kodu
-
+		
 		result = semantic(op1, op2, op3, gen_rule, &final_token_type);
-		if (result == SEMANTIC_TYPE_COMPATIBILITY_ERROR)
+		if (result != SYNTAX_OK)
 		{
-			return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
+			return result;
 		}
 
 		for (int i = 0; i < count; i++)
@@ -352,7 +546,38 @@ int reduce(TStackToken *stack)
 			popTokenStack(stack);
 		}
 
-		pushTokenStack(stack, final_token_type, I_DATA);
+
+		char* constant_name = get_name(); 
+		if (constant_name == NULL)
+		{
+			return INTERNAL_ERROR;
+		}
+
+
+		// htab_symbol = make_const(constant_name, final_token_type);
+		
+		// switch(token_ptr->type)
+		// {
+		// 	case TOKEN_INT:
+		// 		sscanf(token_ptr->dynamic_value, "%d", &int_value);
+		// 		htab_symbol->ival = int_value;
+		// 		break;
+		// 	case TOKEN_DOUBLE:
+		// 		sscanf(token_ptr->dynamic_value, "%lf", &double_value);
+		// 		htab_symbol->dval = double_value;
+		// 		break;
+		// 	case TOKEN_STRING:
+		// 		htab_symbol->sval = token_ptr->dynamic_value;
+		// 		break;
+		// 	default:
+		// 		break;
+		// }
+
+		result = pushTokenStack(stack, final_token_type, I_DATA, htab_symbol);	// DORIESIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		if (result != SYNTAX_OK)
+    	{
+    		return result;
+    	}
 	}
 
 	return SYNTAX_OK;
@@ -361,10 +586,10 @@ int reduce(TStackToken *stack)
 
 int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, Prec_rules_enum rule, TokenTYPE *final_token_type)
 {
-	bool op1_to_double = false;
-	bool op3_to_double = false;
-	bool op1_to_integer = false;
-	bool op3_to_integer = false;
+	// bool op1_to_double = false;
+	// bool op3_to_double = false;
+	// bool op1_to_integer = false;
+	// bool op3_to_integer = false;
 
 
 	switch (rule)
@@ -386,11 +611,6 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, Prec
 
 				case TOKEN_IDENTIFIER:
 					*final_token_type = TOKEN_NONTERM_IDENTIFIER;
-
-
-
-
-					
 					break;
 
 				default:
@@ -421,13 +641,31 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, Prec
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 	
-			*final_token_type = TOKEN_NONTERM_DOUBLE;
+			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_DOUBLE)
+			{
+				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				break;
+			}
+
+			if (op1->data_type == TOKEN_NONTERM_DOUBLE && op3->data_type == TOKEN_NONTERM_INT)
+			{
+				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				break;
+			}
+
+			if (op1->data_type == TOKEN_NONTERM_DOUBLE && op3->data_type == TOKEN_NONTERM_DOUBLE)
+			{
+				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				break;
+			}
+
+
 	
-			if (op1->data_type == TOKEN_NONTERM_INT)
-				op1_to_double = true;
+			// if (op1->data_type == TOKEN_NONTERM_INT)
+			// 	op1_to_double = true;
 	
-			if (op3->data_type == TOKEN_NONTERM_INT)
-				op3_to_double = true;
+			// if (op3->data_type == TOKEN_NONTERM_INT)
+			// 	op3_to_double = true;
 	
 			break;
 	
@@ -437,11 +675,11 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, Prec
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 	
-			if (op1->data_type == TOKEN_NONTERM_INT)
-				op1_to_double = true;
+			// if (op1->data_type == TOKEN_NONTERM_INT)
+			// 	op1_to_double = true;
 	
-			if (op3->data_type == TOKEN_NONTERM_INT)
-				op3_to_double = true;
+			// if (op3->data_type == TOKEN_NONTERM_INT)
+			// 	op3_to_double = true;
 	
 			break;
 	
@@ -451,11 +689,11 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, Prec
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 	
-			if (op1->data_type == TOKEN_NONTERM_DOUBLE)
-				op1_to_integer = true;
+			// if (op1->data_type == TOKEN_NONTERM_DOUBLE)
+			// 	op1_to_integer = true;
 	
-			if (op3->data_type == TOKEN_NONTERM_DOUBLE)
-				op3_to_integer = true;
+			// if (op3->data_type == TOKEN_NONTERM_DOUBLE)
+			// 	op3_to_integer = true;
 	
 			break;
 	
@@ -471,44 +709,23 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, Prec
 		case NT_MTN_NT:
 			*final_token_type = TOKEN_NONTERM_BOOL;
 	
-			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_DOUBLE)
-				op1_to_double = true;
+			// if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_DOUBLE)
+			// 	op1_to_double = true;
 	
-			else if (op1->data_type == TOKEN_NONTERM_DOUBLE && op3->data_type == TOKEN_NONTERM_INT)
-				op3_to_double = true;
+			// else if (op1->data_type == TOKEN_NONTERM_DOUBLE && op3->data_type == TOKEN_NONTERM_INT)
+			// 	op3_to_double = true;
 	
-			else if (op1->data_type != op3->data_type)
-				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
+			// else if (op1->data_type != op3->data_type)
+			// 	return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 	
 			break;
 	
 		default:
+			return SEMANTIC_OTHER_ERROR;
 			break;
 
-
-	return 0;
-	}
-/*
-	if (op1_to_double)
-	{
-		GENERATE_CODE(generate_stack_op2_to_double);
 	}
 
-	if (op3_to_double)
-	{
-		GENERATE_CODE(generate_stack_op1_to_double);
-	}
-
-	if (op1_to_integer)
-	{
-		GENERATE_CODE(generate_stack_op2_to_integer);
-	}
-
-	if (op3_to_integer)
-	{
-		GENERATE_CODE(generate_stack_op1_to_integer);
-	}
-*/
 	return SYNTAX_OK;
 }
 
@@ -529,7 +746,7 @@ Prec_rules_enum test_rule(int count, TStackTokenItem op1, TStackTokenItem op2, T
 
 	case 3:
 		// rule E -> (E)
-		if (op1->data_type == TOKEN_LEFT_BRACKET && (op2->data_type == TOKEN_NONTERM_INT || op2->data_type == TOKEN_NONTERM_DOUBLE ||op2->data_type == TOKEN_NONTERM_STRING || TOKEN_NONTERM_IDENTIFIER) && op3->data_type == TOKEN_LEFT_BRACKET)
+		if (op1->data_type == TOKEN_LEFT_BRACKET && (op2->data_type == TOKEN_NONTERM_INT || op2->data_type == TOKEN_NONTERM_DOUBLE ||op2->data_type == TOKEN_NONTERM_STRING || TOKEN_NONTERM_IDENTIFIER) && op3->data_type == TOKEN_RIGHT_BRACKET)
 			return LBR_NT_RBR;
 
 		if ((op1->data_type == TOKEN_NONTERM_INT || op1->data_type == TOKEN_NONTERM_DOUBLE ||op1->data_type == TOKEN_NONTERM_STRING || TOKEN_NONTERM_IDENTIFIER) && (op3->data_type == TOKEN_NONTERM_INT || op3->data_type == TOKEN_NONTERM_DOUBLE ||op3->data_type == TOKEN_NONTERM_STRING || TOKEN_NONTERM_IDENTIFIER))
@@ -598,7 +815,7 @@ int countTokenStack(TStackToken *stack)
 	int count = 0;
 	TStackTokenItem item = stack->top;
 
-	while(item->token_type != I_DOLLAR && item->token_type != I_STOP)
+	while((item->token_type != I_DOLLAR && item->token_type != I_STOP) && item->token_type != I_LEFT_BRACKET)
 	{
 		count++;
 		item = item->next_token;
@@ -630,21 +847,22 @@ void initTokenStack(TStackToken *stack)
 	stack->top = NULL;
 }
 
-void pushTokenStack(TStackToken* stack, TokenTYPE DataType, Prec_table_index_enum TokenType)
+int pushTokenStack(TStackToken* stack, TokenTYPE DataType, Prec_table_index_enum TokenType, htab_item_t *htab_symbol)
 {
 	TStackTokenItem new_item = (TStackTokenItem) malloc(sizeof(struct stacktokenitem)); 
-
 	if (new_item == NULL)
 	{
-		printf("Alokacia sa nepodarila\n");
-		return;
+		return INTERNAL_ERROR;
 	}
 
 	new_item->data_type = DataType;
 	new_item->token_type = TokenType;
 	new_item->next_token = stack->top;
+	new_item->table_symbol = htab_symbol;
 
 	stack->top = new_item;
+
+	return SYNTAX_OK;
 }
 
 bool popTokenStack(TStackToken* stack)
@@ -663,4 +881,23 @@ bool popTokenStack(TStackToken* stack)
 void destroyTokenStack(TStackToken* stack)
 {
 	while(popTokenStack(stack));
+}
+
+
+char* get_name()
+{
+	char* name = (char*) malloc(10);
+	if (name == NULL)
+	{
+		return NULL;
+	}
+	strcpy(name, "%tmp");
+
+	char idx_string[4];
+	sprintf(idx_string, "%d", name_counter);
+
+	strcat(name, idx_string);
+	name_counter++;
+
+	return name;
 }

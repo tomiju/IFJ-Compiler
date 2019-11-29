@@ -17,6 +17,7 @@
 #define EXPRESSION_H
 
 #include "stdbool.h"
+#include "symtable.h"
 
 typedef enum
 {
@@ -65,6 +66,7 @@ typedef struct stacktokenitem
 {
 	TokenTYPE data_type;
 	Prec_table_index_enum token_type;
+	htab_item_t *table_symbol;
 	struct stacktokenitem *next_token;
 } *TStackTokenItem;
 
@@ -79,6 +81,10 @@ Prec_table_index_enum get_prec_table_index(TokenTYPE symbol);
 
 
 int expression(TokenTYPE *expression_type);
+
+
+int shift(TStackToken *stack);
+
 
 int reduce(TStackToken *stack);
 
@@ -104,7 +110,7 @@ void initTokenStack(TStackToken *stack);
 /**
  * Funkce "pushne" hodnotu aktuálního odsazení na stack
 **/
-void pushTokenStack(TStackToken* stack, TokenTYPE data_type, Prec_table_index_enum token_type);
+int pushTokenStack(TStackToken* stack, TokenTYPE DataType, Prec_table_index_enum TokenType, htab_item_t *htab_symbol);
 
 /**
  * Funkce "popne" aktuální vrchol stacku
@@ -115,6 +121,10 @@ bool popTokenStack(TStackToken* stack);
  * Funkce zruší celý stack a korektně uvolní alokovaný prostor
 **/
 void destroyTokenStack(TStackToken* stack);
+
+
+char* get_name();
+
 
 /** konec souboru "scanner.h" **/
 
