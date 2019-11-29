@@ -144,7 +144,6 @@ int expression(htab_item_t* htab_symbol)
 				return result;
 			}
 
-
 			// TODO generate code
 
 			break;
@@ -211,7 +210,9 @@ int expression(htab_item_t* htab_symbol)
 
 	htab_symbol = Stack->top->table_symbol;
 
-    // printf("END OF EXPRESSION, final data type: %d\n", *expression_type);
+    printf("END OF EXPRESSION, final data type: %d\n", htab_symbol->type);
+    printf("RETURN htab_symbol->type: %d ival: %d dval: %f\n", htab_symbol->type, htab_symbol->ival, htab_symbol->dval);
+
     // printf("\n\n");
     destroyTokenStack(Stack);
 
@@ -246,6 +247,8 @@ int shift(TStackToken *stack)
 			htab_symbol = htab_find(localSymtable, token_ptr->dynamic_value);
 			if (htab_symbol != NULL)
 			{
+				printf("SOM V LOKALNEJ TABULKE\n");
+				printf("symbol: %d\n", htab_symbol->type);
 				found = TRUE;
 			}
 		}
@@ -255,6 +258,8 @@ int shift(TStackToken *stack)
 			htab_symbol = htab_find(globalSymtable, token_ptr->dynamic_value);
 			if (htab_symbol != NULL)
 			{
+				printf("SOM V GLOBALNEJ TABULKE\n");
+				printf("symbol: %d\n", htab_symbol->type);
 				found = TRUE;
 			}
 		}
@@ -263,7 +268,7 @@ int shift(TStackToken *stack)
 		{
 			return SEMANTIC_UNDEF_VALUE_ERROR;
 		}
-
+printf("htab_symbol->type: %d ival: %d dval: %f\n", htab_symbol->type, htab_symbol->ival, htab_symbol->dval);
 		switch(htab_symbol->type)
 		{
 			case INT:
@@ -521,13 +526,19 @@ int reduce(TStackToken *stack)
 	}
 	else
 	{
-		char* constant_name = get_name(); 
-		if (constant_name == NULL)
-		{
-			return INTERNAL_ERROR;
-		}
+		htab_symbol = op1->table_symbol;
 
-		htab_symbol = make_const(constant_name, UNKNOWN);
+		if (count == 3)
+		{
+			char* constant_name = get_name(); 
+			if (constant_name == NULL)
+			{
+				return INTERNAL_ERROR;
+			}
+	
+			htab_symbol = make_const(constant_name, UNKNOWN);
+		}
+		
 
 
 		result = semantic(op1, op2, op3, htab_symbol, gen_rule, &final_token_type);
@@ -592,85 +603,150 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			break;
 	
 		case LBR_NT_RBR:
+			htab_symbol = op2->table_symbol;
 			*final_token_type = op2->data_type;
 			break;
 	
+
 		case NT_PLUS_NT:
-		case NT_MINUS_NT:
-		case NT_MUL_NT:
 			if (op1->data_type == TOKEN_NONTERM_STRING && op3->data_type == TOKEN_NONTERM_STRING && rule == NT_PLUS_NT)
 			{
+				htab_symbol->type = STRING;
 				*final_token_type = TOKEN_NONTERM_STRING;
 				break;
 			}
-	
+
 			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_INT)
 			{
+				htab_symbol->type = INT;
 				*final_token_type = TOKEN_NONTERM_INT;
 				break;
 			}
 	
-			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
-				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
-	
+			
 			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_DOUBLE)
 			{
+				htab_symbol->type = FLOAT;
 				*final_token_type = TOKEN_NONTERM_DOUBLE;
 				break;
 			}
 
 			if (op1->data_type == TOKEN_NONTERM_DOUBLE && op3->data_type == TOKEN_NONTERM_INT)
 			{
+				htab_symbol->type = FLOAT;
 				*final_token_type = TOKEN_NONTERM_DOUBLE;
 				break;
 			}
 
 			if (op1->data_type == TOKEN_NONTERM_DOUBLE && op3->data_type == TOKEN_NONTERM_DOUBLE)
 			{
+				htab_symbol->type = FLOAT;
 				*final_token_type = TOKEN_NONTERM_DOUBLE;
 				break;
 			}
 
+			return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
+	
+			break;
 
+
+		case NT_MINUS_NT:
+
+			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
+				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 	
-			// if (op1->data_type == TOKEN_NONTERM_INT)
-			// 	op1_to_double = true;
+			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_INT)
+			{
+				htab_symbol->type = INT;
+				*final_token_type = TOKEN_NONTERM_INT;
+				break;
+			}
 	
-			// if (op3->data_type == TOKEN_NONTERM_INT)
-			// 	op3_to_double = true;
+			
+			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_DOUBLE)
+			{
+				htab_symbol->type = FLOAT;
+				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				break;
+			}
+
+			if (op1->data_type == TOKEN_NONTERM_DOUBLE && op3->data_type == TOKEN_NONTERM_INT)
+			{
+				htab_symbol->type = FLOAT;
+				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				break;
+			}
+
+			if (op1->data_type == TOKEN_NONTERM_DOUBLE && op3->data_type == TOKEN_NONTERM_DOUBLE)
+			{
+				htab_symbol->type = FLOAT;
+				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				break;
+			}
+
+			return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
+	
+			break;
+
+		case NT_MUL_NT:
+
+			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
+				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
+	
+			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_INT)
+			{
+				htab_symbol->type = INT;
+				*final_token_type = TOKEN_NONTERM_INT;
+				break;
+			}
+	
+			
+			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_DOUBLE)
+			{
+				htab_symbol->type = FLOAT;
+				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				break;
+			}
+
+			if (op1->data_type == TOKEN_NONTERM_DOUBLE && op3->data_type == TOKEN_NONTERM_INT)
+			{
+				htab_symbol->type = FLOAT;
+				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				break;
+			}
+
+			if (op1->data_type == TOKEN_NONTERM_DOUBLE && op3->data_type == TOKEN_NONTERM_DOUBLE)
+			{
+				htab_symbol->type = FLOAT;
+				*final_token_type = TOKEN_NONTERM_DOUBLE;
+				break;
+			}
+
+			return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 	
 			break;
 	
 		case NT_DIV_NT:
+			htab_symbol->type = FLOAT;
 			*final_token_type = TOKEN_NONTERM_DOUBLE;
 	
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
-	
-			// if (op1->data_type == TOKEN_NONTERM_INT)
-			// 	op1_to_double = true;
-	
-			// if (op3->data_type == TOKEN_NONTERM_INT)
-			// 	op3_to_double = true;
-	
+
 			break;
 	
 		case NT_IDIV_NT:
+			htab_symbol->type = FLOAT;
 			*final_token_type = TOKEN_NONTERM_INT;
 	
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 	
-			// if (op1->data_type == TOKEN_NONTERM_DOUBLE)
-			// 	op1_to_integer = true;
-	
-			// if (op3->data_type == TOKEN_NONTERM_DOUBLE)
-			// 	op3_to_integer = true;
-	
+
 			break;
 	
 		case NT_EQ_NT:
-			// printf("SOM TU\n");
+			htab_symbol->type = BOOL;
 			*final_token_type = op1->data_type;
 			break;
 
@@ -679,16 +755,8 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 		case NT_LTN_NT:
 		case NT_MEQ_NT:
 		case NT_MTN_NT:
+			htab_symbol->type = BOOL;
 			*final_token_type = TOKEN_NONTERM_BOOL;
-	
-			// if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_DOUBLE)
-			// 	op1_to_double = true;
-	
-			// else if (op1->data_type == TOKEN_NONTERM_DOUBLE && op3->data_type == TOKEN_NONTERM_INT)
-			// 	op3_to_double = true;
-	
-			// else if (op1->data_type != op3->data_type)
-			// 	return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 	
 			break;
 	
