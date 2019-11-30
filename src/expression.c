@@ -316,6 +316,7 @@ int shift(TStackToken *stack)
 				htab_symbol->sval = token_ptr->dynamic_value;
 				break;
 			case KEYWORD_NONE:
+				htab_symbol->sval = "nil";
 				break;
 			default:
 				break;
