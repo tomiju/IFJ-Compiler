@@ -17,11 +17,6 @@
 
 int debug = 0; // debug výpisy - 1 = zapnuto, 0 = vypnuto
 
-void setSourceFile(FILE *f)
-{
-	source_f = f;
-}
-
 TokenPTR makeToken(TokenPTR* token) // vytvoří nový token a alokuje základní prostor
 {
 	TokenPTR newToken = (TokenPTR) malloc(sizeof(struct Token));
@@ -241,7 +236,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 	while(42)
 	{
 
-		currentChar = (char) getc(source_f);
+		currentChar = (char) getc(stdin);
 
 		switch(state)
 		{
@@ -254,7 +249,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if ((*indent_stack)->value != 0)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 
@@ -266,7 +261,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					state = STATE_ESCAPE_SEQUENCE;
@@ -290,7 +285,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					state = STATE_STRING;
@@ -335,7 +330,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					newToken->type = TOKEN_PLUS;
@@ -352,7 +347,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					newToken->type = TOKEN_MINUS;
@@ -369,7 +364,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					newToken->type = TOKEN_MUL;
@@ -386,7 +381,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					state = STATE_LESS_THAN;
@@ -403,7 +398,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					state = STATE_MORE_THAN;
@@ -420,7 +415,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					state = STATE_NOT_EQUAL;
@@ -437,7 +432,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					state = STATE_ASSIGN;
@@ -454,7 +449,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					state = STATE_DIV;
@@ -471,7 +466,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					//StaticPrevChar = currentChar; // odkomentovat, pro případ, že by """ ss """ byl komentář :)
@@ -490,7 +485,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					newToken->type = TOKEN_RIGHT_BRACKET;
@@ -508,7 +503,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					newToken->type = TOKEN_COMMA;
@@ -526,7 +521,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					newToken->type = TOKEN_COLON;
@@ -544,7 +539,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					state = STATE_IDENTIFIER;
@@ -561,7 +556,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (currentIndent != (*indent_stack)->value && FirstToken == TRUE)
 					{
 						state = STATE_DEDENT;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					state = STATE_NUMBER_INT;
@@ -603,7 +598,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						printf("normální komentář\n"); //debug
 					}*/
 
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					currentIndent = 0;
  				}
 				break;
@@ -626,7 +621,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 
 					state = STATE_BLOCK_COMMENTARY_END;
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					commentaryCounter = 0;
 
 					/*if (debug)
@@ -701,7 +696,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 			case(STATE_LESS_THAN):
 				if (currentChar != '=')
 				{
-					ungetc(currentChar, source_f); // tento znak už není součástí tohoto tokenu, tudíž se vrátím zpět a zpracuji ho znova
+					ungetc(currentChar, stdin); // tento znak už není součástí tohoto tokenu, tudíž se vrátím zpět a zpracuji ho znova
 					newToken->type = TOKEN_LESS_THAN;
 					return TOKEN_OK;
 				}
@@ -720,7 +715,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 			case(STATE_MORE_THAN):
 				if (currentChar != '=')
 				{
-					ungetc(currentChar, source_f); // tento znak už není součástí tohoto tokenu, tudíž se vrátím zpět a zpracuji ho znova
+					ungetc(currentChar, stdin); // tento znak už není součástí tohoto tokenu, tudíž se vrátím zpět a zpracuji ho znova
 					newToken->type = TOKEN_MORE_THAN;
 					return TOKEN_OK;
 				}
@@ -768,7 +763,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else
 				{
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					newToken->type = TOKEN_ASSIGN;
 					return TOKEN_OK;
 				}
@@ -787,7 +782,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else
 				{
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					newToken->type = TOKEN_DIV;
 					return TOKEN_OK;
 				}
@@ -834,14 +829,14 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					newToken->type = TOKEN_INT;
 					ProcessCharToNumber(newToken);
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					return TOKEN_OK;
 				}
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar != '\f')
 				{
 					newToken->type = TOKEN_INT;
 					ProcessCharToNumber(newToken);
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					return TOKEN_OK;
 				}
 			break;
@@ -873,14 +868,14 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					newToken->type = TOKEN_DOUBLE;
 					ProcessCharToNumber(newToken);
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					return TOKEN_OK;
 				}
 				else if (!isdigit(currentChar))
 				{
 					newToken->type = TOKEN_DOUBLE;
 					ProcessCharToNumber(newToken);
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					return TOKEN_OK;
 				}
 
@@ -908,13 +903,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					newToken->type = TOKEN_INT;
 					ProcessCharToNumber(newToken);
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					return TOKEN_OK;
 				}
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar == '\f')
 				{
 					newToken->type = TOKEN_DOUBLE;
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					ProcessCharToNumber(newToken);
 					return TOKEN_OK;
 				}
@@ -943,11 +938,11 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if (!(checkKeyword(newToken)))
 					{
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						return TOKEN_OK;
 					}
 
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					newToken->type = TOKEN_IDENTIFIER;
 					return TOKEN_OK;
 				}
@@ -1068,7 +1063,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				if ((currentChar == '\n' || currentChar == '#' || currentChar == '\"') && FirstToken == TRUE)
 				{
 					currentIndent = 0;
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					state = STATE_START;
 					break;
 				}
@@ -1077,7 +1072,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if ((*indent_stack)->value == currentIndent)
 					{
 						state = STATE_START;
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						break;
 					}
 					else if ((*indent_stack)->value > currentIndent)
@@ -1094,7 +1089,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 							popStack(indent_stack);
 							newToken->type = TOKEN_DEDENT;
-							ungetc(currentChar, source_f);
+							ungetc(currentChar, stdin);
 
 							if ((*indent_stack)->value == currentIndent)
 							{
@@ -1125,7 +1120,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						else
 						{
 							newToken->type = TOKEN_DEDENT;
-							ungetc(currentChar, source_f);
+							ungetc(currentChar, stdin);
 							FirstToken = FALSE;
 							return TOKEN_OK;
 						}
@@ -1133,7 +1128,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					else
 					{
 						pushStack(indent_stack, currentIndent);
-						ungetc(currentChar, source_f);
+						ungetc(currentChar, stdin);
 						newToken->type = TOKEN_INDENT;
 
 						FirstToken = FALSE;
@@ -1158,7 +1153,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					popStack(indent_stack);
 					newToken->type = TOKEN_DEDENT;
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 
 					if ((*indent_stack)->value == currentIndent)
 					{
@@ -1189,7 +1184,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					newToken->type = TOKEN_DEDENT;
 					FirstToken = FALSE;
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					return TOKEN_OK;
 				}
 
@@ -1211,7 +1206,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 
 					state = STATE_DOC_STRING_END;
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					commentaryCounter = 0;
 					break;
 				}
@@ -1238,7 +1233,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				if (commentaryCounter == 3)
 				{
 					newToken->type = TOKEN_STRING;
-					ungetc(currentChar, source_f);
+					ungetc(currentChar, stdin);
 					return TOKEN_OK;
 				}
 				if (currentChar == EOF)
@@ -1285,11 +1280,11 @@ int preloadToken(TokenPTR* token, iStack* stack)
 {
 	fpos_t position;
 
-	fgetpos(source_f, &position);
+	fgetpos(stdin, &position);
 
 	int result = getToken( token , stack);
 
-	fsetpos(source_f, &position);
+	fsetpos(stdin, &position);
 
 	return  result;
 }
