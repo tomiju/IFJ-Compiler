@@ -280,9 +280,9 @@ int shift(TStackToken *stack)
 			case STRING:
 				token_ptr->type = TOKEN_STRING;
 				break;
-			// case UNKNOWN:
-			// 	token_ptr->type = 
-			// 	break;
+			case UNKNOWN:
+				token_ptr->type = TOKEN_IDENTIFIER;
+				break;
 			default:
 				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SYNTAX_ERROR);
 				return SYNTAX_ERROR;
