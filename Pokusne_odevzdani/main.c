@@ -3,9 +3,9 @@
  * Projekt:  Implementace překladače imperativního jazyka IFJ19
  * Varianta: Tým 018, varianta II
  * Soubor:   main_parser.c
+ * 
  *
- *
- * Datum:    29.11.2019
+ * Datum:    xx.xx.xxxx
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -18,7 +18,7 @@
 
 int main(int argc, char const *argv[]){
     FILE *f;
-
+    
     if (argc == 1) // TODO: do jedné funkce
     {
         fprintf(stderr,"No input file.\n");
@@ -39,3 +39,4 @@ int main(int argc, char const *argv[]){
     //fprintf(stderr,"result: %d\n",result);
     return result;
 }
+    

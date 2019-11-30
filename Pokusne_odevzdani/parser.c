@@ -3,9 +3,9 @@
  * Projekt:  Implementace překladače imperativního jazyka IFJ19
  * Varianta: Tým 018, varianta II
  * Soubor:   parser.c
+ * 
  *
- *
- * Datum:    29.11.2019
+ * Datum:    xx.xx.xxxx
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -34,49 +34,49 @@ void unreviewVariables(htab_t* table){
             if(item->type != FUNC){
                 item->reviewed = 0;
             }
-
+            
             item = item->next;
         }
     }
 }
 
 int checkCompleteDefinition(htab_item_t* func){
-    ////fprintf(stderr,"here %s\n", func->key);
+    //fprintf(stderr,"here %s\n", func->key);
     if(func->defined == 0){
-        //fprintf(stderr,"Function %s not defined\n",func->key);
+        fprintf(stderr,"Function %s not defined\n",func->key);
         return 0;
     }
 
     if(func->reviewed == 1)return 1;
     func->reviewed = 1;
-
+    
     htab_t *funcCalls = func->local_vars;
     if(funcCalls == NULL)return 1;
     htab_item_t* call;
     htab_item_t* def;
-
+    
 
     for(int i = 0; i < SIZE; i++){
         call =  funcCalls->ptr[i];
         while(call != NULL){
-            ////fprintf(stderr,"call %s\n", call->key);
-            ////fprintf(stderr,"call type%d\n", call->type);
+            //fprintf(stderr,"call %s\n", call->key);
+            //fprintf(stderr,"call type%d\n", call->type);
             if(call->type == FUNC){
-
+                
                 def = htab_find(globalSymtable,call->key);
-
+                
                 if(def == NULL){
-                    //fprintf(stderr,"function %s not defind\n",call->key);
+                    fprintf(stderr,"function %s not defind\n",call->key);
                     return 0;
                 }
-
+                
                 if(def->type != FUNC){
-                    //fprintf(stderr,"%s not function\n",def->key);
+                    fprintf(stderr,"%s not function\n",def->key);
                 }
-
+                
                 if(checkCompleteDefinition(def) == 0)return 0;
             }
-
+            
             call = call->next;
         }
     }
@@ -85,24 +85,24 @@ int checkCompleteDefinition(htab_item_t* func){
 }
 
 int checkAllDefinitions(htab_t* table){
-
+    
     htab_item_t* func;
-    ////fprintf(stderr,"here %s\n", func->key);
+    //fprintf(stderr,"here %s\n", func->key);
 
     for(int i = 0; i < SIZE; i++){
         func =  table->ptr[i];
         while(func != NULL){
             if(func->type == FUNC){
                 if(func == NULL){
-                    //fprintf(stderr,"function %s not defind\n",func->key);
+                    fprintf(stderr,"function %s not defind\n",func->key);
                     return 0;
                 }
                 if(func->type != FUNC){
-                    //fprintf(stderr,"%s not function\n",func->key);
+                    fprintf(stderr,"%s not function\n",func->key);
                 }
                 if(checkCompleteDefinition(func) == 0)return 0;
             }
-
+            
             func = func->next;
         }
     }
@@ -119,8 +119,8 @@ int param(){
         if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
         if(htab_insert(localSymtable,token_ptr->dynamic_value,UNKNOWN,LF,0,0,1) == INTERNAL_ERROR)return INTERNAL_ERROR;
         identifier = htab_find(localSymtable,token_ptr->dynamic_value);
-        ////fprintf(stderr,"NAME::%s\n",identifier->key);
-        ////fprintf(stderr,"TYPE::%d\n",identifier->type);
+        //fprintf(stderr,"NAME::%s\n",identifier->key);
+        //fprintf(stderr,"TYPE::%d\n",identifier->type);
         generate_instr(&list, DEFVAR,1,identifier);
         generate_instr(&list,MOVE,2,identifier,get_param(paramCount-1));
 
@@ -131,37 +131,37 @@ int param(){
         {
         //pravidlo param -> term
         case TOKEN_IDENTIFIER:
-
+            
             if(inFunDef){
                 identifier = htab_find(localSymtable,token_ptr->dynamic_value);
                 if(identifier != NULL){
                     if(identifier->type == FUNC){
-                        //fprintf(stderr,"%s already used as function call\n",token_ptr->dynamic_value);
+                        fprintf(stderr,"%s already used as function call\n",token_ptr->dynamic_value);
                         return SEMANTIC_UNDEF_VALUE_ERROR;
                     }
                 }else{
                     identifier = htab_find(globalSymtable,token_ptr->dynamic_value);
                     if(identifier == NULL){
-                        //fprintf(stderr,"%s not defined\n",token_ptr->dynamic_value);
+                        fprintf(stderr,"%s not defined\n",token_ptr->dynamic_value);
                         return SEMANTIC_UNDEF_VALUE_ERROR;
                     }
                      if(identifier->type == FUNC){
-                        //fprintf(stderr,"%s is function\n",token_ptr->dynamic_value);
+                        fprintf(stderr,"%s is function\n",token_ptr->dynamic_value);
                         return SEMANTIC_UNDEF_VALUE_ERROR;
                     }
 
                 }
             }else{
-                identifier = htab_find(globalSymtable,token_ptr->dynamic_value);
+                identifier = htab_find(globalSymtable,token_ptr->dynamic_value);          
                 if(identifier == NULL){
-                    //fprintf(stderr,"Undefined %s\n",token_ptr->dynamic_value);
+                    fprintf(stderr,"Undefined %s\n",token_ptr->dynamic_value);
                     return SEMANTIC_UNDEF_VALUE_ERROR;
                 }
                 if(identifier->type == FUNC){
-                    //fprintf(stderr,"Cant use function %s in param\n",token_ptr->dynamic_value);
+                    fprintf(stderr,"Cant use function %s in param\n",token_ptr->dynamic_value);
                     return SEMANTIC_UNDEF_VALUE_ERROR;
                 }
-
+                
             }
             send_param(identifier);
             result = getToken(&token_ptr, &indent_stack );
@@ -192,7 +192,7 @@ int param(){
         break;
         }
     }
-
+    
     return SYNTAX_ERROR;
 }
 
@@ -200,7 +200,7 @@ int paramList2(){
     //fprintf(stderr,"paramList2\n");
 
     int result;
-
+    
     switch(token_ptr->type)
     {
     //pravidlo paramList2 -> epsilon
@@ -210,7 +210,7 @@ int paramList2(){
     //pravidlo paramList2 -> , param paramList2
     case TOKEN_COMMA:
         if(token_ptr->type != TOKEN_COMMA)return SYNTAX_ERROR;
-
+        
         result = getToken(&token_ptr, &indent_stack );
         if(result != TOKEN_OK)return result;
 
@@ -226,7 +226,7 @@ int paramList2(){
     default:
     break;
     }
-
+    
     return SYNTAX_ERROR;
 }
 
@@ -234,7 +234,7 @@ int paramList(){
     //fprintf(stderr,"paramList\n");
 
     int result;
-
+    
     switch(token_ptr->type)
     {
     //pravidlo paramList -> epsilon
@@ -242,10 +242,10 @@ int paramList(){
         return TOKEN_OK;
     break;
     //pravidlo paramList -> param paramList2
-    case TOKEN_IDENTIFIER:
+    case TOKEN_IDENTIFIER: 
     case TOKEN_LEFT_BRACKET:
-    case TOKEN_INT:
-    case TOKEN_DOUBLE:
+    case TOKEN_INT: 
+    case TOKEN_DOUBLE: 
     case TOKEN_STRING:
         result = param();
         if(result != TOKEN_OK)return result;
@@ -259,7 +259,7 @@ int paramList(){
     default:
     break;
     }
-
+       
     return SYNTAX_ERROR;
 }
 
@@ -284,49 +284,49 @@ int funcCall(){
 
     result = paramList();
     if(result != TOKEN_OK)return result;
-
+    
     if(inFunDef == 0){
-
+        
         if(funcInTable == NULL){
-            //fprintf(stderr,"Not defined %s\n",funcName->dynamic_value);
+            fprintf(stderr,"Not defined %s\n",funcName->dynamic_value);
             return SEMANTIC_UNDEF_VALUE_ERROR;
         }
         if(funcInTable->type != FUNC){
-            //fprintf(stderr,"Not function %s\n",funcName->dynamic_value);
+            fprintf(stderr,"Not function %s\n",funcName->dynamic_value);
             return SEMANTIC_UNDEF_VALUE_ERROR;
         }
-
+        
         if(checkCompleteDefinition(funcInTable) == 0){
-            //fprintf(stderr,"Not completely defined %s\n",funcName->dynamic_value);
+            fprintf(stderr,"Not completely defined %s\n",funcName->dynamic_value);         
             return SEMANTIC_UNDEF_VALUE_ERROR;
         }
     }else{
         funcInLocalTable = htab_find(localSymtable,funcName->dynamic_value);
         if(funcInLocalTable != NULL){
             if(funcInLocalTable->type != FUNC){
-                //fprintf(stderr,"%s is used as local variable\n",funcName->dynamic_value);
+                fprintf(stderr,"%s is used as local variable\n",funcName->dynamic_value);
                 return SEMANTIC_UNDEF_VALUE_ERROR;
             }
         }
-        if(funcInTable == NULL){
+        if(funcInTable == NULL){        
             htab_insert(globalSymtable,funcName->dynamic_value,FUNC,GF,0,1,0);
 
             funcInTable = htab_find(globalSymtable,funcName->dynamic_value);
             if(funcInTable == NULL)return INTERNAL_ERROR;
             funcInTable->ival = paramCount;
-
+            
             }
             if(htab_insert(localSymtable,funcName->dynamic_value,FUNC,LF,0,1,0)==INTERNAL_ERROR){
-
+                
                 return INTERNAL_ERROR;
             }
          if(funcInTable->type != FUNC){
-            //fprintf(stderr,"Not function %s\n",funcName->dynamic_value);
+            fprintf(stderr,"Not function %s\n",funcName->dynamic_value);
             return SEMANTIC_UNDEF_VALUE_ERROR;
         }
     }
     if(paramCount != funcInTable->ival && funcInTable->ival != -2){
-        //fprintf(stderr,"Wrong number of params in %s: %d\n",funcInTable->key,paramCount);
+        fprintf(stderr,"Wrong number of params in %s: %d\n",funcInTable->key,paramCount);
         return SEMANTIC_WRONG_PARAMETER_NUMBER_ERROR;
     }
 
@@ -350,11 +350,11 @@ int assignment(){
     //pravidlo id = neco
 
     if(token_ptr->type != TOKEN_IDENTIFIER)return SYNTAX_ERROR;
-
+    
     htab_item_t *varInGlobalTable;
     htab_item_t *varInLocalTable;
     varInGlobalTable = htab_find(globalSymtable,token_ptr->dynamic_value);;
-
+    
     if(inFunDef){
         varInLocalTable = htab_find(localSymtable,token_ptr->dynamic_value);
         if(varInGlobalTable == NULL && varInLocalTable == NULL){
@@ -364,27 +364,27 @@ int assignment(){
             if(varInLocalTable == NULL)return INTERNAL_ERROR;
         }else if(varInGlobalTable != NULL && varInLocalTable == NULL){
             if(varInGlobalTable->type == FUNC){
-                //fprintf(stderr,"Already defined as function\n");
+                fprintf(stderr,"Already defined as function\n");
                 return SEMANTIC_UNDEF_VALUE_ERROR;
             }
             if(varInGlobalTable->reviewed > 1){
-                //fprintf(stderr,"Already used as global variable in this function\n");
+                fprintf(stderr,"Already used as global variable in this function\n");
                 return SEMANTIC_UNDEF_VALUE_ERROR;
             }
             htab_insert(localSymtable, token_ptr->dynamic_value, UNKNOWN,LF,0,0,1);
             created = 1;
             varInLocalTable = htab_find(localSymtable,token_ptr->dynamic_value);
-            if(varInLocalTable == NULL)return INTERNAL_ERROR;
+            if(varInLocalTable == NULL)return INTERNAL_ERROR;      
         }else if(varInGlobalTable == NULL && varInLocalTable != NULL){
             if(varInLocalTable->type == FUNC){
-                //fprintf(stderr,"Function call with same identifier\n");
+                fprintf(stderr,"Function call with same identifier\n");
                 return SEMANTIC_UNDEF_VALUE_ERROR;
             }
         }
     }else{
         if(varInGlobalTable != NULL){
             if(varInGlobalTable->type == FUNC){
-                //fprintf(stderr,"Already defined as function\n");
+                fprintf(stderr,"Already defined as function\n");
                 return SEMANTIC_UNDEF_VALUE_ERROR;
             }
         }else{
@@ -394,12 +394,12 @@ int assignment(){
             if(varInGlobalTable == NULL)return INTERNAL_ERROR;
         }
     }
-
+    
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
-
+    
     if(token_ptr->type != TOKEN_ASSIGN)return SYNTAX_ERROR;
-
+    
     //vime id =
     // zjistime, co prirazujeme
     result = getToken(&token_ptr, &indent_stack );
@@ -408,21 +408,21 @@ int assignment(){
     if(token_ptr->type != TOKEN_IDENTIFIER){
         result = expression(&expressionResult);
         if(result != TOKEN_OK)return result;
-        ////fprintf(stderr,"TYPE: %d\n", expressionResult.type);
-        ////fprintf(stderr,"KEY: %s\n", expressionResult.key);
+        //fprintf(stderr,"TYPE: %d\n", expressionResult.type);
+        //fprintf(stderr,"KEY: %s\n", expressionResult.key);
         if(expressionResult.type == BOOL){
-            //fprintf(stderr,"Cant assign bool to variable\n");
+            fprintf(stderr,"Cant assign bool to variable\n");
             return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
         }
         if(inFunDef){
             varInLocalTable->type = expressionResult.type;
             if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
 
-            generate_instr(&list,MOVE,2,varInLocalTable, &expressionResult);
+            generate_instr(&list,MOVE,2,varInLocalTable, &expressionResult);      
         }else{
             varInGlobalTable->type = expressionResult.type;
             if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
-
+            
             generate_instr(&list,MOVE,2,varInGlobalTable, &expressionResult);
         }
         return result;
@@ -445,9 +445,9 @@ int assignment(){
         }else{
             //prirazujeme vyraz
             result = expression(&expressionResult);
-
+            
             if(expressionResult.type == BOOL){
-                //fprintf(stderr,"Cant assign bool to variable\n");
+                fprintf(stderr,"Cant assign bool to variable\n");
                 return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
             }
             if(inFunDef){
@@ -464,7 +464,7 @@ int assignment(){
             return result;
         }
     }
-
+    
     return SYNTAX_ERROR;
 }
 
@@ -492,7 +492,7 @@ int statWithId(){
             result = assignment();
             return result;
         break;
-
+        
         default:
             result = expression(&expressionResult);
 
@@ -509,16 +509,16 @@ int stat(){
     htab_item_t expressionResult;
     switch(token_ptr->type){
         //pravidlo: Stat -> StatWithId eol
-        case TOKEN_IDENTIFIER:
+        case TOKEN_IDENTIFIER: 
             result = statWithId();
-
+            
             if(result != TOKEN_OK)return result;
-
+           
             if(token_ptr->type == TOKEN_DEDENT)return result;
             if(token_ptr->type == TOKEN_EOF)return result;
-
+            
             if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
-
+            
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
 
@@ -527,18 +527,18 @@ int stat(){
 
         //pravidlo: Stat -> Expression eol
         case TOKEN_LEFT_BRACKET:
-        case TOKEN_INT:
-        case TOKEN_DOUBLE:
+        case TOKEN_INT: 
+        case TOKEN_DOUBLE: 
         case TOKEN_STRING:
         case KEYWORD_NONE:
             result = expression(&expressionResult);
-            ////fprintf(stderr,"result: %d\n",result);
+            //fprintf(stderr,"result: %d\n",result);
             if(result != TOKEN_OK)return result;
 
             if(token_ptr->type == TOKEN_DEDENT)return result;
             if(token_ptr->type == TOKEN_EOF)return result;
             if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
-
+       
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
 
@@ -547,18 +547,20 @@ int stat(){
         //pravidlo: Stat -> while (Expression) : eol indent Stat StatList dedent
         case KEYWORD_WHILE:
             //fprintf(stderr,"while\n");
-
+            
             if(token_ptr->type != KEYWORD_WHILE)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
 
             generate_while_start(&list);
-
+            
 
             result = expression(&expressionResult);
             if(result != TOKEN_OK)return result;
 
+            generate_condition_check(&list, &expressionResult,1);
+                     
             if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
@@ -586,7 +588,7 @@ int stat(){
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
 
-
+            
 
             return result;
         break;
@@ -599,11 +601,12 @@ int stat(){
             if(result != TOKEN_OK)return result;
 
             start_if_else(&list);
-
+            
             result = expression(&expressionResult);
-
             if(result != TOKEN_OK)return result;
 
+            generate_condition_check(&list, &expressionResult,0);
+            
             if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
@@ -626,12 +629,12 @@ int stat(){
 
             result = statList();
             if(result != TOKEN_OK)return result;
-
+            
             if(token_ptr->type != TOKEN_DEDENT)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
-
+            
             if(token_ptr->type != KEYWORD_ELSE)return SYNTAX_ERROR;
             //fprintf(stderr,"else\n");
 
@@ -647,7 +650,7 @@ int stat(){
 
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
-
+           
             if(token_ptr->type != TOKEN_INDENT)return SYNTAX_ERROR;
 
             result = getToken(&token_ptr, &indent_stack );
@@ -657,7 +660,7 @@ int stat(){
 
             result = stat();
             if(result != TOKEN_OK)return result;
-
+            
             result = statList();
             if(result != TOKEN_OK)return result;
 
@@ -674,11 +677,11 @@ int stat(){
         case KEYWORD_PASS:
             result = getToken(&token_ptr, &indent_stack );
             if(result != TOKEN_OK)return result;
-
+            
             if(token_ptr->type == TOKEN_DEDENT)return TOKEN_OK;
             if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
 
-            result = getToken(&token_ptr, &indent_stack );
+            result = getToken(&token_ptr, &indent_stack );          
             return result;
         break;
 
@@ -690,35 +693,35 @@ int stat(){
                 //return
                 if(token_ptr->type == TOKEN_DEDENT || token_ptr->type == TOKEN_EOF){
 
-                    generate_func_end(&list);
+                    generate_return(&list);
                     return TOKEN_OK;
                 }
-
+                
 
                 if(token_ptr->type == TOKEN_EOL){
 
-                    generate_func_end(&list);
+                    generate_return(&list);
 
                     result = getToken(&token_ptr, &indent_stack );
                     if(result != TOKEN_OK)return result;
                     return TOKEN_OK;
                 }
-
+                
                 //return expression
-
+                
                 result = expression(&expressionResult);
                 if(result != TOKEN_OK)return result;
 
                 generate_save_to_return(&list,&expressionResult);
-                generate_func_end(&list);
-
+                generate_return(&list);
+                
                 if(token_ptr->type == TOKEN_DEDENT)return TOKEN_OK;
                 if(token_ptr->type == TOKEN_EOF)return TOKEN_OK;
                 if(token_ptr->type != TOKEN_EOL)return SYNTAX_ERROR;
 
                 result = getToken(&token_ptr, &indent_stack );
                 if(result != TOKEN_OK)return result;
-
+                
                 return result;
             }
         break;
@@ -749,26 +752,26 @@ int funcDef(){
     TokenPTR funcName = token_ptr;
     htab_item_t* func = htab_find(globalSymtable,funcName->dynamic_value);
     int alreadyCalled = 0;
-
+    
     if(func!= NULL){
         if(func->type != FUNC){
-            //fprintf(stderr,"%s Already defined as variable\n",funcName->dynamic_value);
+            fprintf(stderr,"%s Already defined as variable\n",funcName->dynamic_value);
             return SEMANTIC_UNDEF_VALUE_ERROR;
         }
         if(func->defined == 1){
-            //fprintf(stderr,"Redefinition %s\n",funcName->dynamic_value);
+            fprintf(stderr,"Redefinition %s\n",funcName->dynamic_value);
             return SEMANTIC_UNDEF_VALUE_ERROR;
         }
         alreadyCalled = 1;
-
+        
     }else{
 
         htab_insert(globalSymtable,funcName->dynamic_value,FUNC,GF,0,1,1);
-
+        
         func = htab_find(globalSymtable,funcName->dynamic_value);
         if(func == NULL)return INTERNAL_ERROR;
         func->ival = paramCount;
-
+        
     }
     htab_init(&(func->local_vars));
         if(func->local_vars == NULL)return INTERNAL_ERROR;
@@ -788,12 +791,12 @@ int funcDef(){
     result = paramList();
     if(result != TOKEN_OK)return result;
 
-    ////fprintf(stderr,"Param count: %d\n",paramCount);
-
-
+    //fprintf(stderr,"Param count: %d\n",paramCount);
+    
+        
     if(alreadyCalled){
         if(func->ival != paramCount){
-            //fprintf(stderr,"Function %s was called with different number of params\n",func->key);
+            fprintf(stderr,"Function %s was called with different number of params\n",func->key);
             return SEMANTIC_WRONG_PARAMETER_NUMBER_ERROR;
         }
         func->defined = 1;
@@ -801,8 +804,8 @@ int funcDef(){
         func->ival = paramCount;
     }
     unreviewVariables(globalSymtable);
-
-
+    
+    
 
     paramCount = 0;
 
@@ -837,7 +840,7 @@ int funcDef(){
     if(token_ptr->type != TOKEN_DEDENT)return SYNTAX_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
-    if(result != TOKEN_OK)return result;
+    if(result != TOKEN_OK)return result;   
 
     generate_func_end(&list);
 
@@ -851,16 +854,16 @@ int statList(){
     //fprintf(stderr,"statList\n");
 
     int result;
-
+    
     switch(token_ptr->type){
         //pravidlo:     StatList -> Stat StatList
-        case TOKEN_IDENTIFIER:
-        case TOKEN_LEFT_BRACKET:
-        case KEYWORD_PASS:
-        case TOKEN_INT:
-        case TOKEN_DOUBLE:
-        case TOKEN_STRING:
-        case KEYWORD_WHILE:
+        case TOKEN_IDENTIFIER: 
+        case TOKEN_LEFT_BRACKET: 
+        case KEYWORD_PASS: 
+        case TOKEN_INT: 
+        case TOKEN_DOUBLE: 
+        case TOKEN_STRING: 
+        case KEYWORD_WHILE: 
         case KEYWORD_IF:
         case KEYWORD_RETURN:
         case KEYWORD_NONE:
@@ -878,21 +881,21 @@ int statList(){
         case KEYWORD_DEF:
             return TOKEN_OK;
         break;
-        //pravidlo nenalezeno
+        //pravidlo nenalezeno   
         default:
             return SYNTAX_ERROR;
         break;
     }
+    
 
-
-    //pravidlo nenalezeno
+    //pravidlo nenalezeno   
     return SYNTAX_ERROR;
 }
 
 int program(){
     //fprintf(stderr,"program\n");
     int result;
-
+    
     switch(token_ptr->type){
         //pravidlo:     Program -> eof
         case TOKEN_EOF:
@@ -903,13 +906,13 @@ int program(){
         break;
 
         //pravidlo:     Program -> StatList Program
-        case TOKEN_IDENTIFIER:
-        case TOKEN_LEFT_BRACKET:
-        case KEYWORD_PASS:
-        case TOKEN_INT:
-        case TOKEN_DOUBLE:
-        case TOKEN_STRING:
-        case KEYWORD_WHILE:
+        case TOKEN_IDENTIFIER: 
+        case TOKEN_LEFT_BRACKET: 
+        case KEYWORD_PASS: 
+        case TOKEN_INT: 
+        case TOKEN_DOUBLE: 
+        case TOKEN_STRING: 
+        case KEYWORD_WHILE: 
         case KEYWORD_IF:
         case KEYWORD_NONE:
             result = statList();
@@ -919,7 +922,7 @@ int program(){
             return result;
         break;
 
-        case KEYWORD_DEF:
+        case KEYWORD_DEF: 
             result = funcDef();
             if(result != TOKEN_OK)return result;
 
@@ -931,18 +934,18 @@ int program(){
             return SYNTAX_ERROR;
         break;
     }
-    //pravidlo nenalezeno
+    //pravidlo nenalezeno   
     return SYNTAX_ERROR;
 }
 
 int parse(){
-
+    
     //inicilazation
     indent_stack = initStack();
-
+      
     if (indent_stack == NULL)
     {
-        //fprintf(stderr,"Allocation error.\n");
+        fprintf(stderr,"Allocation error.\n");
         return -1;
     }
 
@@ -951,9 +954,9 @@ int parse(){
         return INTERNAL_ERROR;
     }
     localSymtable = NULL;
-
-
-
+    
+    
+    
     InitList(&list);
     generator_start(&list);
     //get first token
@@ -967,8 +970,10 @@ int parse(){
     //printing instruction is very dangerous prints many instructions
     if(result == TOKEN_OK){
         printInstructions(&list);
+    }else{
+        fprintf(stderr,"ERROR CODE: %d\n",result);
     }
-
+    
     //cleaning
     destroyStack(&indent_stack);
     htab_free(globalSymtable);

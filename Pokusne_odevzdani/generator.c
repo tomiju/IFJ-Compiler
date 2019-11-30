@@ -3,9 +3,9 @@
  * Projekt:  Implementace překladače imperativního jazyka IFJ19
  * Varianta: Tým 018, varianta II
  * Soubor:   generator.c
+ * 
  *
- *
- * Datum:    29.11.2019
+ * Datum:    xx.xx.xxxx
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -21,7 +21,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-htab_t* htab_built_in; // symtable pre vstavané funkcie a
+htab_t* htab_built_in; // symtable pre vstavané funkcie a 
 htab_t* htab_tf;	   // symtable pre dočasné parametre na frame
 
 tNode* main_func_node;
@@ -40,8 +40,8 @@ htab_item_t* params[20];
 unsigned param_idx = 0;
 unsigned par_count = 0;
 
-unsigned while_label_idx = 0;
-unsigned if_label_idx = 0;
+int while_label_idx = -1;
+int if_label_idx = -1;
 
 #define NUM_OF_ARGS 3
 
@@ -65,7 +65,7 @@ void DisposeList (tList* list){
 
 	while (act != NULL){
 		del = act;
-		act = del->next;
+		act = del->next; 
 
 		for(int i = 0; i < NUM_OF_ARGS; i++){
 			free(del->instr.param[i]);
@@ -157,7 +157,7 @@ void DeleteFirst (tList* list){
 		}
 
 		list->first = list->first->next;
-		free(list->first->prev);
+		free(list->first->prev); 
 		list->first->prev = NULL;
 	}
 }
@@ -168,7 +168,7 @@ void DeleteLast (tList* list){
 			list->active = NULL;
 		}
 
-		list->last = list->last->prev;
+		list->last = list->last->prev; 
 		free(list->last->next);
 		list->last->next = NULL;
 	}
@@ -309,7 +309,7 @@ void InstrSetParam(tInstrPar** param, htab_item_t* htab_instr){
 
 /************************** STACK **************************/
 void tPushStack(tStack** stack, tNode* node){
-	tStack* temp = malloc(sizeof(struct stack));
+	tStack* temp = malloc(sizeof(struct stack)); 
 
 	temp->node = node;
 	temp->link = *stack;
@@ -330,9 +330,9 @@ tNode* tPopStack(tStack** stack){
 
 /*void destroyStack(tStack* stack){
 	tStack* temp = malloc(sizeof(struct stack));
-
+    
     temp = stack;
-
+    
     while (temp->node != NULL)
     {
         tPopStack(stack);
@@ -351,9 +351,22 @@ htab_item_t* generate_var(tList* list, char* name, int type, int frame){
 		var = htab_find(htab_built_in, name);
 	} else{
 		var->frame = frame;
-	}
-
+	} 
+	
 	generate_instr(list, DEFVAR, 1, var);
+	return var;
+}
+
+htab_item_t* make_var(char* name, int type, int frame){
+	htab_item_t* var = htab_find(htab_built_in, name);
+
+	if(var == NULL){
+		htab_insert(htab_built_in, name, type, frame, false, false, true);
+		var = htab_find(htab_built_in, name);
+	} else{
+		var->frame = frame;
+	} 
+
 	return var;
 }
 
@@ -391,7 +404,7 @@ void generate_first(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned coun
 
 	for(unsigned i = 0; i < count; i++){
 		htab_item_t* htab_instr = va_arg(list, htab_item_t*);
-
+		
 		InstrSetParam(&(instr.param[i]), htab_instr);
 	}
 
@@ -411,10 +424,10 @@ void generate_instr(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned coun
 
 	for(unsigned i = 0; i < count; i++){
 		htab_item_t* htab_instr = va_arg(list, htab_item_t*);
-
+		
 		InstrSetParam(&(instr.param[i]), htab_instr);
 	}
-
+	
 	va_end(list);
 
 	PostInsert(instr_list, instr);
@@ -554,11 +567,11 @@ htab_item_t* get_param_tf(unsigned idx){
 }
 
 /*void generate_condition(tList* list){
-	SetActive(list, if_condition);
+	SetActive(list, if_condition);	
 }*/
 
 void start_if_else(tList* list){
-	//get_if_bool(list);
+	if_label_idx++;
 
 	htab_item_t* true_const = make_const("true", BOOL);
 	true_const->sval = "true";
@@ -582,10 +595,25 @@ void start_if_else(tList* list){
 
 	tPushStack(&if_else_end_nodes, list->active);
 
-	if_label_idx++;
-
 	SetActive(list, if_condition);
 }
+
+void generate_condition_check(tList* list, htab_item_t* podmienka, bool isWhile){
+	htab_item_t* con_true = make_const("const_true", BOOL);
+	con_true->sval = "true";
+
+	if(isWhile){
+		htab_item_t* label_while_end = get_while_end();
+
+		generate_instr(list, JUMPIFNEQ, 3, label_while_end, podmienka, con_true);
+	} else {
+		htab_item_t* label_if = get_if_label();
+		htab_item_t* label_else = get_else_label();
+
+		generate_instr(list, JUMPIFEQ, 3, label_if, podmienka, con_true);
+		generate_instr(list, JUMP, 1, label_else);
+	}
+}	
 
 void generate_if(tList* list){
 	SetActive(list, tPopStack(&if_nodes));
@@ -597,7 +625,7 @@ void generate_else(tList* list){
 
 void end_if_else(tList* list){
 	SetActive(list, tPopStack(&if_else_end_nodes));
-}
+}	
 
 void generate_before_whiles(tList* list, htab_item_t* item){
 	tNode* temp = list->active;
@@ -607,7 +635,7 @@ void generate_before_whiles(tList* list, htab_item_t* item){
 	}
 
 	generate_instr(list, DEFVAR, 1, item);
-
+	
 	if(before_while != NULL){
 		SetActive(list, temp);
 		before_while = before_while->next;
@@ -615,6 +643,8 @@ void generate_before_whiles(tList* list, htab_item_t* item){
 }
 
 void generate_while_start(tList* list){
+	while_label_idx++;
+
 	generate_before_whiles(list, get_while_cond());
 
 	if(before_while == NULL){
@@ -631,8 +661,7 @@ void generate_while_start(tList* list){
 	tPushStack(&while_nodes, list->active);
 
 	SetActive(list, node);
-	while_label_idx++;
-}
+}	
 
 void generate_while_end(tList* list){
 	SetActive(list, tPopStack(&while_nodes));
@@ -664,6 +693,11 @@ void generate_save_to_return(tList* list, htab_item_t* value_to_save){
 	htab_item_t* ret_val = htab_find(htab_built_in, "%retval");
 
 	generate_instr(list, MOVE, 2, ret_val, value_to_save);
+}
+
+void generate_return(tList* list){
+	generate_instr(list, POPFRAME, 0);
+	generate_instr(list, RETURN, 0);
 }
 
 void generate_func_end(tList* list){
@@ -778,7 +812,7 @@ void generate_inputi(tList* list){
 void generate_len(tList* list){
 	htab_item_t* func = htab_find(htab_built_in, "len");
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
-
+	
 	generate_func_start(list, func);
 	generate_instr(list, STRLEN, 2, retval, get_param(0));
 	generate_func_end(list);
@@ -788,7 +822,7 @@ void generate_ord(tList* list){
 	htab_item_t* func = htab_find(htab_built_in, "ord");
 	htab_item_t* func_len = htab_find(htab_built_in, "len");
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
-
+	
 	generate_func_start(list, func);
 	htab_item_t* dlzka = generate_var(list, "dlzka", INT, LF);
 
@@ -814,7 +848,7 @@ void generate_ord(tList* list){
 void generate_chr(tList* list){
 	htab_item_t* func = htab_find(htab_built_in, "chr");
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
-
+	
 	generate_func_start(list, func);
 	generate_instr(list, INT2CHAR, 2, retval, get_param(0));
 	generate_func_end(list);
@@ -824,7 +858,7 @@ void generate_substr(tList* list){
 	htab_item_t* func = htab_find(htab_built_in, "substr");
 	htab_item_t* func_len = htab_find(htab_built_in, "len");
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
-
+	
 	generate_func_start(list, func);
 
 	htab_item_t* con = make_const("None", STRING);
@@ -834,7 +868,7 @@ void generate_substr(tList* list){
 	htab_item_t* dlzka = generate_var(list, "dlzka", INT, LF);
 	generate_func_call(list, func_len, 1, get_param(0));
 
-	generate_save_return_value(list, dlzka);
+	generate_save_return_value(list, dlzka);	
 
 	htab_item_t* podmienky = generate_var(list, "podmienky", BOOL, LF);
 
@@ -885,9 +919,9 @@ void generate_substr(tList* list){
 
 void generate_print(tList* list){
 	htab_item_t* func = htab_find(htab_built_in, "print");
-
+	
 	generate_func_start(list, func);
-
+	
 	htab_item_t* param = get_param(0);
 
 	generate_instr(list, WRITE, 1, param);
@@ -908,7 +942,7 @@ void generator_start(tList* list){
 	htab_item_t* item = htab_find(htab_built_in, "nil");
 	nil = item;
 	nil->sval = "nil";
-
+	
 	// funkcia main
 	htab_insert(htab_built_in, "$main", FUNC, GF, false, true, true);
 	item = htab_find(htab_built_in, "$main");
@@ -935,7 +969,7 @@ void generator_start(tList* list){
 	main_func_node = list->last;
 
 	// vstavané funkcie
-	generate_len(list);
+	generate_len(list);	
 	generate_ord(list);
 	generate_chr(list);
 	generate_substr(list);
@@ -943,6 +977,9 @@ void generator_start(tList* list){
 	generate_inputf(list);
 	generate_inputi(list);
 	generate_print(list);
+
+	// pomocná premenná na kontrolu typov
+	//generate_var(list, "%typ", BOOL, GF);
 }
 
 char* replace_by_escape(char* string){
@@ -951,17 +988,61 @@ char* replace_by_escape(char* string){
 	unsigned rep_idx = 0;
 	for(unsigned str_idx = 0; str_idx < strlen(string); str_idx++, rep_idx++){
 		switch(string[str_idx]){
-		    case ' ': replaced[rep_idx++] = '\\';
+		    case ' ': 
+		    	replaced[rep_idx++] = '\\';
+		    	replaced[rep_idx++] = '0';
 			    replaced[rep_idx++] = '3';
 			    replaced[rep_idx] = '2';
+			    break;
+			case '\t': 
+				replaced[rep_idx++] = '\\';
+			    replaced[rep_idx++] = '0';
+			    replaced[rep_idx++] = '0';
+			    replaced[rep_idx] = '9';
+			    break;
+			case '\n': 
+				replaced[rep_idx++] = '\\';
+			    replaced[rep_idx++] = '0';
+			    replaced[rep_idx++] = '1';
+			    replaced[rep_idx] = '0';
+			    break;
+			case '\\': 
+				replaced[rep_idx++] = '\\';
+			    replaced[rep_idx++] = '0';
+			    replaced[rep_idx++] = '9';
+			    replaced[rep_idx] = '2';
+			    break;
+			case '#': 
+				replaced[rep_idx++] = '\\';
+			    replaced[rep_idx++] = '0';
+			    replaced[rep_idx++] = '3';
+			    replaced[rep_idx] = '5';
 			    break;
 		    default: replaced[rep_idx] = string[str_idx];
 		}
 	}
 	replaced[rep_idx] = '\0';
-
+	
 	return replaced;
 }
+
+/*void check_types(tList* list, tInstr* instr){
+	switch(instr->type){
+		case ADD: case SUB: case MUL:	// oba int alebo float 
+			break;
+		case DIV:						// oba float
+			break;	
+		case IDIV:						// oba int
+			break;	
+		case CONCAT:					// oba string
+			if(instr->param[0]->type == UNKNOWN){
+				//generate_instr(list, TYPE, )
+			}
+			break;
+	}	
+
+	return;
+}*/
 
 void printInstructions(tList* list){
 	printf(".IFJcode19\n");
@@ -970,8 +1051,8 @@ void printInstructions(tList* list){
 	tInstr instr;
 
 	while(Active(list)){
-		Copy(list, &instr);
-		printf("%s ", INSTR_STRING[instr.type]);
+		Copy(list, &instr); 
+		printf("%s ", INSTR_STRING[instr.type]); 
 
 		for(int i = 0; i < 3; i++){
 			if(instr.param[i] != NULL){
@@ -987,20 +1068,14 @@ void printInstructions(tList* list){
 						case STRING: printf("string@%s", replace_by_escape(instr.param[i]->sval)); break;
 						case BOOL: printf("bool@%s", instr.param[i]->sval); break;
 						case NIL: printf("nil@%s", instr.param[i]->sval); break;
-						//default: printf("CHYBA_TYPE@"); break;
 					};
 				} else {
-					//if(instr.param[i]->type != NIL){
 					switch(instr.param[i]->frame){
 						case GF: printf("GF@"); break;
 						case LF: printf("LF@"); break;
 						case TF: printf("TF@"); break;
-						//default: printf("CHYBA_FRAME@"); break;
 					}
 					printf("%s ", instr.param[i]->key);
-					/*} else {
-						printf("%s ", "TODO");
-					}*/
 				}
 			}
 		}
