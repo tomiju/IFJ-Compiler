@@ -452,25 +452,6 @@ htab_item_t* get_param(unsigned idx){
 	return param;
 }
 
-htab_item_t* get_while_cond(){
-	char cond_string[7] = "cond";
-
-	char idx_string[3];
-	sprintf(idx_string, "%d", while_label_idx);
-
-	strcat(cond_string, idx_string);
-
-	htab_item_t* item = htab_find(htab_built_in, cond_string);
-
-	if(item == NULL){
-		htab_insert(htab_built_in, cond_string, BOOL, GF, false, false, true);
-		return htab_find(htab_built_in, cond_string);
-	}
-
-	return item;
-	//return generate_var(list, cond_string, BOOL, GF);
-}
-
 htab_item_t* get_while_end(){
 	char label_string[12] = "while_end";
 
@@ -492,17 +473,6 @@ htab_item_t* get_while_label(){
 
 	return make_label(label_string);
 }
-
-/*htab_item_t* get_if_cond(){
-	char cond_string[10] = "cond_if";
-
-	char idx_string[3];
-	sprintf(idx_string, "%d", if_label_idx);
-
-	strcat(cond_string, idx_string);
-
-	return make_const(cond_string, BOOL);
-}*/
 
 htab_item_t* get_if_end(){
 	char label_string[9] = "if_end";
@@ -537,17 +507,6 @@ htab_item_t* get_else_label(){
 	return make_label(label_string);
 }
 
-htab_item_t* get_if_bool(tList* list){
-	char label_string[10] = "if_bool";
-
-	char idx_string[3];
-	sprintf(idx_string, "%d", if_label_idx);
-
-	strcat(label_string, idx_string);
-
-	return generate_var(list, label_string, BOOL, GF);
-}
-
 htab_item_t* get_param_tf(unsigned idx){
 	char arg_string[4] = "%";
 
@@ -560,15 +519,10 @@ htab_item_t* get_param_tf(unsigned idx){
 	if(param == NULL){
 		htab_insert(htab_tf, arg_string, UNKNOWN, TF, false, false, true);
 		param = htab_find(htab_tf, arg_string);
-		//param = 0;
 	}
 
 	return param;
 }
-
-/*void generate_condition(tList* list){
-	SetActive(list, if_condition);	
-}*/
 
 void start_if_else(tList* list){
 	if_label_idx++;
@@ -576,11 +530,7 @@ void start_if_else(tList* list){
 	htab_item_t* true_const = make_const("true", BOOL);
 	true_const->sval = "true";
 
-	htab_item_t* if_bool = get_if_bool(list);
 	tNode* if_condition = list->active;
-
-	generate_instr(list, JUMPIFEQ, 3, get_if_label(), if_bool, true_const);
-	generate_instr(list, JUMP, 1, get_else_label());
 
 	generate_instr(list, LABEL, 1, get_if_label());
 
@@ -644,8 +594,6 @@ void generate_before_whiles(tList* list, htab_item_t* item){
 
 void generate_while_start(tList* list){
 	while_label_idx++;
-
-	generate_before_whiles(list, get_while_cond());
 
 	if(before_while == NULL){
 		before_while = list->active;
@@ -712,6 +660,7 @@ void generate_save_return_value(tList* list, htab_item_t* var){
 	ret_val->frame = TF;
 
 	generate_instr(list, MOVE, 2, var, ret_val);
+	ret_val->frame = LF;
 }
 
 void send_param(htab_item_t* par){
@@ -897,12 +846,13 @@ void generate_substr(tList* list){
 
 	htab_item_t* ch = generate_var(list, "char", STRING, LF);
 	htab_item_t* idx = generate_var(list, "index", INT, LF);
-	generate_instr(list, MOVE, 2, idx, con_one);
+	generate_instr(list, MOVE, 2, idx, get_param(1));
 	htab_item_t* last_idx = generate_var(list, "last_idx", INT, LF);
 	generate_instr(list, ADD, 3, last_idx, get_param(1), get_param(2));
 
 	htab_item_t* loop_label = make_label("loop");
 	htab_item_t* end_label = make_label("end");
+
 	generate_instr(list, LABEL, 1, loop_label);
 	generate_instr(list, GETCHAR, 3, ch, get_param(0), idx);
 	generate_instr(list, CONCAT, 3, retval, retval, ch);
@@ -1026,16 +976,71 @@ char* replace_by_escape(char* string){
 	return replaced;
 }
 
-/*void check_types(tList* list, tInstr* instr){
-	switch(instr->type){
+/*htab_item_t* get_pomocna(int frame){
+	static int name_counter = 0;
+
+	char arg_string[18] = "%tmp_convert";
+
+	char idx_string[4];
+	sprintf(idx_string, "%d", name_counter);
+
+	strcat(arg_string, idx_string);
+
+	htab_item_t* param = htab_find(htab_tf, arg_string);
+	if(param == NULL){
+		htab_insert(htab_tf, arg_string, UNKNOWN, frame, false, false, true);
+		param = htab_find(htab_tf, arg_string);
+	}
+
+	return param;
+}
+
+void check_types(tList* list, tInstr instr){
+	switch(instr.type){
 		case ADD: case SUB: case MUL:	// oba int alebo float 
+			if(instr.param[1]->type == INT && instr.param[2]->type == INT){
+				break;
+			} else if(instr.param[1]->type == FLOAT && instr.param[2]->type == FLOAT){
+				break;
+			} else if(instr.param[1]->type == INT && instr.param[2]->type == FLOAT){
+				printf("%s\n", "********** TU BUDEM ROBIT PREVOD ***********");
+				//char* pomocna = get_pomocna(GF/LF);
+
+
+			} else if(instr.param[1]->type == FLOAT && instr.param[2]->type == INT){
+
+			} else {
+				htab_item_t* error_code = make_const("exit_error", INT);
+				error_code->ival = 4;
+
+				generate_instr(list, EXIT, 1, error_code);
+			}
 			break;
 		case DIV:						// oba float
 			break;	
 		case IDIV:						// oba int
 			break;	
+		case LT: case GT: case EQ:		// oba rovnaký typ
+			if(instr.param[1]->type == INT && instr.param[2]->type == INT){
+				break;
+			} else if(instr.param[1]->type == FLOAT && instr.param[2]->type == FLOAT){
+				break;
+			} else if(instr.param[1]->type == INT && instr.param[2]->type == FLOAT){
+				printf("%s\n", "********** TU BUDEM ROBIT PREVOD ***********");
+				//char* pomocna = get_pomocna(GF/LF);
+
+
+			} else if(instr.param[1]->type == FLOAT && instr.param[2]->type == INT){
+
+			} else {
+				htab_item_t* error_code = make_const("exit_error", INT);
+				error_code->ival = 4;
+
+				generate_instr(list, EXIT, 1, error_code);
+			}
+			break;
 		case CONCAT:					// oba string
-			if(instr->param[0]->type == UNKNOWN){
+			if(instr.param[0]->type == UNKNOWN){
 				//generate_instr(list, TYPE, )
 			}
 			break;
@@ -1055,6 +1060,8 @@ void printInstructions(tList* list){
 		printf("%s ", INSTR_STRING[instr.type]); 
 
 		for(int i = 0; i < 3; i++){
+			//check_types(list, instr);
+
 			if(instr.param[i] != NULL){
 				if(instr.param[i]->isLabel){
 					if(instr.param[i]->type == FUNC){
