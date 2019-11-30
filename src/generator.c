@@ -394,26 +394,6 @@ htab_item_t* make_label(char* name){
 	}
 }
 
-void generate_first(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned count, ...){
-	va_list list;
-
-	tInstr instr;
-	InstrInit(&instr, instr_enum);
-
-	va_start(list, count);
-
-	for(unsigned i = 0; i < count; i++){
-		htab_item_t* htab_instr = va_arg(list, htab_item_t*);
-
-		InstrSetParam(&(instr.param[i]), htab_instr);
-	}
-
-	va_end(list);
-
-	InsertLast(instr_list, instr);
-	First(instr_list);
-}
-
 void generate_instr(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned count, ...){
 	va_list list;
 
@@ -421,17 +401,20 @@ void generate_instr(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned coun
 	InstrInit(&instr, instr_enum);
 
 	va_start(list, count);
-
 	for(unsigned i = 0; i < count; i++){
 		htab_item_t* htab_instr = va_arg(list, htab_item_t*);
 
 		InstrSetParam(&(instr.param[i]), htab_instr);
 	}
-
 	va_end(list);
 
-	PostInsert(instr_list, instr);
-	Succ(instr_list);
+	if(instr_list->first != NULL){
+		PostInsert(instr_list, instr);
+		Succ(instr_list);
+	} else {
+		InsertLast(instr_list, instr);
+		First(instr_list);
+	}
 }
 
 htab_item_t* get_param(unsigned idx){
@@ -671,6 +654,12 @@ void func_call(tList* list, htab_item_t* func){
 	htab_item_t* param;
 	htab_item_t* val_to_copy;
 
+	htab_item_t* space_const = make_const("medzera", STRING);
+	space_const->sval = " ";
+
+	htab_item_t* new_line_const = make_const("odriadkovanies", STRING);
+	new_line_const->sval = "\n";
+
 	if(strcmp(func->key, "print") == 0){
 		for(unsigned i = 0; i < param_idx; i++){
 			generate_instr(list, CREATEFRAME, 0);
@@ -680,6 +669,18 @@ void func_call(tList* list, htab_item_t* func){
 
 			generate_instr(list, DEFVAR, 1, param);
 			generate_instr(list, MOVE, 2, param, val_to_copy);
+
+			generate_instr(list, CALL, 1, func);
+
+			generate_instr(list, CREATEFRAME, 0);
+
+			if(param_idx != (i + 1)){
+				generate_instr(list, DEFVAR, 1, param);
+				generate_instr(list, MOVE, 2, param, space_const);
+			}else {
+				generate_instr(list, DEFVAR, 1, param);
+				generate_instr(list, MOVE, 2, param, new_line_const);
+			}
 
 			generate_instr(list, CALL, 1, func);
 		}
@@ -914,7 +915,7 @@ void generator_start(tList* list){
 
 	htab_item_t* main_func = htab_find(htab_built_in, "$main");
 
-	generate_first(list, JUMP, 1, main_func);	// skok na main
+	generate_instr(list, JUMP, 1, main_func);	// skok na main
 	generate_instr(list, LABEL, 1, main_func); 	// label na main
 	main_func_node = list->last;
 
@@ -933,7 +934,7 @@ void generator_start(tList* list){
 }
 
 char* replace_by_escape(char* string){
-	char* replaced = malloc(strlen(string)*3);
+	char* replaced = malloc((strlen(string)+1)*4);
 
 	unsigned rep_idx = 0;
 	for(unsigned str_idx = 0; str_idx < strlen(string); str_idx++, rep_idx++){
@@ -972,82 +973,8 @@ char* replace_by_escape(char* string){
 		}
 	}
 	replaced[rep_idx] = '\0';
-
 	return replaced;
 }
-
-/*htab_item_t* get_pomocna(int frame){
-	static int name_counter = 0;
-
-	char arg_string[18] = "%tmp_convert";
-
-	char idx_string[4];
-	sprintf(idx_string, "%d", name_counter);
-
-	strcat(arg_string, idx_string);
-
-	htab_item_t* param = htab_find(htab_tf, arg_string);
-	if(param == NULL){
-		htab_insert(htab_tf, arg_string, UNKNOWN, frame, false, false, true);
-		param = htab_find(htab_tf, arg_string);
-	}
-
-	return param;
-}
-
-void check_types(tList* list, tInstr instr){
-	switch(instr.type){
-		case ADD: case SUB: case MUL:	// oba int alebo float
-			if(instr.param[1]->type == INT && instr.param[2]->type == INT){
-				break;
-			} else if(instr.param[1]->type == FLOAT && instr.param[2]->type == FLOAT){
-				break;
-			} else if(instr.param[1]->type == INT && instr.param[2]->type == FLOAT){
-				printf("%s\n", "********** TU BUDEM ROBIT PREVOD ***********");
-				//char* pomocna = get_pomocna(GF/LF);
-
-
-			} else if(instr.param[1]->type == FLOAT && instr.param[2]->type == INT){
-
-			} else {
-				htab_item_t* error_code = make_const("exit_error", INT);
-				error_code->ival = 4;
-
-				generate_instr(list, EXIT, 1, error_code);
-			}
-			break;
-		case DIV:						// oba float
-			break;
-		case IDIV:						// oba int
-			break;
-		case LT: case GT: case EQ:		// oba rovnaký typ
-			if(instr.param[1]->type == INT && instr.param[2]->type == INT){
-				break;
-			} else if(instr.param[1]->type == FLOAT && instr.param[2]->type == FLOAT){
-				break;
-			} else if(instr.param[1]->type == INT && instr.param[2]->type == FLOAT){
-				printf("%s\n", "********** TU BUDEM ROBIT PREVOD ***********");
-				//char* pomocna = get_pomocna(GF/LF);
-
-
-			} else if(instr.param[1]->type == FLOAT && instr.param[2]->type == INT){
-
-			} else {
-				htab_item_t* error_code = make_const("exit_error", INT);
-				error_code->ival = 4;
-
-				generate_instr(list, EXIT, 1, error_code);
-			}
-			break;
-		case CONCAT:					// oba string
-			if(instr.param[0]->type == UNKNOWN){
-				//generate_instr(list, TYPE, )
-			}
-			break;
-	}
-
-	return;
-}*/
 
 void printInstructions(tList* list){
 	printf(".IFJcode19\n");
@@ -1056,12 +983,14 @@ void printInstructions(tList* list){
 	tInstr instr;
 
 	while(Active(list)){
-		Copy(list, &instr);
-		printf("%s ", INSTR_STRING[instr.type]);
+		Copy(list, &instr); 
+
+		//check_types(list, instr);
+		char* repl;
+
+		printf("%s ", INSTR_STRING[instr.type]); 
 
 		for(int i = 0; i < 3; i++){
-			//check_types(list, instr);
-
 			if(instr.param[i] != NULL){
 				if(instr.param[i]->isLabel){
 					if(instr.param[i]->type == FUNC){
@@ -1072,7 +1001,11 @@ void printInstructions(tList* list){
 					switch(instr.param[i]->type){
 						case INT: printf("int@%d", instr.param[i]->ival); break;
 						case FLOAT: printf("float@%a", instr.param[i]->dval); break;
-						case STRING: printf("string@%s", replace_by_escape(instr.param[i]->sval)); break;
+						case STRING: 
+							repl = replace_by_escape(instr.param[i]->sval);
+							printf("string@%s", repl);
+							free(repl);
+							break;
 						case BOOL: printf("bool@%s", instr.param[i]->sval); break;
 						case NIL: printf("nil@%s", instr.param[i]->sval); break;
 					};
