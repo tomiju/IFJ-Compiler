@@ -16,26 +16,8 @@
 #include <stdio.h>
 #include "parser.h"
 
-int main(int argc, char const *argv[]){
-    FILE *f;
-
-    if (argc == 1) // TODO: do jedné funkce
-    {
-        fprintf(stderr,"No input file.\n");
-        return -1;
-    }
-    if ((f = fopen(argv[1], "r")) == NULL)
-    {
-        fprintf(stderr,"File couldn't be opened.\n");
-        return -1;
-    }
-
-    setSourceFile(f);
+int main(){
 
     int result =  parse();
-
-    fclose(f);
-
-    //fprintf(stderr,"result: %d\n",result);
     return result;
 }
