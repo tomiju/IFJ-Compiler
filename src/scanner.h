@@ -85,7 +85,7 @@ typedef enum
 	TOKEN_MORE_THAN_OR_EQUAL,
 	TOKEN_NOT_EQUAL, // !=
 	TOKEN_EQUAL, // ==
-	TOKEN_ASSIGN, // =		20
+	TOKEN_ASSIGN, // =
 
 	// ostatní
 	TOKEN_INDENT,
@@ -99,7 +99,7 @@ typedef enum
 	// keywords
 	KEYWORD_DEFAULT,//
 	KEYWORD_IF,
-	KEYWORD_ELSE,		// 30
+	KEYWORD_ELSE,		//
 	KEYWORD_RETURN,
 	KEYWORD_DEF, // def (definování funkce)
 	KEYWORD_NONE,
@@ -109,7 +109,7 @@ typedef enum
 	KEYWORD_INPUTF,//
 	KEYWORD_PRINT,//
 	KEYWORD_LEN,//
-	KEYWORD_SUBSTR,//	40
+	KEYWORD_SUBSTR,//
 	KEYWORD_ORD,//
 	KEYWORD_CHR,//
 	KEYWORD_PASS,
@@ -121,7 +121,7 @@ typedef enum
 	TOKEN_NONTERM_INT,
 	TOKEN_NONTERM_DOUBLE,
 	TOKEN_NONTERM_STRING,
-	TOKEN_NONTERM_IDENTIFIER, // 50
+	TOKEN_NONTERM_IDENTIFIER, //
 	TOKEN_NONTERM_BOOL
 
 }TokenTYPE;
@@ -141,7 +141,7 @@ typedef struct Token // struktura tokenu
 /**
  * Pomocná struktura pro stack "INDENT" a "DEDENT"
 **/
-typedef struct indentStack // struktura pro stack (pevná velikost -> předělat na dynamickou)
+typedef struct indentStack
 {
 	int value; // hodnota na vrcholu stacku
 	int level; // úroveň zanoření

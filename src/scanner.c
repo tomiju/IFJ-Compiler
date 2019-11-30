@@ -235,7 +235,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 	if (newToken == NULL) // pokud byla chyba v alokaci -> error
 	{
-		return LEX_ERROR; // možná nějaký jiný???
+		return INTERNAL_ERROR;
 	}
 
 	while(42)
