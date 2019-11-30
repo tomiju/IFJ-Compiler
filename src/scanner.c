@@ -866,6 +866,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar == '\f')
 				{
+					if (previousChar == '.')
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+
 					newToken->type = TOKEN_DOUBLE;
 					ProcessCharToNumber(newToken);
 					ungetc(currentChar, stdin);
@@ -873,6 +879,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (!isdigit(currentChar))
 				{
+					if (previousChar == '.')
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+
 					newToken->type = TOKEN_DOUBLE;
 					ProcessCharToNumber(newToken);
 					ungetc(currentChar, stdin);
@@ -912,6 +924,11 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					ungetc(currentChar, stdin);
 					ProcessCharToNumber(newToken);
 					return TOKEN_OK;
+				}
+				else
+				{
+					freeMemory(newToken, indent_stack);
+					return LEX_ERROR;
 				}
 			break;
 
@@ -957,6 +974,51 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
+					break;
+				}
+
+				if (currentChar == 'x' && StaticPrevChar == '\\')
+				{
+
+					if(updateDynamicString('\\', newToken))
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+					if(updateDynamicString('x', newToken))
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+					currentChar = (char) getc(stdin);
+					while(currentChar != '\'')
+					{
+						if (isdigit(currentChar))
+						{
+							if(updateDynamicString(currentChar, newToken))
+							{
+								freeMemory(newToken, indent_stack);
+								return LEX_ERROR;
+							}
+						}
+						else if (currentChar >= (char)65 && currentChar <= (char)70)
+						{
+							if(updateDynamicString(currentChar, newToken))
+							{
+								freeMemory(newToken, indent_stack);
+								return LEX_ERROR;
+							}
+						}
+						else
+						{
+							freeMemory(newToken, indent_stack);
+							return LEX_ERROR;
+						}
+
+						currentChar = (char) getc(stdin);
+					}
+
+					ungetc(currentChar, stdin);
 					break;
 				}
 

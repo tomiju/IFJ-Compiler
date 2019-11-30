@@ -17,12 +17,12 @@
 #include "scanner.h"
 
 
-int main(int argc, char const *argv[]) {
+int main() {
 
-	FILE *f;
+	//FILE *f;
 
    int debug = 1; // DEBUG
-
+/*
 	if (argc == 1) // TODO: do jedné funkce
    {
       printf("No input file.\n");
@@ -34,7 +34,7 @@ int main(int argc, char const *argv[]) {
       return -1;
    }
 
-   setSourceFile(f);
+   setSourceFile(f);*/
 
    /********** DEBUG SCANNER **********/
    if (debug)
