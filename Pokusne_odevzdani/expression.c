@@ -3,9 +3,9 @@
  * Projekt:  Implementace překladače imperativního jazyka IFJ19
  * Varianta: Tým 018, varianta II
  * Soubor:   semantic.c
- * 
  *
- * Datum:    xx.xx.xxxx
+ *
+ * Datum:    30.11.2019
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -51,14 +51,14 @@ Prec_table_index_enum get_prec_table_index(TokenTYPE symbol)
 		case TOKEN_PLUS:
 		case TOKEN_MINUS:
 			return I_PLUS_MINUS;
-	
+
 		case TOKEN_MUL:
 		case TOKEN_DIV:
 			return I_MUL_DIV;
-	
+
 		case TOKEN_IDIV:
 			return I_IDIV;
-	
+
 		case TOKEN_LESS_THAN:
 		case TOKEN_MORE_THAN:
 		case TOKEN_LESS_THAN_OR_EQUAL:
@@ -67,13 +67,13 @@ Prec_table_index_enum get_prec_table_index(TokenTYPE symbol)
 		case TOKEN_EQUAL:
 		case TOKEN_ASSIGN:
 			return I_REL_OP;
-	
+
 		case TOKEN_LEFT_BRACKET:
 			return I_LEFT_BRACKET;
-	
+
 		case TOKEN_RIGHT_BRACKET:
 			return I_RIGHT_BRACKET;
-	
+
 		case TOKEN_INT:
 		case TOKEN_DOUBLE:
 		case TOKEN_STRING:
@@ -97,7 +97,7 @@ Prec_table_index_enum get_prec_table_index(TokenTYPE symbol)
 		case KEYWORD_CHR:
 		case KEYWORD_PASS:
 			return I_DATA;
-	
+
 		default:
 			return I_DOLLAR;
 	}
@@ -124,7 +124,7 @@ int expression(htab_item_t* htab_symbol)
     result = pushTokenStack(Stack, TOKEN_DOLLAR, I_DOLLAR, NULL);
     if (result != SYNTAX_OK)
     {
-    	fprintf(stderr, "ERROR CODE: %d\n", result);
+    	fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", result);
     	return result;
     }
 
@@ -135,7 +135,7 @@ int expression(htab_item_t* htab_symbol)
     }
 
     do
-    {	
+    {
 
     	switch(prec_table[Stack->top->token_type][get_prec_table_index(token_ptr->type)])
     	{
@@ -148,8 +148,6 @@ int expression(htab_item_t* htab_symbol)
 				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", result);
 				return result;
 			}
-
-			// TODO generate code
 
 			break;
 
@@ -199,16 +197,6 @@ int expression(htab_item_t* htab_symbol)
     		success = TRUE;
     	}
 
-
-    	// tmpitem = Stack->top;
-    	// printf("TOKENY NA STACKU: ");
-    	// while(tmpitem->token_type != I_DOLLAR)
-    	// {
-    	// 	printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
-    	// 	tmpitem = tmpitem->next_token;
-    	// }
-    	// printf("  Ďalší token: %s\n", token_ptr->dynamic_value);
-
     } while(success == FALSE);
 
 
@@ -231,14 +219,12 @@ int shift(TStackToken *stack)
     bool found = FALSE;
     htab_item_t* htab_symbol = NULL;
 
-
 	if (get_prec_table_index(token_ptr->type) == I_DATA || get_prec_table_index(token_ptr->type) == I_LEFT_BRACKET)
 	{
 		// printf("PUSHUJEM: TOKEN_STOP\n");
 		result = pushTokenStack(stack, TOKEN_STOP, I_STOP, NULL);
 		if (result != SYNTAX_OK)
     	{
-    		fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", result);
     		return result;
     	}
 	}
@@ -265,7 +251,6 @@ int shift(TStackToken *stack)
 
 		if (found == FALSE)
 		{
-			fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SEMANTIC_UNDEF_VALUE_ERROR);
 			return SEMANTIC_UNDEF_VALUE_ERROR;
 		}
 
@@ -284,18 +269,16 @@ int shift(TStackToken *stack)
 				token_ptr->type = TOKEN_IDENTIFIER;
 				break;
 			default:
-				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SYNTAX_ERROR);
 				return SYNTAX_ERROR;
 				break;
 		}
 	}
 
-	else if (token_ptr->type >= TOKEN_INT && token_ptr->type <= TOKEN_STRING)
+	else if ((token_ptr->type >= TOKEN_INT && token_ptr->type <= TOKEN_STRING) || token_ptr->type == KEYWORD_NONE)
 	{
-		char* constant_name = get_name(); 
+		char* constant_name = get_name();
 		if (constant_name == NULL)
 		{
-			fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", INTERNAL_ERROR);
 			return INTERNAL_ERROR;
 		}
 
@@ -310,12 +293,15 @@ int shift(TStackToken *stack)
 			case TOKEN_STRING:
 				datovy_typ = STRING;
 				break;
+			case KEYWORD_NONE:
+				datovy_typ = NIL;
+				break;
 			default:
 				break;
 		}
 
 		htab_symbol = make_const(constant_name, datovy_typ);
-		
+
 		switch(token_ptr->type)
 		{
 			case TOKEN_INT:
@@ -329,17 +315,17 @@ int shift(TStackToken *stack)
 			case TOKEN_STRING:
 				htab_symbol->sval = token_ptr->dynamic_value;
 				break;
+			case KEYWORD_NONE:
+				htab_symbol->sval = "nil";
+				break;
 			default:
 				break;
 		}
 	}
 
-
-	// printf("PUSHUJEM: %s\n", token_ptr->dynamic_value);
 	result = pushTokenStack(stack, token_ptr->type, get_prec_table_index(token_ptr->type), htab_symbol);
 	if (result != SYNTAX_OK)
     {
-    	fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", result);
     	return result;
     }
 
@@ -365,13 +351,12 @@ int reduce(TStackToken *stack)
 	TStackTokenItem tmpitem = NULL;
     htab_item_t* htab_symbol = NULL;
 
-	
+
 
 	if (stack->top->token_type == I_RIGHT_BRACKET)
 	{
 		if (stack->top->next_token->token_type == I_DOLLAR || stack->top->next_token->next_token->token_type == I_DOLLAR)
 		{
-			fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SYNTAX_ERROR);
 			return SYNTAX_ERROR;
 		}
 
@@ -398,7 +383,7 @@ int reduce(TStackToken *stack)
 	{
 		op1 = stack->top;
 
-		if (op1->data_type >= TOKEN_NONTERM && op1->data_type <= TOKEN_NONTERM_BOOL)
+		if ((op1->data_type >= TOKEN_NONTERM && op1->data_type <= TOKEN_NONTERM_BOOL) || op1->data_type == TOKEN_NONE)
 		{
 			if (op1->next_token->token_type == I_STOP)
 			{
@@ -408,26 +393,16 @@ int reduce(TStackToken *stack)
 
 				change = TRUE;
 			}
-			
+
 
 			count = countTokenStack(stack);
 
-
-			// tmpitem = stack->top;
-   //  		printf("TOKENY NA STACKU: ");
-   //  		while(tmpitem->token_type != I_DOLLAR)
-   //  		{
-   //  			printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
-   //  			tmpitem = tmpitem->next_token;
-   //  		}
-   //  		printf("\n");
 
 			if (count == 3)
 			{
 				result = reduce(stack);
 				if (result != SYNTAX_OK)
 				{
-					fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", result);
 					return result;
 				}
 				return SYNTAX_OK;
@@ -437,20 +412,16 @@ int reduce(TStackToken *stack)
 			{
 				if (get_prec_table_index(token_ptr->type) == I_LEFT_BRACKET)
 				{
-					// printf("PUSHUJEM: TOKEN_STOP\n");
 					result = pushTokenStack(stack, TOKEN_STOP, I_STOP, NULL);
 					if (result != SYNTAX_OK)
     				{
-    					fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", result);
     					return result;
     				}
 				}
 
-				// printf("PUSHUJEM: %s\n", token_ptr->dynamic_value);
 				result = pushTokenStack(stack, token_ptr->type, get_prec_table_index(token_ptr->type), NULL);
 				if (result != SYNTAX_OK)
    				{
-   					fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", result);
    					return result;
    				}
 
@@ -464,7 +435,6 @@ int reduce(TStackToken *stack)
 
 			if (change == FALSE)
 			{
-				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SYNTAX_ERROR);
 				return SYNTAX_ERROR;
 			}
 
@@ -474,7 +444,7 @@ int reduce(TStackToken *stack)
 		{
 			gen_rule = test_rule(count, op1, NULL, NULL);
 		}
-		
+
 	}
 
 	else if (count == 3)
@@ -484,26 +454,24 @@ int reduce(TStackToken *stack)
 		op3 = stack->top;
 
 		if (prec_table[op2->token_type][get_prec_table_index(token_ptr->type)] == S)
-		{	
+		{
 
-			TStackTokenItem new_item = (TStackTokenItem) malloc(sizeof(struct stacktokenitem)); 
+			TStackTokenItem new_item = (TStackTokenItem) malloc(sizeof(struct stacktokenitem));
 			if (new_item == NULL)
 			{
-				fprintf(stderr, "EXPRESSION MALLOC ERROR, CODE: %d\n", INTERNAL_ERROR);
 				return INTERNAL_ERROR;
 			}
-		
+
 			new_item->data_type = TOKEN_STOP;
 			new_item->token_type = I_STOP;
 			new_item->next_token = op2;
 			op3->next_token = new_item;
-			
+
 			result = shift(stack);
 
 			if(result != SYNTAX_OK)
 			{
 				// TODO FREE
-				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", result);
 				return result;
 			}
 
@@ -517,13 +485,11 @@ int reduce(TStackToken *stack)
 
 	else
 	{
-		fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SYNTAX_ERROR);
 		return SYNTAX_ERROR;
 	}
 
 	if (gen_rule == NOT_A_RULE)
 	{
-		fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SYNTAX_ERROR);
 		return SYNTAX_ERROR;
 	}
 	else
@@ -532,13 +498,12 @@ int reduce(TStackToken *stack)
 
 		if (count == 3)
 		{
-			char* constant_name = get_name(); 
+			char* constant_name = get_name();
 			if (constant_name == NULL)
 			{
-				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", INTERNAL_ERROR);
 				return INTERNAL_ERROR;
 			}
-			
+
 			if (localSymtable != NULL)
 			{
 				htab_symbol = make_var(constant_name, UNKNOWN, LF);
@@ -549,15 +514,13 @@ int reduce(TStackToken *stack)
 				htab_symbol = make_var(constant_name, UNKNOWN, GF);
 				generate_before_whiles(&list, htab_symbol);
 			}
-			
+
 		}
-		
 
 
 		result = semantic(op1, op2, op3, htab_symbol, gen_rule, &final_token_type);
 		if (result != SYNTAX_OK)
 		{
-			fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", result);
 			return result;
 		}
 
@@ -568,10 +531,9 @@ int reduce(TStackToken *stack)
 
 
 
-		result = pushTokenStack(stack, final_token_type, I_DATA, htab_symbol);	// DORIESIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		result = pushTokenStack(stack, final_token_type, I_DATA, htab_symbol);
 		if (result != SYNTAX_OK)
     	{
-    		fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", result);
     		return result;
     	}
 	}
@@ -603,17 +565,21 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 					*final_token_type = TOKEN_NONTERM_IDENTIFIER;
 					break;
 
+				case KEYWORD_NONE:
+					*final_token_type = TOKEN_NONE;
+					break;
+
 				default:
 					break;
 			}
 
 			break;
-	
+
 		case LBR_NT_RBR:
 			htab_symbol = op2->table_symbol;
 			*final_token_type = op2->data_type;
 			break;
-	
+
 
 		case NT_PLUS_NT:
 			if (op1->data_type == TOKEN_NONTERM_STRING && op3->data_type == TOKEN_NONTERM_STRING && rule == NT_PLUS_NT)
@@ -625,6 +591,14 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 				break;
 			}
 
+			if (op1->data_type == TOKEN_NONTERM_IDENTIFIER || op3->data_type == TOKEN_NONTERM_IDENTIFIER)
+			{
+				htab_symbol->type = UNKNOWN;
+				*final_token_type = TOKEN_NONTERM_IDENTIFIER;
+				generate_instr(&list, ADD, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+				break;
+			}
+
 			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_INT)
 			{
 				htab_symbol->type = INT;
@@ -632,8 +606,8 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 				generate_instr(&list, ADD, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
-	
-			
+
+
 			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_DOUBLE)
 			{
 				htab_symbol->type = FLOAT;
@@ -658,9 +632,8 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 				break;
 			}
 
-			fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SEMANTIC_TYPE_COMPATIBILITY_ERROR);
 			return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
-	
+
 			break;
 
 
@@ -668,10 +641,17 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 			{
-				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SEMANTIC_TYPE_COMPATIBILITY_ERROR);
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 			}
-	
+
+			if (op1->data_type == TOKEN_NONTERM_IDENTIFIER || op3->data_type == TOKEN_NONTERM_IDENTIFIER)
+			{
+				htab_symbol->type = UNKNOWN;
+				*final_token_type = TOKEN_NONTERM_IDENTIFIER;
+				generate_instr(&list, SUB, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+				break;
+			}
+
 			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_INT)
 			{
 				htab_symbol->type = INT;
@@ -679,8 +659,8 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 				generate_instr(&list, SUB, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
-	
-			
+
+
 			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_DOUBLE)
 			{
 				htab_symbol->type = FLOAT;
@@ -705,19 +685,25 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 				break;
 			}
 
-			fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SEMANTIC_TYPE_COMPATIBILITY_ERROR);
 			return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
-	
+
 			break;
 
 		case NT_MUL_NT:
 
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 			{
-				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SEMANTIC_TYPE_COMPATIBILITY_ERROR);
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 			}
-	
+
+			if (op1->data_type == TOKEN_NONTERM_IDENTIFIER || op3->data_type == TOKEN_NONTERM_IDENTIFIER)
+			{
+				htab_symbol->type = UNKNOWN;
+				*final_token_type = TOKEN_NONTERM_IDENTIFIER;
+				generate_instr(&list, MUL, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+				break;
+			}
+
 			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_INT)
 			{
 				htab_symbol->type = INT;
@@ -725,8 +711,8 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 				generate_instr(&list, MUL, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
-	
-			
+
+
 			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_DOUBLE)
 			{
 				htab_symbol->type = FLOAT;
@@ -751,39 +737,53 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 				break;
 			}
 
-			fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SEMANTIC_TYPE_COMPATIBILITY_ERROR);
 			return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
-	
+
 			break;
-	
+
 		case NT_DIV_NT:
-			htab_symbol->type = FLOAT;
-			*final_token_type = TOKEN_NONTERM_DOUBLE;
-	
+
+
+			if (op1->data_type == TOKEN_NONTERM_IDENTIFIER || op3->data_type == TOKEN_NONTERM_IDENTIFIER)
+			{
+				htab_symbol->type = UNKNOWN;
+				*final_token_type = TOKEN_NONTERM_IDENTIFIER;
+				generate_instr(&list, DIV, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+				break;
+			}
+
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 			{
-				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SEMANTIC_TYPE_COMPATIBILITY_ERROR);
+				htab_symbol->type = FLOAT;
+				*final_token_type = TOKEN_NONTERM_DOUBLE;
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 			}
 
 			generate_instr(&list, DIV, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 
 			break;
-	
+
 		case NT_IDIV_NT:
-			htab_symbol->type = FLOAT;
-			*final_token_type = TOKEN_NONTERM_INT;
-	
+
+			if (op1->data_type == TOKEN_NONTERM_IDENTIFIER || op3->data_type == TOKEN_NONTERM_IDENTIFIER)
+			{
+				htab_symbol->type = UNKNOWN;
+				*final_token_type = TOKEN_NONTERM_IDENTIFIER;
+				generate_instr(&list, DIV, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+				break;
+			}
+
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 			{
-				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SEMANTIC_TYPE_COMPATIBILITY_ERROR);
+				htab_symbol->type = FLOAT;
+				*final_token_type = TOKEN_NONTERM_INT;
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 			}
-	
+
 			generate_instr(&list, IDIV, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 
 			break;
-	
+
 		case NT_EQ_NT:
 			htab_symbol->type = BOOL;
 			*final_token_type = TOKEN_NONTERM_BOOL;
@@ -822,9 +822,8 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			*final_token_type = TOKEN_NONTERM_BOOL;
 			generate_instr(&list, GT, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 			break;
-	
+
 		default:
-			fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SEMANTIC_OTHER_ERROR);
 			return SEMANTIC_OTHER_ERROR;
 			break;
 
@@ -841,11 +840,24 @@ Prec_rules_enum test_rule(int count, TStackTokenItem op1, TStackTokenItem op2, T
 	{
 	case 1:
 		// rule E -> i
-		if (op1->data_type == TOKEN_INT || op1->data_type == TOKEN_DOUBLE || op1->data_type == TOKEN_STRING || op1->data_type == TOKEN_IDENTIFIER) 
+		if (op1->data_type == TOKEN_INT || op1->data_type == TOKEN_DOUBLE || op1->data_type == TOKEN_STRING || op1->data_type == TOKEN_IDENTIFIER || op1->data_type == KEYWORD_NONE)
 		{
 			return OPERAND;
 		}
-		fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", NOT_A_RULE);
+
+
+			// TStackTokenItem tmpitem = op1;
+   //  		printf("TOKENY NA STACKU: ");
+   //  		while(tmpitem->token_type != I_DOLLAR)
+   //  		{
+   //  			printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
+   //  			tmpitem = tmpitem->next_token;
+   //  		}
+   //  		printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
+   //  		printf("\n");
+
+
+
 		return NOT_A_RULE;
 
 	case 3:
@@ -906,10 +918,8 @@ Prec_rules_enum test_rule(int count, TStackTokenItem op1, TStackTokenItem op2, T
 				return NOT_A_RULE;
 			}
 		}
-		fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", NOT_A_RULE);
 		return NOT_A_RULE;
 	}
-	fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", NOT_A_RULE);
 	return NOT_A_RULE;
 }
 
@@ -955,7 +965,7 @@ void initTokenStack(TStackToken *stack)
 
 int pushTokenStack(TStackToken* stack, TokenTYPE DataType, Prec_table_index_enum TokenType, htab_item_t *htab_symbol)
 {
-	TStackTokenItem new_item = (TStackTokenItem) malloc(sizeof(struct stacktokenitem)); 
+	TStackTokenItem new_item = (TStackTokenItem) malloc(sizeof(struct stacktokenitem));
 	if (new_item == NULL)
 	{
 		fprintf(stderr, "EXPRESSION MALLOC ERROR, CODE: %d\n", INTERNAL_ERROR);

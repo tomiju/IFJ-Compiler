@@ -5,7 +5,7 @@
  * Soubor:   symtable.c
  *
  *
- * Datum:    xx.xx.xxxx
+ * Datum:    30.11.2019
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -47,7 +47,7 @@ int htab_insert(htab_t *t, char *key, int type, int frame, bool isConst, bool is
 		return INTERNAL_ERROR;
 	}
 
-	ht_item->key = malloc(sizeof(strlen(key)) + 1);
+	ht_item->key = malloc(strlen(key) + 1);
 
 	if(ht_item->key == NULL){
 		return INTERNAL_ERROR;

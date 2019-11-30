@@ -3,9 +3,9 @@
  * Projekt:  Implementace překladače imperativního jazyka IFJ19
  * Varianta: Tým 018, varianta II
  * Soubor:   generator.h
- * 
  *
- * Datum:    xx.xx.xxxx
+ *
+ * Datum:    30.11.2019
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -25,7 +25,7 @@ typedef struct InstrPar{
 	char* sval;
 	char* key;
 	int type;
-	int frame;	
+	int frame;
 	bool isLabel;
 	bool isConst;
 } tInstrPar;
@@ -92,7 +92,7 @@ int PostInsert(tList* list, tInstr instr);
 // vloží prvok pred aktívnym
 int PreInsert(tList* list, tInstr instr);
 
-// vráti hodnotu 
+// vráti hodnotu
 int Copy(tList* list, tInstr* instr);
 
 // aktualizuje hodnotu
@@ -190,7 +190,7 @@ void generate_return_variable(tList* list_instr);
 
 void generate_copy_params(tList* list_instr, int count, ...);
 
-// vstavané funkcie 
+// vstavané funkcie
 void generate_inputs(tList* list);
 void generate_inputf(tList* list);
 void generate_inputi(tList* list);
@@ -211,7 +211,7 @@ htab_item_t* generate_var(tList* list, char* name, int type, int frame);
 
 htab_item_t* make_var(char* name, int type, int frame);
 
-// pridá inštrukciu do listu, predanú cez enum, následuje počet parametrov 
+// pridá inštrukciu do listu, predanú cez enum, následuje počet parametrov
 // a parametre cez htab_item_t*
 void generate_instr(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned count, ...);
 
@@ -231,7 +231,7 @@ void generate_func_start(tList* list, htab_item_t* label);
 // uloží hodnotu do ktorú funkcia vracia cez return
 void generate_save_to_return(tList* list, htab_item_t* value_to_save);
 
-// volá sa na konci funkcie pri dedente 
+// volá sa na konci funkcie pri dedente
 void generate_func_end(tList* list);
 
 // výsledok funkcie uloží do premmenej var
@@ -246,7 +246,7 @@ void func_call(tList* list, htab_item_t* func);
 
 // nageneruje volanie funkcie
 // vytvorí rámec a na ňom predá parametre do funkcie, zavolá funckiu
-// list, odkaz na funkciu v hashtable, počet argumentov 
+// list, odkaz na funkciu v hashtable, počet argumentov
 // a následne odkazy do hash table na jednotlivé argumenty
 void generate_func_call(tList* list, htab_item_t* label, unsigned count, ...);
 
@@ -269,9 +269,9 @@ void generate_while_end(tList* list);
 // nageneruje kontrolu podmienky a skoky
 void generate_condition_check(tList* list, htab_item_t* podmienka, bool isWhile);
 
-// na začiatku 
+// na začiatku
 // vytovrí kostru pre if-else
-void start_if_else(tList* list);	
+void start_if_else(tList* list);
 
 // volá sa, keď sa ide generovať telo if-u
 void generate_if(tList* list);

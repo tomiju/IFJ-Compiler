@@ -3,9 +3,9 @@
  * Projekt:  Implementace překladače imperativního jazyka IFJ19
  * Varianta: Tým 018, varianta II
  * Soubor:   main.c
- * 
  *
- * Datum:    xx.xx.xxxx
+ *
+ * Datum:    30.11.2019
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -41,18 +41,18 @@ int main(int argc, char const *argv[]) {
    {
 
       iStack indent_stack = initStack();
-      
+
       if (indent_stack == NULL)
       {
          return -1;
       }
-      
+
       TokenPTR testPole[1000]; // jak určíme velikost pole tokenů????
       int x = -1;
 
       do
       {
-        
+
         x++;
 
         if (getToken(&testPole[x], &indent_stack) == 1)
@@ -63,7 +63,7 @@ int main(int argc, char const *argv[]) {
 
          debugToken(&testPole[x], &indent_stack);
          /*printf("\n");
-         printf("debug token (number %d) values:\n", x); 
+         printf("debug token (number %d) values:\n", x);
          printf("value: %s\n", testPole[x]->dynamic_value );
          printf("number with exponent value: %lf\n",testPole[x]->number_value );
          printf("length: %d\n",testPole[x]->size );
@@ -74,7 +74,7 @@ int main(int argc, char const *argv[]) {
 
 
       } while (testPole[x]->type != 1);
-         
+
         /*printf("\nStack test: \n");
         printf("init stack top: %d, level: %d\n", indent_stack->value, indent_stack->level);
         pushStack(&indent_stack, 5);
@@ -89,7 +89,7 @@ int main(int argc, char const *argv[]) {
         printf("stack top after push: %d, level: %d\n", indent_stack->value, indent_stack->level);
         destroyStack(&indent_stack);
         printf("stack top after destroy: %d, level: %d\n", indent_stack->value, indent_stack->level);*/
-      
+
       for (int i = 0; i < x; ++i)
       {
          freeMemory(testPole[i], &indent_stack);
