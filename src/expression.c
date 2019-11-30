@@ -5,7 +5,7 @@
  * Soubor:   semantic.c
  * 
  *
- * Datum:    xx.xx.xxxx
+ * Datum:    29.11.2019
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -230,7 +230,6 @@ int shift(TStackToken *stack)
     double double_value;
     bool found = FALSE;
     htab_item_t* htab_symbol = NULL;
-
 
 	if (get_prec_table_index(token_ptr->type) == I_DATA || get_prec_table_index(token_ptr->type) == I_LEFT_BRACKET)
 	{
@@ -553,7 +552,6 @@ int reduce(TStackToken *stack)
 		}
 		
 
-
 		result = semantic(op1, op2, op3, htab_symbol, gen_rule, &final_token_type);
 		if (result != SYNTAX_OK)
 		{
@@ -625,6 +623,14 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 				break;
 			}
 
+			if (op1->data_type == TOKEN_NONTERM_IDENTIFIER || op3->data_type == TOKEN_NONTERM_IDENTIFIER)
+			{
+				htab_symbol->type = UNKNOWN;
+				*final_token_type = TOKEN_NONTERM_IDENTIFIER;
+				generate_instr(&list, ADD, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+				break;
+			}
+
 			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_INT)
 			{
 				htab_symbol->type = INT;
@@ -670,6 +676,14 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SEMANTIC_TYPE_COMPATIBILITY_ERROR);
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
+			}
+
+			if (op1->data_type == TOKEN_NONTERM_IDENTIFIER || op3->data_type == TOKEN_NONTERM_IDENTIFIER)
+			{
+				htab_symbol->type = UNKNOWN;
+				*final_token_type = TOKEN_NONTERM_IDENTIFIER;
+				generate_instr(&list, SUB, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+				break;
 			}
 	
 			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_INT)
@@ -717,6 +731,14 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SEMANTIC_TYPE_COMPATIBILITY_ERROR);
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 			}
+
+			if (op1->data_type == TOKEN_NONTERM_IDENTIFIER || op3->data_type == TOKEN_NONTERM_IDENTIFIER)
+			{
+				htab_symbol->type = UNKNOWN;
+				*final_token_type = TOKEN_NONTERM_IDENTIFIER;
+				generate_instr(&list, MUL, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+				break;
+			}
 	
 			if (op1->data_type == TOKEN_NONTERM_INT && op3->data_type == TOKEN_NONTERM_INT)
 			{
@@ -757,11 +779,20 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			break;
 	
 		case NT_DIV_NT:
-			htab_symbol->type = FLOAT;
-			*final_token_type = TOKEN_NONTERM_DOUBLE;
+			
+
+			if (op1->data_type == TOKEN_NONTERM_IDENTIFIER || op3->data_type == TOKEN_NONTERM_IDENTIFIER)
+			{
+				htab_symbol->type = UNKNOWN;
+				*final_token_type = TOKEN_NONTERM_IDENTIFIER;
+				generate_instr(&list, DIV, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+				break;
+			}
 	
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 			{
+				htab_symbol->type = FLOAT;
+				*final_token_type = TOKEN_NONTERM_DOUBLE;
 				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SEMANTIC_TYPE_COMPATIBILITY_ERROR);
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 			}
@@ -771,11 +802,19 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			break;
 	
 		case NT_IDIV_NT:
-			htab_symbol->type = FLOAT;
-			*final_token_type = TOKEN_NONTERM_INT;
-	
+
+			if (op1->data_type == TOKEN_NONTERM_IDENTIFIER || op3->data_type == TOKEN_NONTERM_IDENTIFIER)
+			{
+				htab_symbol->type = UNKNOWN;
+				*final_token_type = TOKEN_NONTERM_IDENTIFIER;
+				generate_instr(&list, DIV, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+				break;
+			}
+
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 			{
+				htab_symbol->type = FLOAT;
+				*final_token_type = TOKEN_NONTERM_INT;
 				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SEMANTIC_TYPE_COMPATIBILITY_ERROR);
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 			}
