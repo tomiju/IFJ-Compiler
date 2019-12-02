@@ -126,30 +126,6 @@ int updateDynamicString(char currentChar, TokenPTR token)
 	return 0;
 }
 
-/*int addStringToDynamicString(char* inputString, TokenPTR token)
-{
-	int inputStringLength = (int) strlen(inputString);
-
-	if (token->size + inputStringLength + 1 >= token->allocated_size)
-	{
-
-		int realloc_size = token->size + inputStringLength + 1;
-		token->dynamic_value = (char*) realloc(token->dynamic_value, realloc_size);
-
-		if (token->dynamic_value == NULL)
-		{
-			return 1;
-		}
-		token->allocated_size = realloc_size;
-	}
-
-	token->size += inputStringLength;
-	strcat(token->dynamic_value, inputString);
-	token->dynamic_value[token->size] = '\0';
-
-	return 0;
-}*/
-
 void ProcessCharToNumber(TokenPTR token)
 {
 	token->number_value = (atof(token->dynamic_value));
@@ -300,30 +276,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '\"' && previousChar != '\\')
 				{
-					// odkomentovat pro případ, že by """ sss """ byl komentář :)
-					//if (StaticPrevChar == '(')
-					//{
 						FirstToken = FALSE;
 						state = STATE_DOC_STRING;
 						commentaryCounter = 1;
 						break;
-					//}
-					// else if (FirstToken == TRUE)
-					// {
-					// 	commentaryCounter = 1;
-					// 	state = STATE_BLOCK_COMMENTARY;
-					// 	if (debug)
-					// 	{
-					// 		printf("začátek blok. komentáře\n"); //debug
-					// 	}
-					// 	break;
-					// }
-					// else
-					// {
-					// 	freeMemory(newToken, indent_stack);
-					// 	return LEX_ERROR;
-					// }
-					//break;
 				}
 				else if (currentChar == '+')
 				{
@@ -469,7 +425,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						ungetc(currentChar, stdin);
 						break;
 					}
-					//StaticPrevChar = currentChar; // odkomentovat, pro případ, že by """ ss """ byl komentář :)
 					newToken->type = TOKEN_LEFT_BRACKET;
 					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
@@ -592,12 +547,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				if (currentChar == '\n' || currentChar == EOF)
 				{
 					state = STATE_START;
-
-					/*if (debug)
-					{
-						printf("normální komentář\n"); //debug
-					}*/
-
 					ungetc(currentChar, stdin);
 					currentIndent = 0;
  				}
@@ -623,12 +572,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					state = STATE_BLOCK_COMMENTARY_END;
 					ungetc(currentChar, stdin);
 					commentaryCounter = 0;
-
-					/*if (debug)
-					{
-						printf("text komentáře\n"); //debug
-					}*/
-
 					break;
 				}
 				if (currentChar == '\"' && previousChar != '\\')
@@ -656,12 +599,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					{
 						state = STATE_START;
 						commentaryCounter = 0;
-
-						/*if (debug)
-						{
-							printf("konec blok. komentáře! \n"); //debug
-						}*/
-
 						currentIndent = 0;
 						break;
 					}
@@ -1038,45 +975,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 				}
 
-				if(StaticPrevChar == '\\')
-				{
-					if(updateDynamicString('\\', newToken))
-					{
-						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
-					}
-
-					if(updateDynamicString(currentChar, newToken))
-					{
-						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
-					}
-
-					currentChar = getc(stdin);
-					StaticPrevChar = currentChar;
-
-					if (currentChar == EOF || currentChar == '\n')
-					{
-						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
-					}
-
-					while(currentChar != ' ' && currentChar != '\'')
-					{
-						if(updateDynamicString(currentChar, newToken))
-						{
-							freeMemory(newToken, indent_stack);
-							return LEX_ERROR;
-						}
-						currentChar = getc(stdin);
-						StaticPrevChar = currentChar;
-					}
-
-					ungetc(currentChar, stdin);
-					break;
-				}
-
-				if (currentChar == '\'' && previousChar != '\\') // otestovat
+				if (currentChar == '\'' && StaticPrevChar != '\\') // otestovat
 				{
 					newToken->type = TOKEN_STRING;
 					return TOKEN_OK;
@@ -1311,8 +1210,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
-
-
 			break;
 
 			case(STATE_DOC_STRING_END):
@@ -1355,11 +1252,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 		}
 		previousChar = currentChar;
 	}
-
-	/*if (debug)
-	{
-		printf("konec scanneru error\n");
-	}*/
 
 	freeMemory(newToken, indent_stack);
 	return LEX_ERROR;
