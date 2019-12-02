@@ -1025,7 +1025,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				if (currentChar == 'x' && StaticPrevChar == '\\')
 				{
 					currentChar = (char) getc(stdin);
-					if (isdigit(currentChar) || (currentChar >= (char)65 && currentChar <= (char)70))
+					if (isdigit(currentChar) || (currentChar >= (char)65 && currentChar <= (char)70) || (currentChar >= (char)97 && currentChar <= (char)102))
 					{
 						StaticPrevChar = currentChar;
 						state = STATE_ESCAPE_SEQUENCE;
@@ -1108,7 +1108,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 			case(STATE_ESCAPE_SEQUENCE): // TODO
 
-				if (isdigit(currentChar) || (currentChar >= (char)65 && currentChar <= (char)70))
+				if (isdigit(currentChar) || (currentChar >= (char)65 && currentChar <= (char)70) || (currentChar >= (char)97 && currentChar <= (char)102))
 				{
 						char tmp[2];
 						tmp[0] = StaticPrevChar;
