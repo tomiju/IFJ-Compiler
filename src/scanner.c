@@ -1036,6 +1036,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
+				}
 
 				if(StaticPrevChar == '\\')
 				{
@@ -1114,7 +1115,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						tmp[0] = StaticPrevChar;
 						tmp[1] = currentChar;
 						char* pEnd;
-						double tmpToChar = strtod (pom, &pEnd);
+						double tmpToChar = strtod (tmp, &pEnd);
 
 						if(updateDynamicString((char)tmpToChar, newToken))
 						{
