@@ -974,48 +974,101 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
+					StaticPrevChar = currentChar;
 					break;
 				}
 
-				if (currentChar == 'x' && StaticPrevChar == '\\')
+				if (currentChar == '\"' && StaticPrevChar == '\\')
 				{
+					if(updateDynamicString('\"', newToken))
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+					StaticPrevChar = currentChar;
+					break;
+				}
 
+				if (currentChar == '\'' && StaticPrevChar == '\\')
+				{
+					if(updateDynamicString('\'', newToken))
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+					StaticPrevChar = currentChar;
+					break;
+				}
+
+				if (currentChar == 't' && StaticPrevChar == '\\')
+				{
+					if(updateDynamicString('\t', newToken))
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+					StaticPrevChar = currentChar;
+					break;
+				}
+
+				if (currentChar == '\\' && StaticPrevChar == '\\')
+				{
 					if(updateDynamicString('\\', newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
-					if(updateDynamicString('x', newToken))
+					StaticPrevChar = currentChar;
+					break;
+				}
+
+				if (currentChar == 'x' && StaticPrevChar == '\\')
+				{
+					currentChar = (char) getc(stdin);
+					if (isdigit(currentChar) || (currentChar >= (char)65 && currentChar <= (char)70))
+					{
+						StaticPrevChar = currentChar;
+						state = STATE_ESCAPE_SEQUENCE;
+						break;
+					}
+					else
 					{
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
-					currentChar = (char) getc(stdin);
-					while(currentChar != '\'')
+
+				if(StaticPrevChar == '\\')
+				{
+					if(updateDynamicString('\\', newToken))
 					{
-						if (isdigit(currentChar))
-						{
-							if(updateDynamicString(currentChar, newToken))
-							{
-								freeMemory(newToken, indent_stack);
-								return LEX_ERROR;
-							}
-						}
-						else if (currentChar >= (char)65 && currentChar <= (char)70)
-						{
-							if(updateDynamicString(currentChar, newToken))
-							{
-								freeMemory(newToken, indent_stack);
-								return LEX_ERROR;
-							}
-						}
-						else
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+
+					currentChar = getc(stdin);
+					StaticPrevChar = currentChar;
+
+					if (currentChar == EOF || currentChar == '\n')
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+
+					while(currentChar != ' ' && currentChar != '\'')
+					{
+						if(updateDynamicString(currentChar, newToken))
 						{
 							freeMemory(newToken, indent_stack);
 							return LEX_ERROR;
 						}
-
-						currentChar = (char) getc(stdin);
+						currentChar = getc(stdin);
+						StaticPrevChar = currentChar;
 					}
 
 					ungetc(currentChar, stdin);
@@ -1029,6 +1082,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == EOF || currentChar == '\n')
 				{
+					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
 				else if (currentChar == '\\')
@@ -1052,67 +1106,39 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				StaticPrevChar = currentChar;
 			break;
 
-			case(STATE_ESCAPE_SEQUENCE): // TODO?
-			printf("Test");
-				if (currentChar == '\"')
-				{
-					if(updateDynamicString(currentChar, newToken))
-					{
-						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
-					}
-					state = STATE_START;
-					break;
-				}
-				else if (currentChar == '\'')
-				{
-					if(updateDynamicString(currentChar, newToken))
-					{
-						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
-					}
-					state = STATE_START;
-					break;
-				}
-				else if (currentChar == 'n')
-				{
-					if(updateDynamicString(currentChar, newToken))
-					{
-						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
-					}
-					newToken->type = TOKEN_EOL;
-					return TOKEN_OK;
+			case(STATE_ESCAPE_SEQUENCE): // TODO
 
-					state = STATE_START;
-					break;
-				}
-				else if (currentChar == '\t')
+				if (isdigit(currentChar) || (currentChar >= (char)65 && currentChar <= (char)70))
 				{
-					if(updateDynamicString(currentChar, newToken))
-					{
-						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
-					}
-					state = STATE_START;
-					break;
+						char tmp[2];
+						tmp[0] = StaticPrevChar;
+						tmp[1] = currentChar;
+						char* pEnd;
+						double tmpToChar = strtod (pom, &pEnd);
+
+						if(updateDynamicString((char)tmpToChar, newToken))
+						{
+							freeMemory(newToken, indent_stack);
+							return LEX_ERROR;
+						}
+
+						currentChar = getc(stdin);
+
+						if(currentChar != '\'' && currentChar != ' ')
+						{
+							freeMemory(newToken, indent_stack);
+							return LEX_ERROR;
+						}
+						ungetc(currentChar, stdin);
+						state = STATE_STRING;
+						break;
 				}
-				else if (currentChar == '\\')
+				else
 				{
-					if(updateDynamicString(currentChar, newToken))
-					{
-						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
-					}
-					state = STATE_START;
-					break;
+					freeMemory(newToken, indent_stack);
+					return LEX_ERROR;
 				}
-				else if (currentChar == 'x') // hexa TODO??
-				{
-					state = STATE_START;
-					break;
-				}
-			break;
+
 
 			case(STATE_INDENT):
 
