@@ -416,12 +416,12 @@ int assignment(){
         }
         if(inFunDef){
             varInLocalTable->type = expressionResult.type;
-            if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
+            if(created)generate_before_if(&list,varInLocalTable);
 
             generate_instr(&list,MOVE,2,varInLocalTable, &expressionResult);
         }else{
             varInGlobalTable->type = expressionResult.type;
-            if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
+            if(created)generate_before_if(&list,varInGlobalTable);
 
             generate_instr(&list,MOVE,2,varInGlobalTable, &expressionResult);
         }
@@ -434,11 +434,11 @@ int assignment(){
             result = funcCall();
             if(inFunDef){
                 varInLocalTable->type = UNKNOWN;
-                if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
+                if(created)generate_before_if(&list,varInLocalTable);
                 generate_save_return_value(&list, varInLocalTable);
             }else{
                 varInGlobalTable->type = UNKNOWN;
-                if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
+                if(created)generate_before_if(&list,varInGlobalTable);
                 generate_save_return_value(&list, varInGlobalTable);
             }
             return result;
@@ -452,12 +452,12 @@ int assignment(){
             }
             if(inFunDef){
                 varInLocalTable->type = expressionResult.type;
-                 if(created)generate_instr(&list, DEFVAR,1,varInLocalTable);
+                 if(created)generate_before_if(&list,varInLocalTable);
 
                  generate_instr(&list,MOVE,2,varInLocalTable, &expressionResult);
             }else{
                 varInGlobalTable->type = expressionResult.type;
-                if(created)generate_instr(&list, DEFVAR,1,varInGlobalTable);
+                if(created)generate_before_if(&list,varInGlobalTable);
 
                 generate_instr(&list,MOVE,2,varInGlobalTable, &expressionResult);
             }
