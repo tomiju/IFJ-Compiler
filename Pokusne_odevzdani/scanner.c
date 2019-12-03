@@ -200,7 +200,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 	int currentIndent = 0;
 	char currentChar, previousChar;
 	static char StaticPrevChar; // pro \n v řetězci
-	char PrevCharInt;
 	static int FirstToken = TRUE;
 
 	TokenPTR newToken = makeToken(token);
@@ -517,7 +516,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 					state = STATE_NUMBER_INT;
 					previousChar = currentChar;
-					PrevCharInt = currentChar;
 					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
@@ -731,12 +729,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 				if (isdigit(currentChar))
 				{
-				  if (currentChar != '0' && PrevCharInt == '0') // ošetření přebytečných nul na začátku čísla
+				  if (isdigit(currentChar) && previousChar == '0') // ošetření přebytečných nul na začátku čísla
 					{
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
-					PrevCharInt = 's';
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
