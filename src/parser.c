@@ -190,7 +190,7 @@ int param(){
         break;
         case KEYWORD_NONE:
             constValue = make_const(token_ptr->dynamic_value,NIL);
-            constValue->sval = token_ptr->dynamic_value;
+            constValue->sval = "nil";
             send_param(constValue);
             result = getToken(&token_ptr, &indent_stack );
             return result;
