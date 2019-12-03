@@ -117,6 +117,15 @@ void tPushStack(tStack** stack, tNode* node);
 
 tNode* tPopStack(tStack** stack);
 
+typedef struct stackNum{
+	int num;
+	struct stackNum* link;
+}tStackNum;
+
+void tPushStackNum(tStackNum** stack, int num);
+
+int tPopStackNum(tStackNum** stack);
+
 /*********************** INŠTRUKCIE ************************/
 
 #define INSTR(x) \

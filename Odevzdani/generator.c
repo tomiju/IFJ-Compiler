@@ -30,18 +30,20 @@ tNode* before_while = NULL;
 
 tStack* while_nodes = NULL;
 tStack* if_nodes = NULL;
+tStack* before_if_jumps = NULL;
 tStack* else_nodes = NULL;
 tStack* if_else_end_nodes = NULL;
 
+tStackNum* if_num_stack = NULL;
+
 htab_item_t* nil;
 
-htab_item_t* params[20];
+htab_item_t* params[256];
 
 unsigned param_idx = 0;
 unsigned par_count = 0;
 
 int while_label_idx = -1;
-int if_label_idx = -1;
 
 #define NUM_OF_ARGS 3
 
@@ -317,8 +319,21 @@ void tPushStack(tStack** stack, tNode* node){
 	*stack = temp;
 }
 
+tNode* tTopStack(tStack* stack){
+	if(stack != NULL){
+		return stack->node;
+	}
+	else{
+		return NULL;
+	}
+}
+
 tNode* tPopStack(tStack** stack){
 	tStack* temp;
+
+	if(*stack == NULL){
+		return NULL;
+	}
 
 	temp = *stack;
 	*stack = (*stack)->link;
@@ -328,13 +343,28 @@ tNode* tPopStack(tStack** stack){
 	return node;
 }
 
-tNode* tTopStack(tStack* stack){
-	if(stack != NULL){
-		return stack->node;
-	}
-	else{
-		return NULL;
-	}
+void tPushStackNum(tStackNum** stack, int num){
+	tStackNum* temp = malloc(sizeof(struct stackNum));
+
+	temp->num = num;
+	temp->link = *stack;
+
+	*stack = temp;
+}
+
+int tTopStackNum(tStackNum* stack){
+	return stack->num;
+}
+
+int tPopStackNum(tStackNum** stack){
+	tStackNum* temp;
+
+	temp = *stack;
+	*stack = (*stack)->link;
+
+	int num = temp->num;
+	free(temp);
+	return num;
 }
 
 /*void destroyStack(tStack* stack){
@@ -403,8 +433,10 @@ htab_item_t* make_label(char* name){
 	}
 }
 
-void generate_instr(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned count, ...){
+void generate_instr_no(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned count, ...){
+
 	va_list list;
+	htab_item_t** args = malloc(sizeof(htab_item_t*)*3);
 
 	tInstr instr;
 	InstrInit(&instr, instr_enum);
@@ -412,24 +444,449 @@ void generate_instr(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned coun
 	va_start(list, count);
 	for(unsigned i = 0; i < count; i++){
 		htab_item_t* htab_instr = va_arg(list, htab_item_t*);
+		args[i] = htab_instr;
 
 		InstrSetParam(&(instr.param[i]), htab_instr);
 	}
 	va_end(list);
 
-	if(instr_list->first != NULL){
-		PostInsert(instr_list, instr);
-		Succ(instr_list);
-	} else {
-		InsertLast(instr_list, instr);
-		First(instr_list);
+
+		if(instr_list->first != NULL){
+			PostInsert(instr_list, instr);
+			Succ(instr_list);
+		} else {
+			InsertLast(instr_list, instr);
+			First(instr_list);
+		}
+
+}
+
+bool check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
+	bool converted = false;
+
+	htab_item_t* error_4 = make_const("err4", INT);
+	error_4->ival = 4;
+	htab_item_t* error_9 = make_const("err9", INT);
+	error_9->ival = 9;
+
+	htab_item_t* type_int = make_const("type_int", STRING); //htab_find(htab_built_in, "int");
+	type_int->sval = "int";
+	htab_item_t* type_float = make_const("type_float", STRING);//htab_find(htab_built_in, "float");
+	type_float->sval = "float";
+
+	htab_item_t* const_int_zero = make_const("const_int_zero", INT);
+	const_int_zero->ival = 0;
+	htab_item_t* const_float_zero = make_const("const_float_zero", FLOAT);
+	const_float_zero->dval = 0.0;
+
+	htab_item_t* type1 = htab_find(htab_built_in, "%type1");
+	htab_item_t* type2 = htab_find(htab_built_in, "%type2");
+
+	htab_item_t* type_control = htab_find(htab_built_in, "%type_control");
+	htab_item_t* type_convert1 = htab_find(htab_built_in, "%type_converted1");
+	htab_item_t* type_convert2 = htab_find(htab_built_in, "%type_converted2");
+
+	switch(instr_enum){
+		case LT: case GT: case EQ:
+			if(args[1]->type == args[2]->type){
+				break;
+			} else if(args[1]->type == NIL || args[2]->type == NIL){	// at least one is NIL
+				if(instr_enum != EQ){		// NOT EQ => can't be NIL => error
+					generate_instr_no(list, EXIT, 1, error_4);
+				}
+			} else if(args[1]->type == UNKNOWN || args[2]->type == UNKNOWN){	// at least one is UNKNOWN
+				converted = true;
+
+				start_if_else(list);
+				generate_instr_no(list, TYPE, 2, type1, args[1]);
+				generate_instr_no(list, TYPE, 2, type2, args[2]);
+				generate_instr_no(list, EQ, 3, type_control, type1, type2);
+				generate_condition_check(list, type_control, false);
+				generate_if(list);
+
+					generate_instr_no(list, instr_enum, 3, args[0], args[1], args[2]);
+
+				generate_else(list);
+
+					start_if_else(list);
+					generate_instr_no(list, EQ, 3, type_control, type1, type_int);
+					generate_condition_check(list, type_control, false);
+					generate_if(list);
+
+						start_if_else(list);
+						generate_instr_no(list, EQ, 3, type_control, type2, type_float);
+						generate_condition_check(list, type_control, false);
+						generate_if(list);
+
+							generate_instr_no(list, INT2FLOAT, 2, type_convert1, args[1]);
+							generate_instr_no(list, instr_enum, 3, args[0], type_convert1, args[2]);
+
+						generate_else(list);
+
+							generate_instr_no(list, EXIT, 1, error_4);
+
+						end_if_else(list);
+
+					generate_else(list);
+
+						start_if_else(list);
+						generate_instr_no(list, EQ, 3, type_control, type1, type_float);
+						generate_condition_check(list, type_control, false);
+						generate_if(list);
+
+							start_if_else(list);
+							generate_instr_no(list, EQ, 3, type_control, type2, type_int);
+							generate_condition_check(list, type_control, false);
+							generate_if(list);
+
+								generate_instr_no(list, INT2FLOAT, 2, type_convert1, args[2]);
+								generate_instr_no(list, instr_enum, 3, args[0], args[1], type_convert1);
+
+							generate_else(list);
+
+								generate_instr(list, EXIT, 1, error_4);
+
+							end_if_else(list);
+
+						generate_else(list);
+
+							generate_instr_no(list, EXIT, 1, error_4);
+
+						end_if_else(list);
+
+					end_if_else(list);
+
+				end_if_else(list);
+			} else if(args[1]->type == INT && args[2]->type == FLOAT){
+				converted = true;
+				generate_instr_no(list, INT2FLOAT, 2, type_convert1, args[1]);
+				generate_instr_no(list, instr_enum, 3, args[0], type_convert1, args[2]);
+			} else if(args[1]->type == FLOAT && args[2]->type == INT){
+				converted = true;
+				generate_instr_no(list, INT2FLOAT, 2, type_convert1, args[2]);
+				generate_instr_no(list, instr_enum, 3, args[0], args[1], type_convert1);
+			} else {
+				generate_instr_no(list, EXIT, 1, error_4);
+			}
+			break;
+
+		case ADD: case SUB: case MUL:
+			if(args[1]->type == INT && args[2]->type == INT){
+				break;
+			} else if(args[1]->type == FLOAT && args[2]->type == FLOAT){
+				break;
+			} else if(args[1]->type == NIL || args[2]->type == NIL){	// at least one is NIL
+				generate_instr_no(list, EXIT, 1, error_4);
+			} else if(args[1]->type == BOOL || args[2]->type == BOOL){	// at least one is NIL
+				generate_instr_no(list, EXIT, 1, error_4);
+			} else if(args[1]->type == STRING || args[2]->type == STRING){	// at least one is NIL
+				generate_instr_no(list, EXIT, 1, error_4);
+			} else if(args[1]->type == INT && args[2]->type == FLOAT){
+				converted = true;
+				generate_instr_no(list, INT2FLOAT, 2, type_convert1, args[1]);
+				generate_instr_no(list, instr_enum, 3, args[0], type_convert1, args[2]);
+			} else if(args[1]->type == FLOAT && args[2] == INT){
+				converted = true;
+				generate_instr_no(list, INT2FLOAT, 2, type_convert1, args[2]);
+				generate_instr_no(list, instr_enum, 3, args[0], args[1], type_convert1);
+			} else if(args[1]->type == UNKNOWN || args[2]->type == UNKNOWN){
+				converted = true;
+
+				start_if_else(list);
+				generate_instr_no(list, TYPE, 2, type1, args[1]);
+				generate_instr_no(list, TYPE, 2, type2, args[2]);
+				generate_instr_no(list, EQ, 3, type_control, type1, type2);
+				generate_condition_check(list, type_control, false);
+				generate_if(list);
+
+					start_if_else(list);
+					generate_instr_no(list, EQ, 3, type_control, type1, type_int);
+					generate_condition_check(list, type_control, false);
+					generate_if(list);
+
+						generate_instr_no(list, instr_enum, 3, args[0], args[1], args[2]);
+
+					generate_else(list);
+
+						start_if_else(list);
+						generate_instr_no(list, EQ, 3, type_control, type1, type_float);
+						generate_condition_check(list, type_control, false);
+						generate_if(list);
+
+							generate_instr_no(list, instr_enum, 3, args[0], args[1], args[2]);
+
+						generate_else(list);
+
+							generate_instr_no(list, EXIT, 1, error_4);
+
+						end_if_else(list);
+
+					end_if_else(list);
+
+				generate_else(list);
+
+					start_if_else(list);
+					generate_instr_no(list, EQ, 3, type_control, type1, type_int);
+					generate_condition_check(list, type_control, false);
+					generate_if(list);
+
+						start_if_else(list);
+						generate_instr_no(list, EQ, 3, type_control, type2, type_float);
+						generate_condition_check(list, type_control, false);
+						generate_if(list);
+
+							generate_instr_no(list, INT2FLOAT, 2, type_convert1, args[1]);
+							generate_instr_no(list, instr_enum, 3, args[0], type_convert1, args[2]);
+
+						generate_else(list);
+
+							generate_instr_no(list, EXIT, 1, error_4);
+
+						end_if_else(list);
+
+					generate_else(list);
+
+						start_if_else(list);
+						generate_instr_no(list, EQ, 3, type_control, type1, type_float);
+						generate_condition_check(list, type_control, false);
+						generate_if(list);
+
+							start_if_else(list);
+							generate_instr_no(list, EQ, 3, type_control, type2, type_int);
+							generate_condition_check(list, type_control, false);
+							generate_if(list);
+
+								generate_instr_no(list, INT2FLOAT, 2, type_convert1, args[2]);
+								generate_instr_no(list, instr_enum, 3, args[0], args[1], type_convert1);
+
+							generate_else(list);
+
+								generate_instr_no(list, EXIT, 1, error_4);
+
+							end_if_else(list);
+
+						generate_else(list);
+
+							generate_instr_no(list, EXIT, 1, error_4);
+
+						end_if_else(list);
+
+					end_if_else(list);
+
+				end_if_else(list);
+			} else {
+				generate_instr_no(list, EXIT, 1, error_4);
+			}
+			break;
+
+		case DIV:
+			if(args[1]->type == FLOAT && args[2]->type == FLOAT){
+				if(args[2]->dval == 0.0){
+					generate_instr_no(list, EXIT, 1, error_9);
+				} else {
+					break;
+				}
+			} else if(args[1]->type == INT && args[2]->type == FLOAT){
+				converted = true;
+
+				if(args[2]->dval == 0.0){
+					generate_instr_no(list, EXIT, 1, error_9);
+				} else {
+					generate_instr_no(list, INT2FLOAT, 2, type_convert1, args[1]);
+					generate_instr_no(list, instr_enum, 3, args[0], type_convert1, args[2]);
+				}
+			} else if(args[1]->type == FLOAT && args[2]->type == INT){
+				converted = true;
+
+				if(args[2]->ival == 0){
+					generate_instr_no(list, EXIT, 1, error_9);
+				} else {
+					generate_instr_no(list, INT2FLOAT, 2, type_convert1, args[2]);
+					generate_instr_no(list, instr_enum, 3, args[0], args[1], type_convert1);
+				}
+			} else if(args[1]->type == INT && args[2]->type == INT){
+				converted = true;
+
+				if(args[2]->ival == 0){
+					generate_instr_no(list, EXIT, 1, error_9);
+				} else {
+					generate_instr_no(list, INT2FLOAT, 2, type_convert1, args[1]);
+					generate_instr_no(list, INT2FLOAT, 2, type_convert2, args[2]);
+					generate_instr_no(list, instr_enum, 3, args[0], type_convert1, type_convert2);
+				}
+
+			} else if(args[1]->type == UNKNOWN || args[2]->type == UNKNOWN){
+				converted = true;
+
+				start_if_else(list);
+				generate_instr_no(list, TYPE, 2, type1, args[1]);
+				generate_instr_no(list, TYPE, 2, type2, args[2]);
+				generate_instr_no(list, EQ, 3, type_control, type1, type2);
+				generate_condition_check(list, type_control, false);
+				generate_if(list);
+
+					start_if_else(list);
+					generate_instr_no(list, EQ, 3, type_control, type1, type_int);
+					generate_condition_check(list, type_control, false);
+					generate_if(list);
+
+						start_if_else(list);
+						generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero);
+						generate_condition_check(list, type_control, false);
+						generate_if(list);
+
+							generate_instr_no(list, EXIT, 1, error_9);
+
+						generate_else(list);
+
+							generate_instr_no(list, INT2FLOAT, 2, type_convert1, args[1]);
+							generate_instr_no(list, INT2FLOAT, 2, type_convert2, args[2]);
+							generate_instr_no(list, instr_enum, 3, args[0], type_convert1, type_convert2);
+
+						end_if_else(list);
+
+					generate_else(list);
+
+						start_if_else(list);
+						generate_instr_no(list, EQ, 3, type_control, type1, type_float);
+						generate_condition_check(list, type_control, false);
+						generate_if(list);
+
+							start_if_else(list);
+							generate_instr_no(list, EQ, 3, type_control, args[2], const_float_zero);
+							generate_condition_check(list, type_control, false);
+							generate_if(list);
+
+								generate_instr_no(list, EXIT, 1, error_9);
+
+							generate_else(list);
+
+								generate_instr_no(list, instr_enum, 3, args[0], args[1], args[2]);
+
+							end_if_else(list);
+
+						generate_else(list);
+
+							generate_instr_no(list, EXIT, 1, error_4);
+
+						end_if_else(list);
+
+					end_if_else(list);
+				generate_else(list);
+
+					start_if_else(list);
+					generate_instr_no(list, EQ, 3, type_control, type1, type_float);
+					generate_condition_check(list, type_control, false);
+					generate_if(list);
+
+						start_if_else(list);
+						generate_instr_no(list, EQ, 3, type_control, type2, type_int);
+						generate_condition_check(list, type_control, false);
+						generate_if(list);
+
+							start_if_else(list);
+							generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero);
+							generate_condition_check(list, type_control, false);
+							generate_if(list);
+
+								generate_instr_no(list, EXIT, 1, error_9);
+
+							generate_else(list);
+
+								generate_instr_no(list, INT2FLOAT, 2, type_convert1, args[2]);
+								generate_instr_no(list, instr_enum, 3, args[0], args[1], type_convert1);
+
+							end_if_else(list);
+
+						generate_else(list);
+
+							generate_instr_no(list, EXIT, 1, error_4);
+
+						end_if_else(list);
+
+					generate_else(list);
+
+						start_if_else(list);
+						generate_instr_no(list, EQ, 3, type_control, type1, type_int);
+						generate_condition_check(list, type_control, false);
+						generate_if(list);
+
+							start_if_else(list);
+							generate_instr_no(list, EQ, 3, type_control, type2, type_float);
+							generate_if(list);
+
+								start_if_else(list);
+								generate_instr_no(list, EQ, 3, type_control, args[2], const_float_zero);
+								generate_condition_check(list, type_control, false);
+								generate_if(list);
+
+									generate_instr_no(list, EXIT, 1, error_9);
+
+								generate_else(list);
+
+									generate_instr_no(list, INT2FLOAT, 2, type_convert1, args[1]);
+									generate_instr_no(list, instr_enum, 3, args[0], type_convert1, args[2]);
+
+								end_if_else(list);
+
+							generate_else(list);
+
+								generate_instr_no(list, EXIT, 1, error_4);
+
+							end_if_else(list);
+
+						generate_else(list);
+
+							generate_instr_no(list, EXIT, 1, error_4);
+
+						end_if_else(list);
+
+					end_if_else(list);
+
+				end_if_else(list);
+			} else {
+				generate_instr_no(list, EXIT, 1, error_4);
+			}
+			break;
+
+		default: break;
+	}
+
+	return converted;
+}
+
+void generate_instr(tList* instr_list, enum INSTR_ENUM instr_enum, unsigned count, ...){
+
+	va_list list;
+	htab_item_t** args = malloc(sizeof(htab_item_t*)*3);
+
+	tInstr instr;
+	InstrInit(&instr, instr_enum);
+
+	va_start(list, count);
+	for(unsigned i = 0; i < count; i++){
+		htab_item_t* htab_instr = va_arg(list, htab_item_t*);
+		args[i] = htab_instr;
+
+		InstrSetParam(&(instr.param[i]), htab_instr);
+	}
+	va_end(list);
+
+	if(!check_types(instr_list, instr_enum, args)){
+		if(instr_list->first != NULL){
+			PostInsert(instr_list, instr);
+			Succ(instr_list);
+		} else {
+			InsertLast(instr_list, instr);
+			First(instr_list);
+		}
 	}
 }
 
 htab_item_t* get_param(unsigned idx){
-	char arg_string[4] = "%";
+	char arg_string[5] = "%";
 
-	char idx_string[3];
+	char idx_string[4];
 	sprintf(idx_string, "%d", idx);
 
 	strcat(arg_string, idx_string);
@@ -445,9 +902,9 @@ htab_item_t* get_param(unsigned idx){
 }
 
 htab_item_t* get_while_end(){
-	char label_string[12] = "while_end";
+	char label_string[13] = "while_end";
 
-	char idx_string[3];
+	char idx_string[4];
 	sprintf(idx_string, "%d", while_label_idx);
 
 	strcat(label_string, idx_string);
@@ -456,9 +913,9 @@ htab_item_t* get_while_end(){
 }
 
 htab_item_t* get_while_label(){
-	char label_string[8] = "while";
+	char label_string[9] = "while";
 
-	char idx_string[3];
+	char idx_string[4];
 	sprintf(idx_string, "%d", while_label_idx);
 
 	strcat(label_string, idx_string);
@@ -467,10 +924,10 @@ htab_item_t* get_while_label(){
 }
 
 htab_item_t* get_if_end(){
-	char label_string[9] = "if_end";
+	char label_string[11] = "if_end";
 
-	char idx_string[3];
-	sprintf(idx_string, "%d", if_label_idx);
+	char idx_string[4];
+	sprintf(idx_string, "%d", tTopStackNum(if_num_stack));
 
 	strcat(label_string, idx_string);
 
@@ -478,10 +935,10 @@ htab_item_t* get_if_end(){
 }
 
 htab_item_t* get_if_label(){
-	char label_string[5] = "if";
+	char label_string[7] = "if";
 
-	char idx_string[3];
-	sprintf(idx_string, "%d", if_label_idx);
+	char idx_string[4];
+	sprintf(idx_string, "%d", tTopStackNum(if_num_stack));
 
 	strcat(label_string, idx_string);
 
@@ -489,10 +946,10 @@ htab_item_t* get_if_label(){
 }
 
 htab_item_t* get_else_label(){
-	char label_string[7] = "else";
+	char label_string[9] = "else";
 
-	char idx_string[3];
-	sprintf(idx_string, "%d", if_label_idx);
+	char idx_string[4];
+	sprintf(idx_string, "%d", tTopStackNum(if_num_stack));
 
 	strcat(label_string, idx_string);
 
@@ -517,7 +974,9 @@ htab_item_t* get_param_tf(unsigned idx){
 }
 
 void start_if_else(tList* list){
+	static int if_label_idx = 0;
 	if_label_idx++;
+	tPushStackNum(&if_num_stack, if_label_idx);
 
 	htab_item_t* true_const = make_const("true", BOOL);
 	true_const->sval = "true";
@@ -549,8 +1008,13 @@ void generate_condition_check(tList* list, htab_item_t* podmienka, bool isWhile)
 
 		generate_instr(list, JUMPIFNEQ, 3, label_while_end, podmienka, con_true);
 	} else {
-		htab_item_t* label_if = get_if_label();
+		//htab_item_t* label_if = get_if_label();
 		htab_item_t* label_else = get_else_label();
+
+		//int if_label = tPopStackNum(&if_num_stack);
+		htab_item_t* label_if = get_if_label();
+
+		tPushStack(&before_if_jumps, list->active);
 
 		generate_instr(list, JUMPIFEQ, 3, label_if, podmienka, con_true);
 		generate_instr(list, JUMP, 1, label_else);
@@ -567,6 +1031,8 @@ void generate_else(tList* list){
 
 void end_if_else(tList* list){
 	SetActive(list, tPopStack(&if_else_end_nodes));
+	tPopStackNum(&if_num_stack);
+	tPopStack(&before_if_jumps);
 }
 
 void generate_before_whiles(tList* list, htab_item_t* item){
@@ -586,18 +1052,17 @@ void generate_before_whiles(tList* list, htab_item_t* item){
 
 void generate_before_if(tList* list, htab_item_t* item){
 	tNode* temp = list->active;
-	tNode* if_label = tTopStack(if_nodes);
+	tNode* before_jump = tTopStack(before_if_jumps);
 
-	if(if_label != NULL){
-		if_label = if_label->prev;
-
-		SetActive(list, if_label);
+	if(before_jump != NULL){
+		SetActive(list, before_jump);
 		generate_instr(list, DEFVAR, 1, item);
 		SetActive(list, temp);
 	} else {
 		generate_instr(list, DEFVAR, 1, item);
 	}
 }
+
 
 void generate_while_start(tList* list){
 	while_label_idx++;
@@ -759,7 +1224,7 @@ void generate_inputs(tList* list){
 	htab_item_t* string_label = htab_find(htab_built_in, "string");
 
 	generate_func_start(list, func);
-	generate_instr(list, READ, 2, retval, string_label);
+	generate_instr_no(list, READ, 2, retval, string_label);
 	generate_func_end(list);
 }
 
@@ -769,7 +1234,7 @@ void generate_inputf(tList* list){
 	htab_item_t* float_label = htab_find(htab_built_in, "float");
 
 	generate_func_start(list, func);
-	generate_instr(list, READ, 2, retval, float_label);
+	generate_instr_no(list, READ, 2, retval, float_label);
 	generate_func_end(list);
 }
 
@@ -779,16 +1244,31 @@ void generate_inputi(tList* list){
 	htab_item_t* int_label = htab_find(htab_built_in, "int");
 
 	generate_func_start(list, func);
-	generate_instr(list, READ, 2, retval, int_label);
+	generate_instr_no(list, READ, 2, retval, int_label);
 	generate_func_end(list);
 }
 
 void generate_len(tList* list){
 	htab_item_t* func = htab_find(htab_built_in, "len");
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
+	/*htab_item_t* type_check = htab_find(htab_built_in, "%type_control");
+	htab_item_t* nil = htab_find(htab_built_in, "nil");
+	htab_item_t* error_4 = htab_find(htab_built_in, "err4");*/
 
 	generate_func_start(list, func);
-	generate_instr(list, STRLEN, 2, retval, get_param(0));
+
+	/*start_if_else(list);
+	generate_instr_no(list, EQ, 3, type_check, get_param(0), nil);
+	generate_condition_check(list, type_check, false);
+	generate_if(list);
+
+	generate_instr_no(list, EXIT, 1, error_4);
+
+	generate_else(list);*/
+
+	generate_instr_no(list, STRLEN, 2, retval, get_param(0));
+
+	//end_if_else(list);
 	generate_func_end(list);
 }
 
@@ -808,13 +1288,13 @@ void generate_ord(tList* list){
 
 	htab_item_t* con = make_const("minus_one" ,INT);
 	con->ival = -1;
-	generate_instr(list, GT, 3, prava, get_param(1), con);
-	generate_instr(list, LT, 3, lava, get_param(1), dlzka);
+	generate_instr_no(list, GT, 3, prava, get_param(1), con);
+	generate_instr_no(list, LT, 3, lava, get_param(1), dlzka);
 
 	/*htab_item_t* error_label = htab_find(htab_built_in, "error");
 	generate_instr(list, JUMPIFNEQ, 3, error_label, prava, lava);*/
 
-	generate_instr(list, STRI2INT, 3, retval, get_param(0), get_param(1));
+	generate_instr_no(list, STRI2INT, 3, retval, get_param(0), get_param(1));
 
 	generate_func_end(list);
 }
@@ -824,7 +1304,7 @@ void generate_chr(tList* list){
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
 
 	generate_func_start(list, func);
-	generate_instr(list, INT2CHAR, 2, retval, get_param(0));
+	generate_instr_no(list, INT2CHAR, 2, retval, get_param(0));
 	generate_func_end(list);
 }
 
@@ -837,7 +1317,7 @@ void generate_substr(tList* list){
 
 	htab_item_t* con = make_const("None", STRING);
 	con->sval = "";
-	generate_instr(list, MOVE, 2, retval, con); // TODO None STRING
+	generate_instr_no(list, MOVE, 2, retval, con); // TODO None STRING
 
 	htab_item_t* dlzka = generate_var(list, "dlzka", INT, LF);
 	generate_func_call(list, func_len, 1, get_param(0));
@@ -854,40 +1334,40 @@ void generate_substr(tList* list){
 
 	htab_item_t* con_true = make_const("const_true", BOOL);
 	con_true->sval = "true";
-	generate_instr(list, LT, 3, podmienky, dlzka, con_zero);
+	generate_instr_no(list, LT, 3, podmienky, dlzka, con_zero);
 	generate_instr(list, JUMPIFEQ, 3, make_label("end"), podmienky, con_true );
 
-	generate_instr(list, LT, 3, podmienky, get_param(1), con_zero);
-	generate_instr(list, JUMPIFEQ, 3, make_label("end"), podmienky, con_true);
+	generate_instr_no(list, LT, 3, podmienky, get_param(1), con_zero);
+	generate_instr_no(list, JUMPIFEQ, 3, make_label("end"), podmienky, con_true);
 
-	generate_instr(list, EQ, 3, podmienky, get_param(1), dlzka);
-	generate_instr(list, JUMPIFEQ, 3, make_label("end"), podmienky, con_true);
+	generate_instr_no(list, EQ, 3, podmienky, get_param(1), dlzka);
+	generate_instr_no(list, JUMPIFEQ, 3, make_label("end"), podmienky, con_true);
 
-	generate_instr(list, GT, 3, podmienky, get_param(1), dlzka);
-	generate_instr(list, JUMPIFEQ, 3, make_label("end"), podmienky, con_true);
+	generate_instr_no(list, GT, 3, podmienky, get_param(1), dlzka);
+	generate_instr_no(list, JUMPIFEQ, 3, make_label("end"), podmienky, con_true);
 
-	generate_instr(list, EQ, 3, podmienky, get_param(2), con_zero);
-	generate_instr(list, JUMPIFEQ, 3, make_label("end"), podmienky, con_true);
+	generate_instr_no(list, EQ, 3, podmienky, get_param(2), con_zero);
+	generate_instr_no(list, JUMPIFEQ, 3, make_label("end"), podmienky, con_true);
 
 	htab_item_t* ch = generate_var(list, "char", STRING, LF);
 	htab_item_t* idx = generate_var(list, "index", INT, LF);
-	generate_instr(list, MOVE, 2, idx, get_param(1));
+	generate_instr_no(list, MOVE, 2, idx, get_param(1));
 	htab_item_t* last_idx = generate_var(list, "last_idx", INT, LF);
-	generate_instr(list, ADD, 3, last_idx, get_param(1), get_param(2));
+	generate_instr_no(list, ADD, 3, last_idx, get_param(1), get_param(2));
 
 	htab_item_t* loop_label = make_label("loop");
 	htab_item_t* end_label = make_label("end");
 
-	generate_instr(list, LABEL, 1, loop_label);
-	generate_instr(list, GETCHAR, 3, ch, get_param(0), idx);
-	generate_instr(list, CONCAT, 3, retval, retval, ch);
-	generate_instr(list, ADD, 3, idx, idx, con_one);
-	generate_instr(list, EQ, 3, podmienky, idx, last_idx);
-	generate_instr(list, JUMPIFEQ, 3, end_label, podmienky, con_true);
-	generate_instr(list, LT, 3, podmienky, idx, dlzka);
-	generate_instr(list, JUMPIFEQ, 3, loop_label, podmienky, con_true);
+	generate_instr_no(list, LABEL, 1, loop_label);
+	generate_instr_no(list, GETCHAR, 3, ch, get_param(0), idx);
+	generate_instr_no(list, CONCAT, 3, retval, retval, ch);
+	generate_instr_no(list, ADD, 3, idx, idx, con_one);
+	generate_instr_no(list, EQ, 3, podmienky, idx, last_idx);
+	generate_instr_no(list, JUMPIFEQ, 3, end_label, podmienky, con_true);
+	generate_instr_no(list, LT, 3, podmienky, idx, dlzka);
+	generate_instr_no(list, JUMPIFEQ, 3, loop_label, podmienky, con_true);
 
-	generate_instr(list, LABEL, 1, end_label);
+	generate_instr_no(list, LABEL, 1, end_label);
 
 	generate_func_end(list);
 }
@@ -899,7 +1379,7 @@ void generate_print(tList* list){
 
 	htab_item_t* param = get_param(0);
 
-	generate_instr(list, WRITE, 1, param);
+	generate_instr_no(list, WRITE, 1, param);
 
 	generate_func_end(list);
 }
@@ -923,9 +1403,6 @@ void generator_start(tList* list){
 	item = htab_find(htab_built_in, "$main");
 	item->sval = "$main";
 
-	// label error
-	//htab_insert(htab_built_in, "error", "error", FUNC, GF, false, true, true);
-
 	// dátové tipy
 	htab_insert(htab_built_in, "int", TYPE_NAME, GF, false, true, true);
 	item = htab_find(htab_built_in, "int");
@@ -939,9 +1416,16 @@ void generator_start(tList* list){
 
 	htab_item_t* main_func = htab_find(htab_built_in, "$main");
 
-	generate_instr(list, JUMP, 1, main_func);	// skok na main
-	generate_instr(list, LABEL, 1, main_func); 	// label na main
+	generate_instr_no(list, JUMP, 1, main_func);	// skok na main
+	generate_instr_no(list, LABEL, 1, main_func); 	// label na main
 	main_func_node = list->last;
+
+	// pomocné premenné na kontrolu typov
+	generate_var(list, "%type_control", BOOL, GF);
+	generate_var(list, "%type_converted1", FLOAT, GF);
+	generate_var(list, "%type_converted2", FLOAT, GF);
+	generate_var(list, "%type1", UNKNOWN, GF);
+	generate_var(list, "%type2", UNKNOWN, GF);
 
 	// vstavané funkcie
 	generate_len(list);
@@ -952,9 +1436,6 @@ void generator_start(tList* list){
 	generate_inputf(list);
 	generate_inputi(list);
 	generate_print(list);
-
-	// pomocná premenná na kontrolu typov
-	//generate_var(list, "%typ", BOOL, GF);
 }
 
 char* replace_by_escape(char* string){
@@ -1009,7 +1490,6 @@ void printInstructions(tList* list){
 	while(Active(list)){
 		Copy(list, &instr);
 
-		//check_types(list, instr);
 		char* repl;
 
 		printf("%s ", INSTR_STRING[instr.type]);
