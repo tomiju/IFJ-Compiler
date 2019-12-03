@@ -122,6 +122,7 @@ int param(){
         //fprintf(stderr,"NAME::%s\n",identifier->key);
         //fprintf(stderr,"TYPE::%d\n",identifier->type);
         generate_instr(&list, DEFVAR,1,identifier);
+
         generate_instr(&list,MOVE,2,identifier,get_param(paramCount-1));
 
         result = getToken(&token_ptr, &indent_stack );
@@ -189,7 +190,7 @@ int param(){
         break;
         case KEYWORD_NONE:
             constValue = make_const(token_ptr->dynamic_value,NIL);
-            constValue->sval = token_ptr->dynamic_value;
+            constValue->sval = "nil";
             send_param(constValue);
             result = getToken(&token_ptr, &indent_stack );
             return result;
@@ -254,6 +255,7 @@ int paramList(){
     case TOKEN_INT:
     case TOKEN_DOUBLE:
     case TOKEN_STRING:
+    case KEYWORD_NONE:
         result = param();
         if(result != TOKEN_OK)return result;
 

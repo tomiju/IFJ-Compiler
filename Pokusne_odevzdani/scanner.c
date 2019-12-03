@@ -294,7 +294,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					return TOKEN_OK;
 				}
@@ -311,7 +311,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					return TOKEN_OK;
 				}
@@ -328,7 +328,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					return TOKEN_OK;
 				}
@@ -345,7 +345,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					break;
 				}
@@ -362,7 +362,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					break;
 				}
@@ -379,7 +379,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					break;
 				}
@@ -396,7 +396,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					break;
 				}
@@ -413,7 +413,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					break;
 				}
@@ -430,7 +430,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					return TOKEN_OK;
 					break;
@@ -448,7 +448,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					return TOKEN_OK;
 					break;
@@ -466,7 +466,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					return TOKEN_OK;
 					break;
@@ -484,7 +484,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					return TOKEN_OK;
 					break;
@@ -502,7 +502,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					break;
 				}
@@ -521,7 +521,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					break;
 				}
@@ -540,8 +540,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					state = STATE_ERROR;
 					break;
 				}
-
-
 				break;
 
 			case(STATE_COMMENTARY):
@@ -643,7 +641,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					newToken->type = TOKEN_LESS_THAN_OR_EQUAL;
 					return TOKEN_OK;
@@ -662,7 +660,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					newToken->type = TOKEN_MORE_THAN_OR_EQUAL;
 					return TOKEN_OK;
@@ -675,7 +673,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					newToken->type = TOKEN_NOT_EQUAL;
 					return TOKEN_OK;
@@ -694,7 +692,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					newToken->type = TOKEN_EQUAL;
 					return TOKEN_OK;
@@ -713,7 +711,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					newToken->type = TOKEN_IDIV;
 					return TOKEN_OK;
@@ -739,7 +737,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					break;
 				}
@@ -749,7 +747,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					break;
 				}
@@ -758,7 +756,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					state = STATE_NUMBER_EXPONENT;
 					previousChar = currentChar;
@@ -787,7 +785,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					state = STATE_NUMBER_EXPONENT;
 					previousChar = currentChar;
@@ -799,7 +797,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					break;
 				}
@@ -838,7 +836,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					break;
 				}
@@ -847,7 +845,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 				}
 				else if (isalpha(currentChar))
@@ -877,7 +875,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					break;
 				}
@@ -886,7 +884,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					break;
 				}
@@ -911,7 +909,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString('\n', newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					StaticPrevChar = currentChar;
 					break;
@@ -922,7 +920,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString('\"', newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					StaticPrevChar = currentChar;
 					break;
@@ -933,7 +931,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString('\'', newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					StaticPrevChar = currentChar;
 					break;
@@ -944,7 +942,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString('\t', newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					StaticPrevChar = currentChar;
 					break;
@@ -955,7 +953,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString('\\', newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					StaticPrevChar = 'y';
 					break;
@@ -1000,12 +998,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					 if(updateDynamicString('\\', newToken))
 					 {
 						 freeMemory(newToken, indent_stack);
-						 return LEX_ERROR;
+						 return INTERNAL_ERROR;
 					 }
 					 if(updateDynamicString(currentChar, newToken))
 					 {
 						 freeMemory(newToken, indent_stack);
-						 return LEX_ERROR;
+						 return INTERNAL_ERROR;
 					 }
 					 previousChar = currentChar;
  					 StaticPrevChar = currentChar;
@@ -1014,7 +1012,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					previousChar = currentChar;
 					StaticPrevChar = currentChar;
@@ -1037,7 +1035,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						if(updateDynamicString((char)tmpToChar, newToken))
 						{
 							freeMemory(newToken, indent_stack);
-							return LEX_ERROR;
+							return INTERNAL_ERROR;
 						}
 
 						currentChar = getc(stdin);
@@ -1255,7 +1253,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						if(updateDynamicString('\"', newToken))
 						{
 							freeMemory(newToken, indent_stack);
-							return LEX_ERROR;
+							return INTERNAL_ERROR;
 						}
 					}
 				}
@@ -1265,7 +1263,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 					StaticPrevChar = currentChar;
 					break;
@@ -1282,13 +1280,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						if(updateDynamicString('\\', newToken))
 						{
 							freeMemory(newToken, indent_stack);
-							return LEX_ERROR;
+							return INTERNAL_ERROR;
 						}
 					}
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
-						return LEX_ERROR;
+						return INTERNAL_ERROR;
 					}
 				}
 
