@@ -187,6 +187,13 @@ int param(){
             result = getToken(&token_ptr, &indent_stack );
             return result;
         break;
+        case KEYWORD_NONE:
+            constValue = make_const(token_ptr->dynamic_value,NIL);
+            constValue->sval = token_ptr->dynamic_value;
+            send_param(constValue);
+            result = getToken(&token_ptr, &indent_stack );
+            return result;
+        break;
 
         default:
         break;
