@@ -1214,8 +1214,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 			case(STATE_DOC_STRING_END):
 
-				previousChar = currentChar;
-
 				if (commentaryCounter == 3)
 				{
 					newToken->type = TOKEN_STRING;
@@ -1227,22 +1225,56 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
-				if (currentChar == '\"' && commentaryCounter < 3 && previousChar != '\\')
+				if (currentChar == '\"' && commentaryCounter < 3 && StaticPrevChar != '\\')
 				{
 					commentaryCounter++;
 				}
 				else if (currentChar != '\"' && commentaryCounter < 3)
 				{
 					commentaryCounter = 0;
+					if (StaticPrevChar == '\"')
+					{
+						if(updateDynamicString('\"', newToken))
+						{
+							freeMemory(newToken, indent_stack);
+							return LEX_ERROR;
+						}
+					}
 				}
-				if (currentChar != '\"')
+
+				if(currentChar == '\"' && StaticPrevChar == '\\')
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
+					StaticPrevChar = currentChar;
+					break;
 				}
+				else if (currentChar != '\"')
+				{
+					if (currentChar == '\\')
+					{
+						StaticPrevChar = currentChar;
+						break;
+					}
+					if (StaticPrevChar == '\\')
+					{
+						if(updateDynamicString('\\', newToken))
+						{
+							freeMemory(newToken, indent_stack);
+							return LEX_ERROR;
+						}
+					}
+					if(updateDynamicString(currentChar, newToken))
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+				}
+
+			StaticPrevChar = currentChar;
 			break;
 
 			case(STATE_ERROR):
