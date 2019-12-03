@@ -575,6 +575,18 @@ void generate_before_whiles(tList* list, htab_item_t* item){
 	}
 }
 
+void generate_before_if(tList* list, htab_item_t* item){
+	tNode* temp = list->active;
+	tNode* if_label = tTopStack(if_nodes);
+	if_label = if_label->prev;
+
+	SetActive(list, if_label);
+
+	generate_instr(list, DEFVAR, 1, item);
+
+	SetActive(list, temp);
+}
+
 void generate_while_start(tList* list){
 	while_label_idx++;
 

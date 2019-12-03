@@ -253,6 +253,10 @@ void generate_func_call(tList* list, htab_item_t* label, unsigned count, ...);
 // vráti premennú pre podmienku aktuálne spracovávaného cyklu
 htab_item_t* get_while_cond();
 
+// if there is declaration inside if or else, call this function
+// to generate var item before them
+void generate_before_if(tList* list, htab_item_t* item);
+
 // if there is declaration inside while, call this function
 // to generate var item before while
 void generate_before_whiles(tList* list, htab_item_t* item);
