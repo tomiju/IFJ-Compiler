@@ -198,7 +198,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 	int commentaryCounter;
 	int dedentFound; // TRUE = na stacku byla hodnota zanoření (při DEDENT), FALSE = na stacku nebyla -> error
 	int currentIndent = 0;
-	char currentChar, previousChar;
+	char currentChar, previousChar, firstNumber;
 	static char StaticPrevChar; // pro \n v řetězci
 	static int FirstToken = TRUE;
 
@@ -516,6 +516,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 					state = STATE_NUMBER_INT;
 					previousChar = currentChar;
+					firstNumber = currentChar;
 					FirstToken = FALSE;
 					if(updateDynamicString(currentChar, newToken))
 					{
@@ -729,7 +730,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 				if (isdigit(currentChar))
 				{
-				  if (isdigit(currentChar) && previousChar == '0') // ošetření přebytečných nul na začátku čísla
+				  if (isdigit(currentChar) && firstNumber == '0') // ošetření přebytečných nul na začátku čísla
 					{
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
