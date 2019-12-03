@@ -957,7 +957,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
-					StaticPrevChar = currentChar;
+					StaticPrevChar = 'y';
 					break;
 				}
 
@@ -1031,8 +1031,8 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						char tmp[2];
 						tmp[0] = StaticPrevChar;
 						tmp[1] = currentChar;
-						char* pEnd;
-						double tmpToChar = strtod (tmp, &pEnd);
+
+						int tmpToChar = (int)strtol(tmp, NULL, 16);
 
 						if(updateDynamicString((char)tmpToChar, newToken))
 						{
