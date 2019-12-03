@@ -99,5 +99,4 @@ int main() {
 
     return 0;
 }
-
 /** konec souboru "main.c" **/

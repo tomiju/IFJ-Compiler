@@ -328,6 +328,15 @@ tNode* tPopStack(tStack** stack){
 	return node;
 }
 
+tNode* tTopStack(tStack* stack){
+	if(stack != NULL){
+		return stack->node;
+	}
+	else{
+		return NULL;
+	}
+}
+
 /*void destroyStack(tStack* stack){
 	tStack* temp = malloc(sizeof(struct stack));
 
@@ -572,6 +581,21 @@ void generate_before_whiles(tList* list, htab_item_t* item){
 	if(before_while != NULL){
 		SetActive(list, temp);
 		before_while = before_while->next;
+	}
+}
+
+void generate_before_if(tList* list, htab_item_t* item){
+	tNode* temp = list->active;
+	tNode* if_label = tTopStack(if_nodes);
+
+	if(if_label != NULL){
+		if_label = if_label->prev;
+
+		SetActive(list, if_label);
+		generate_instr(list, DEFVAR, 1, item);
+		SetActive(list, temp);
+	} else {
+		generate_instr(list, DEFVAR, 1, item);
 	}
 }
 
@@ -983,12 +1007,12 @@ void printInstructions(tList* list){
 	tInstr instr;
 
 	while(Active(list)){
-		Copy(list, &instr); 
+		Copy(list, &instr);
 
 		//check_types(list, instr);
 		char* repl;
 
-		printf("%s ", INSTR_STRING[instr.type]); 
+		printf("%s ", INSTR_STRING[instr.type]);
 
 		for(int i = 0; i < 3; i++){
 			if(instr.param[i] != NULL){
@@ -1001,7 +1025,7 @@ void printInstructions(tList* list){
 					switch(instr.param[i]->type){
 						case INT: printf("int@%d", instr.param[i]->ival); break;
 						case FLOAT: printf("float@%a", instr.param[i]->dval); break;
-						case STRING: 
+						case STRING:
 							repl = replace_by_escape(instr.param[i]->sval);
 							printf("string@%s", repl);
 							free(repl);
