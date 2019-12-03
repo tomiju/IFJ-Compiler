@@ -995,6 +995,22 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else
 				{
+					if (StaticPrevChar == '\\')
+				 {
+					 if(updateDynamicString('\\', newToken))
+					 {
+						 freeMemory(newToken, indent_stack);
+						 return LEX_ERROR;
+					 }
+					 if(updateDynamicString(currentChar, newToken))
+					 {
+						 freeMemory(newToken, indent_stack);
+						 return LEX_ERROR;
+					 }
+					 previousChar = currentChar;
+ 					 StaticPrevChar = currentChar;
+					 break;
+					}
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
