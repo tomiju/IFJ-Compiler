@@ -1251,9 +1251,9 @@ void generate_inputi(tList* list){
 void generate_len(tList* list){
 	htab_item_t* func = htab_find(htab_built_in, "len");
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
-	htab_item_t* type_check = htab_find(htab_built_in, "%type_control");
+	/*htab_item_t* type_check = htab_find(htab_built_in, "%type_control");
 	htab_item_t* nil = htab_find(htab_built_in, "nil");
-	htab_item_t* error_4 = htab_find(htab_built_in, "err4");
+	htab_item_t* error_4 = htab_find(htab_built_in, "err4");*/
 
 	generate_func_start(list, func);
 
