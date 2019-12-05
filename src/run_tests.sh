@@ -14,7 +14,7 @@ testing_file=${file##*/};
 
 printf "TEST $testNumber: $testing_file ";
 
-COMPILER_RETURN_CODE="$(awk -F: -v src=$testing_file '{ if ($1 == src) print $2}' outputs/outputs.txt)";
+COMPILER_RETURN_CODE="$(awk -F: -v src=$testing_file '{ if ($1 == src) print $2}' outputs/outputs)";
 
 # spustí preklad v našom programe
 ./ifj2019 < "${file}" >output 2> /dev/null;
@@ -29,7 +29,7 @@ if [ $return_code == $COMPILER_RETURN_CODE ]; then
   	INTERPRED_OUTPUT="$(./ic19int output)";
   	interpret_ret_code="$?";
 
-  	INTERPRETER_RETURN_CODE="$(awk -F: -v src=$testing_file '{ if ($1 == src) print $3}' outputs/outputs.txt)";
+  	INTERPRETER_RETURN_CODE="$(awk -F: -v src=$testing_file '{ if ($1 == src) print $3}' outputs/outputs)";
 
   	if [ "$interpret_ret_code" == "$INTERPRETER_RETURN_CODE" ]; then
   		if [ "$INTERPRED_OUTPUT" == "$PYTHON_OUTPUT" ]; then
