@@ -10,7 +10,7 @@ cool_string.py:0:0:
 int_and_identif.py:2:0:
 non_int_exponent.py:1:0:
 later_declared_func.py:3:0:
-none_in_while.py:0:0:
+none_in_while.py:0:4:
 undeclared_func.py:3:0:
 bad_print.py:1:0:
 wrong_hexa_escape_sequence.py:1:0:
