@@ -695,7 +695,18 @@ bool check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 
 						generate_else(list);
 
-							generate_instr_no(list, EXIT, 1, error_4);
+							start_if_else(list);
+							generate_instr_no(list, EQ, 3, type_control, type1, type_string);
+							generate_condition_check(list, type_control, false);
+							generate_if(list);
+
+								generate_instr_no(list, CONCAT, 3, args[0], args[1], args[2]);
+
+							generate_else(list);
+
+								generate_instr_no(list, EXIT, 1, error_4);
+
+							end_if_else(list);
 
 						end_if_else(list);
 
