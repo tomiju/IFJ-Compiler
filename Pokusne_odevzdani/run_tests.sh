@@ -21,13 +21,3 @@ fi
 #echo "exit code: "$?
 let "testNumber += 1";
 done;
-
-#./ijc2019 ./tests/badtype6.py >test111
-#./ic19int ./tmp/"output"$testNumber".txt" > ./outputs/"output"$testNumber".txt";
-#testNumber=1
-#for file in ./tmp/*; do
-#./ifj2019 ./tmp/"${file##*/}" >> ./tmp/"output"$testNumber".txt";
-#echo "exit code: "$? >>./outputs/"output"$testNumber".txt"
-#echo "exit code: "$?
-#let "testNumber += 1";
-#done;
