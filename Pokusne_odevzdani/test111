@@ -1,0 +1,109 @@
+.IFJcode19
+JUMP $$main 
+LABEL $len 
+PUSHFRAME 
+DEFVAR LF@%retval 
+MOVE LF@%retval nil@nil 
+STRLEN LF@%retval LF@%0 
+POPFRAME 
+RETURN 
+LABEL $ord 
+PUSHFRAME 
+DEFVAR LF@%retval 
+MOVE LF@%retval nil@nil 
+DEFVAR LF@dlzka 
+CREATEFRAME 
+DEFVAR TF@%0 
+MOVE TF@%0 LF@%0 
+CALL $len 
+MOVE LF@dlzka TF@%retval 
+DEFVAR LF@prava 
+DEFVAR LF@lava 
+GT LF@prava LF@%1 int@-1 
+LT LF@lava LF@%1 LF@dlzka 
+STRI2INT LF@%retval LF@%0 LF@%1 
+POPFRAME 
+RETURN 
+LABEL $chr 
+PUSHFRAME 
+DEFVAR LF@%retval 
+MOVE LF@%retval nil@nil 
+INT2CHAR LF@%retval LF@%0 
+POPFRAME 
+RETURN 
+LABEL $substr 
+PUSHFRAME 
+DEFVAR LF@%retval 
+MOVE LF@%retval nil@nil 
+MOVE LF@%retval string@ 
+DEFVAR LF@dlzka 
+CREATEFRAME 
+DEFVAR TF@%0 
+MOVE TF@%0 LF@%0 
+CALL $len 
+MOVE LF@dlzka TF@%retval 
+DEFVAR LF@podmienky 
+LT LF@podmienky LF@dlzka int@0 
+JUMPIFEQ $end LF@podmienky bool@true 
+LT LF@podmienky LF@%1 int@0 
+JUMPIFEQ $end LF@podmienky bool@true 
+EQ LF@podmienky LF@%1 LF@dlzka 
+JUMPIFEQ $end LF@podmienky bool@true 
+GT LF@podmienky LF@%1 LF@dlzka 
+JUMPIFEQ $end LF@podmienky bool@true 
+EQ LF@podmienky LF@%2 int@0 
+JUMPIFEQ $end LF@podmienky bool@true 
+DEFVAR LF@char 
+DEFVAR LF@index 
+MOVE LF@index LF@%1 
+DEFVAR LF@last_idx 
+ADD LF@last_idx LF@%1 LF@%2 
+LABEL $loop 
+GETCHAR LF@char LF@%0 LF@index 
+CONCAT LF@%retval LF@%retval LF@char 
+ADD LF@index LF@index int@1 
+EQ LF@podmienky LF@index LF@last_idx 
+JUMPIFEQ $end LF@podmienky bool@true 
+LT LF@podmienky LF@index LF@dlzka 
+JUMPIFEQ $loop LF@podmienky bool@true 
+LABEL $end 
+POPFRAME 
+RETURN 
+LABEL $inputs 
+PUSHFRAME 
+DEFVAR LF@%retval 
+MOVE LF@%retval nil@nil 
+READ LF@%retval string 
+POPFRAME 
+RETURN 
+LABEL $inputf 
+PUSHFRAME 
+DEFVAR LF@%retval 
+MOVE LF@%retval nil@nil 
+READ LF@%retval float 
+POPFRAME 
+RETURN 
+LABEL $inputi 
+PUSHFRAME 
+DEFVAR LF@%retval 
+MOVE LF@%retval nil@nil 
+READ LF@%retval int 
+POPFRAME 
+RETURN 
+LABEL $print 
+PUSHFRAME 
+DEFVAR LF@%retval 
+MOVE LF@%retval nil@nil 
+WRITE LF@%0 
+POPFRAME 
+RETURN 
+LABEL $$main 
+DEFVAR GF@%type_control 
+DEFVAR GF@%type_converted1 
+DEFVAR GF@%type_converted2 
+DEFVAR GF@%type1 
+DEFVAR GF@%type2 
+DEFVAR GF@%tmp2 
+EXIT int@4 
+DEFVAR GF@a 
+MOVE GF@a GF@%tmp2 

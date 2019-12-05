@@ -1,0 +1,16 @@
+ic19int - referencni interpret ciloveho jazyka IFJcode19
+verze 2019-11-27
+
+Prubezne doplnovane informace najdete na Wiki predmetu IFJ na strance ic19int.
+
+CHANGES:
+  * 2019-11-27:
+    * oprava instrukce READ, aby osekavala nactene konce radku z vyslednych retezcu
+    * oprava instrukce WRITE pro vypis pravdivostnich hodnot dle Pythonu (True misto true)  
+  * 2019-11-21:
+    * oprava instrukce READ, aby vracela nil@nil pri spatnem formatu vstupni hodnoty  
+  * 2019-09-23:
+    * provedeno otestovani a zverejneni ve WIS
+  * 2019-09-24:
+    * proveden novy preklad ze spravne vetve git repozitare (podpora chyby 56 v pripade prazdneho zasobniku volani)
+
