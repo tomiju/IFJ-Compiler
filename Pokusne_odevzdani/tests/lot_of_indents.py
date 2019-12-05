@@ -1,0 +1,16 @@
+
+def func():
+ print('indent')
+   print('indent')
+    print('indent')
+      print('indent')
+        print('indent')
+          print('indent')
+            print('indent')
+              print('indent')
+                print('indent')
+                  print('indent')
+                    print('indent')
+                      print('indent')
+                         print('indent')
+print('dedent')
