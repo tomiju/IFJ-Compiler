@@ -54,3 +54,6 @@ non_asci.py:1:0:
 output.txt:0:0:
 zero_div_1.py:0:9:
 zero_div_2.py:0:9:
+len.py:0:0:
+concat.py:0:0:
+concat2.py:0:0:
