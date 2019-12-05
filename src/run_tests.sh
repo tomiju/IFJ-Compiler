@@ -48,7 +48,9 @@ if [ $return_code = $COMPILER_RETURN_CODE ]; then
   				let "failed += 1";
 			fi
 		else
-			printf "Expected: $INTERPRETER_RETURN_CODE Interpred returned: $interpret_return_code";
+			printf "===> ${RED}FAILED\n${NC}";
+  			let "failed += 1";
+			printf "Expected: $INTERPRETER_RETURN_CODE Interpred returned: $interpret_ret_code\n";
 		fi
 	fi
 else
