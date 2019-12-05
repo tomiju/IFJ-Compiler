@@ -13,3 +13,7 @@ $(PRJ): $(FILES)
 
 clean:
 	rm -f *.o *.out $(PROGS)
+
+test: all
+	chmod +x run_tests.sh
+	./run_tests.sh
