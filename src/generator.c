@@ -952,13 +952,18 @@ bool check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			converted = true;
 
 			if(args[1]->type == INT && args[2]->type == INT){
-				if(args[2]->ival != 0){
-					converted = false;
+				start_if_else(list);
+				generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero);		
+				generate_condition_check(list, type_control, false);
+				generate_if(list);
 
-					break;
-				} else {
 					generate_instr_no(list, EXIT, 1, error_9);
-				}
+
+				generate_else(list);
+
+					generate_instr_no(list, instr_enum, 3, args[0], args[1], args[2]);
+
+				end_if_else(list);
 			} else if(args[1]->type == UNKNOWN || args[2]->type == UNKNOWN){
 				start_if_else(list);
 				generate_instr_no(list, TYPE, 2, type1, args[1]);
