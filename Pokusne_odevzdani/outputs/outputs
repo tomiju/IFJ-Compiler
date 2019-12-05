@@ -17,3 +17,9 @@ wrong_hexa_escape_sequence.py:1:0:
 missing_comma_in_func.py:2:0:
 wrong_indent.py:1:0:
 lot_of_indents.py:2:0:
+wrong_types.py:0:4:
+type_conv.py:0:0:
+wrong_types2.py:0:4:
+zero_as_false.py:0:0:
+none_as_false.py:0:0:
+nested_ifs.py:0:0:
