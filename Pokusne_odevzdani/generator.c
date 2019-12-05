@@ -1535,28 +1535,24 @@ void generate_inputi(tList* list){
 void generate_len(tList* list){
 	htab_item_t* func = htab_find(htab_built_in, "len");
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
-
-	htab_item_t* type_control = htab_find(htab_built_in, "%type_control");
-	htab_item_t* type_string = make_const("type_string", STRING);
-	type_string->sval = "string";
-
-	htab_item_t* error_4 = htab_find(htab_built_in, "err4");
+	/*htab_item_t* type_check = htab_find(htab_built_in, "%type_control");
+	htab_item_t* nil = htab_find(htab_built_in, "nil");
+	htab_item_t* error_4 = htab_find(htab_built_in, "err4");*/
 
 	generate_func_start(list, func);
 
-	start_if_else(list);
-	generate_instr_no(list, TYPE, 2, type_control, get_param(0));
-	generate_instr_no(list, EQ, 3, type_control, type_control, type_string);
-	generate_condition_check(list, type_control, false);
+	/*start_if_else(list);
+	generate_instr_no(list, EQ, 3, type_check, get_param(0), nil);
+	generate_condition_check(list, type_check, false);
 	generate_if(list);
 
-		generate_instr_no(list, STRLEN, 2, retval, get_param(0));
+	generate_instr_no(list, EXIT, 1, error_4);
 
-	generate_else(list);
+	generate_else(list);*/
 
-		generate_instr_no(list, EXIT, 1, error_4);
+	generate_instr_no(list, STRLEN, 2, retval, get_param(0));
 	
-	end_if_else(list);
+	//end_if_else(list);
 	generate_func_end(list);
 }
 
@@ -1565,42 +1561,7 @@ void generate_ord(tList* list){
 	htab_item_t* func_len = htab_find(htab_built_in, "len");
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
 
-	htab_item_t* type_control = htab_find(htab_built_in, "%type_control");
-	htab_item_t* type_string = make_const("type_string", STRING);
-	type_string->sval = "string";
-	htab_item_t* type_int = make_const("type_int", STRING); 
-	type_int->sval = "int";
-
-	htab_item_t* error_4 = htab_find(htab_built_in, "err4");
-
 	generate_func_start(list, func);
-
-	start_if_else(list);
-	generate_instr_no(list, TYPE, 2, type_control, get_param(0));
-	generate_instr_no(list, EQ, 3, type_control, type_control, type_string);
-	generate_condition_check(list, type_control, false);
-	generate_if(list);
-
-		start_if_else(list);
-		generate_instr_no(list, TYPE, 2, type_control, get_param(1));
-		generate_instr_no(list, EQ, 3, type_control, type_control, type_int);
-		generate_condition_check(list, type_control, false);
-		generate_if(list);
-
-			// pass
-
-		generate_else(list);
-
-			generate_instr_no(list, EXIT, 1, error_4);
-		
-		end_if_else(list);
-
-	generate_else(list);
-
-		generate_instr_no(list, EXIT, 1, error_4);
-	
-	end_if_else(list);
-
 	htab_item_t* dlzka = generate_var(list, "dlzka", INT, LF);
 
 	generate_func_call(list, func_len, 1, get_param(0));
@@ -1609,20 +1570,15 @@ void generate_ord(tList* list){
 	htab_item_t* prava = generate_var(list, "prava", INT, LF);
 	htab_item_t* lava = generate_var(list, "lava", INT, LF);
 
-	htab_item_t* con = make_const("minus_one", INT);
+	htab_item_t* con = make_const("minus_one" ,INT);
 	con->ival = -1;
-
 	generate_instr_no(list, GT, 3, prava, get_param(1), con);
 	generate_instr_no(list, LT, 3, lava, get_param(1), dlzka);
 
-	htab_item_t* error_label = make_label("error");
-	error_label->sval = "error_label";
-
-	generate_instr_no(list, JUMPIFNEQ, 3, error_label, prava, lava);
+	/*htab_item_t* error_label = htab_find(htab_built_in, "error");
+	generate_instr(list, JUMPIFNEQ, 3, error_label, prava, lava);*/
 
 	generate_instr_no(list, STRI2INT, 3, retval, get_param(0), get_param(1));
-
-	generate_instr_no(list, LABEL, 1, error_label);
 
 	generate_func_end(list);
 }
@@ -1631,50 +1587,8 @@ void generate_chr(tList* list){
 	htab_item_t* func = htab_find(htab_built_in, "chr");
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
 
-	htab_item_t* type_control = htab_find(htab_built_in, "%type_control");
-	htab_item_t* type_int = make_const("type_int", STRING); 
-	type_int->sval = "int";
-
-	htab_item_t* error_4 = htab_find(htab_built_in, "err4");	
-
-	htab_item_t* zero = make_const("zero", INT);
-	zero->ival = 0;
-	htab_item_t* int_255 = make_const("int_255", INT);
-	int_255->ival = 255;
-
 	generate_func_start(list, func);
-
-	htab_item_t* prava = generate_var(list, "prava", INT, LF);
-	htab_item_t* lava = generate_var(list, "lava", INT, LF);
-
-	start_if_else(list);
-	generate_instr_no(list, TYPE, 2, type_control, get_param(0));
-	generate_instr_no(list, EQ, 3, type_control, type_control, type_int);
-	generate_condition_check(list, type_control, false);
-	generate_if(list);
-
-		start_if_else(list);
-		generate_instr_no(list, GT, 3, prava, get_param(0), int_255);
-		generate_instr_no(list, LT, 3, lava, get_param(0), zero);
-		generate_instr_no(list, EQ, 3, type_control, lava, prava);
-		generate_condition_check(list, type_control, false);
-
-		generate_if(list);
-
-			generate_instr_no(list, INT2CHAR, 2, retval, get_param(0));
-
-		generate_else(list);
-
-			generate_instr_no(list, EXIT, 1, error_4);
-
-		end_if_else(list);
-
-	generate_else(list);
-
-		generate_instr_no(list, EXIT, 1, error_4);
-	
-	end_if_else(list);
-
+	generate_instr_no(list, INT2CHAR, 2, retval, get_param(0));
 	generate_func_end(list);
 }
 
@@ -1683,57 +1597,11 @@ void generate_substr(tList* list){
 	htab_item_t* func_len = htab_find(htab_built_in, "len");
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
 
-	htab_item_t* type_control = htab_find(htab_built_in, "%type_control");
-	htab_item_t* type_int = make_const("type_int", STRING); 
-	type_int->sval = "int";
-	htab_item_t* type_string = make_const("type_string", STRING);
-	type_string->sval = "string";
-
-	htab_item_t* error_4 = htab_find(htab_built_in, "err4");	
-
 	generate_func_start(list, func);
-
-	start_if_else(list);
-	generate_instr_no(list, TYPE, 2, type_control, get_param(0));
-	generate_instr_no(list, EQ, 3, type_control, type_control, type_string);
-	generate_condition_check(list, type_control, false);
-	generate_if(list);
-
-		start_if_else(list);
-		generate_instr_no(list, TYPE, 2, type_control, get_param(1));
-		generate_instr_no(list, EQ, 3, type_control, type_control, type_int);
-		generate_condition_check(list, type_control, false);
-		generate_if(list);
-
-			start_if_else(list);
-			generate_instr_no(list, TYPE, 2, type_control, get_param(2));
-			generate_instr_no(list, EQ, 3, type_control, type_control, type_int);
-			generate_condition_check(list, type_control, false);
-			generate_if(list);
-
-				//pass
-
-			generate_else(list);
-
-				generate_instr_no(list, EXIT, 1, error_4);
-			
-			end_if_else(list);
-
-		generate_else(list);
-
-			generate_instr_no(list, EXIT, 1, error_4);
-		
-		end_if_else(list);
-
-	generate_else(list);
-
-		generate_instr_no(list, EXIT, 1, error_4);
-	
-	end_if_else(list);
 
 	htab_item_t* con = make_const("None", STRING);
 	con->sval = "";
-	generate_instr_no(list, MOVE, 2, retval, con);
+	generate_instr_no(list, MOVE, 2, retval, con); // TODO None STRING
 
 	htab_item_t* dlzka = generate_var(list, "dlzka", INT, LF);
 	generate_func_call(list, func_len, 1, get_param(0));
