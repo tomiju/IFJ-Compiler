@@ -769,7 +769,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 			{
 				htab_symbol->type = UNKNOWN;
 				*final_token_type = TOKEN_NONTERM_IDENTIFIER;
-				generate_instr(&list, DIV, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
+				generate_instr(&list, IDIV, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
 			}
 
