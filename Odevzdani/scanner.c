@@ -225,6 +225,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					if ((*indent_stack)->value != 0)
 					{
+						currentIndent_static = 0;
 						state = STATE_DEDENT;
 						ungetc(currentChar, stdin);
 						break;
@@ -746,6 +747,9 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				else if (currentChar == '.')
 				{
 					state = STATE_NUMBER_DOUBLE;
+
+					previousChar = currentChar;
+					
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
@@ -784,6 +788,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 				if (currentChar == 'e' || currentChar == 'E')
 				{
+					if (previousChar == '.')
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
@@ -852,13 +862,24 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (isalpha(currentChar))
 				{
-					newToken->type = TOKEN_INT;
+					if (previousChar == 'e' || previousChar == 'E' || previousChar == '+' || previousChar == '-')
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+
+					newToken->type = TOKEN_DOUBLE;
 					ProcessCharToNumber(newToken);
 					ungetc(currentChar, stdin);
 					return TOKEN_OK;
 				}
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar == '\f')
 				{
+					if (previousChar == 'e' || previousChar == 'E' || previousChar == '+' || previousChar == '-')
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
 					newToken->type = TOKEN_DOUBLE;
 					ungetc(currentChar, stdin);
 					ProcessCharToNumber(newToken);
@@ -866,8 +887,18 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else
 				{
-					freeMemory(newToken, indent_stack);
-					return LEX_ERROR;
+					/*freeMemory(newToken, indent_stack);
+					return LEX_ERROR;*/
+					if (previousChar == 'e' || previousChar == 'E' || previousChar == '+' || previousChar == '-')
+					{
+						freeMemory(newToken, indent_stack);
+						return LEX_ERROR;
+					}
+
+					newToken->type = TOKEN_DOUBLE;
+					ProcessCharToNumber(newToken);
+					ungetc(currentChar, stdin);
+					return TOKEN_OK;
 				}
 			break;
 
