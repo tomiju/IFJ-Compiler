@@ -57,3 +57,4 @@ zero_div_2.py:0:9:
 len.py:0:0:
 concat.py:0:0:
 concat2.py:0:0:
+print_with_no_arg.py:0:0:

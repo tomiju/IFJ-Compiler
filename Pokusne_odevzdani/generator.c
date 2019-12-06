@@ -1449,17 +1449,43 @@ void func_call(tList* list, htab_item_t* func){
 	htab_item_t* new_line_const = make_const("odriadkovanies", STRING);
 	new_line_const->sval = "\n";
 
-	if(strcmp(func->key, "print") == 0){
-		for(unsigned i = 0; i < param_idx; i++){
-			generate_instr(list, CREATEFRAME, 0);
+	htab_item_t* type_control = htab_find(htab_built_in, "%type_control");
+	htab_item_t* type_nil = make_const("type_nil", STRING);
+	type_nil->sval = "nil";
+	htab_item_t* string_none = make_const("string_none", STRING);
+	string_none->sval = "None";
 
+	if(strcmp(func->key, "print") == 0){
+		if(param_idx == 0){
+			generate_instr(list, CREATEFRAME, 0);
+			generate_instr(list, DEFVAR, 1, get_param_tf(0));
+			generate_instr(list, MOVE, 2, get_param_tf(0), new_line_const);
+			generate_instr(list, CALL, 1, func);
+		}
+
+		for(unsigned i = 0; i < param_idx; i++){
 			val_to_copy = params[i];
 			param = get_param_tf(0);
 
-			generate_instr(list, DEFVAR, 1, param);
-			generate_instr(list, MOVE, 2, param, val_to_copy);
+			start_if_else(list);
+			generate_instr_no(list, TYPE, 2, type_control, val_to_copy);
+			generate_instr_no(list, EQ, 3, type_control, type_control, type_nil);		
+			generate_condition_check(list, type_control, false);
+			generate_if(list);
 
-			generate_instr(list, CALL, 1, func);
+				generate_instr(list, CREATEFRAME, 0);
+				generate_instr(list, DEFVAR, 1, param);
+				generate_instr(list, MOVE, 2, param, string_none);
+				generate_instr(list, CALL, 1, func);
+
+			generate_else(list);
+
+				generate_instr(list, CREATEFRAME, 0);
+				generate_instr(list, DEFVAR, 1, param);
+				generate_instr(list, MOVE, 2, param, val_to_copy);
+				generate_instr(list, CALL, 1, func);
+
+			end_if_else(list);
 
 			generate_instr(list, CREATEFRAME, 0);
 
