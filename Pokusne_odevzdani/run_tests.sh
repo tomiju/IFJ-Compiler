@@ -3,6 +3,8 @@ testNumber=1
 succes=0
 failed=0
 
+#fixed lf
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
