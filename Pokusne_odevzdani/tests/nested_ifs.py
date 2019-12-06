@@ -14,4 +14,4 @@ if premenna < 0:
  else:
   pass
 else:
- passs
+ pass
