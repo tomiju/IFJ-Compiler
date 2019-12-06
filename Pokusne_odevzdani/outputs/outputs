@@ -58,3 +58,9 @@ len.py:0:0:
 concat.py:0:0:
 concat2.py:0:0:
 print_with_no_arg.py:0:0:
+nested_whiles.py:0:0:
+if_in_while.py:0:0:
+parne_neparne.py:0:0:
+string_vs_none.py:0:0:
+string_vs_none2.py:0:0:
+generate_string.py:0:0:
