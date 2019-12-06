@@ -5,3 +5,4 @@
 # to native line endings on checkout.
 *.c text eol=lf
 *.h text eol=lf
+*.py text eol=lf
