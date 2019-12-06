@@ -198,6 +198,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 	int commentaryCounter;
 	int dedentFound; // TRUE = na stacku byla hodnota zanoření (při DEDENT), FALSE = na stacku nebyla -> error
 	int currentIndent = 0;
+	static int currentIndent_static;
 	char currentChar, previousChar, firstNumber;
 	static char StaticPrevChar; // pro \n v řetězci
 	static int FirstToken = TRUE;
@@ -249,6 +250,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					if (FirstToken == FALSE)
 					{
 						newToken->type = TOKEN_EOL;
+						currentIndent_static = 0;
 						FirstToken = TRUE;
 						return TOKEN_OK;
 					}
@@ -1061,6 +1063,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				if (currentChar == ' ')
 				{
 					currentIndent++;
+					currentIndent_static = currentIndent;
 					break;
 				}
 
@@ -1094,7 +1097,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 							popStack(indent_stack);
 							newToken->type = TOKEN_DEDENT;
 							ungetc(currentChar, stdin);
-
+							currentIndent_static = currentIndent;
 							if ((*indent_stack)->value == currentIndent)
 							{
 								FirstToken = FALSE;
@@ -1114,6 +1117,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						if ((*indent_stack)->value == currentIndent)
 						{
 							dedentFound = TRUE;
+							currentIndent_static = 0;
 						}
 
 						if (dedentFound == FALSE)
@@ -1146,10 +1150,9 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 			case(STATE_DEDENT):
 
 				dedentFound = FALSE;
-
-				if ((*indent_stack)->value != currentIndent)
+				if ((*indent_stack)->value != currentIndent_static)
 				{
-					if ((*indent_stack)->level == 1 && currentIndent != 0)
+					if ((*indent_stack)->level == 1 && currentIndent_static != 0)
 					{
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
@@ -1159,13 +1162,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					newToken->type = TOKEN_DEDENT;
 					ungetc(currentChar, stdin);
 
-					if ((*indent_stack)->value == currentIndent)
+					if ((*indent_stack)->value == currentIndent_static)
 					{
 						FirstToken = FALSE;
 						dedentFound = TRUE;
 					}
 
-					if (dedentFound == FALSE && (*indent_stack)->value != currentIndent && (*indent_stack)->level == 1 && currentIndent != 0)
+					if (dedentFound == FALSE && (*indent_stack)->value != currentIndent_static && (*indent_stack)->level == 1 && currentIndent_static != 0)
 					{
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
@@ -1174,9 +1177,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					return TOKEN_OK;
 				}
 
-				if ((*indent_stack)->value == currentIndent)
+				if ((*indent_stack)->value == currentIndent_static)
 				{
 					dedentFound = TRUE;
+					currentIndent_static = 0;
 				}
 
 				if (dedentFound == FALSE)
