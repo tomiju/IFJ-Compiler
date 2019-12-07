@@ -273,16 +273,21 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '#')
 				{
-
 					state = STATE_COMMENTARY;
 					break;
 				}
 				else if (currentChar == '\"' && previousChar != '\\')
 				{
-						FirstToken = FALSE;
-						state = STATE_DOC_STRING;
-						commentaryCounter = 1;
+					if (currentIndent_static != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, stdin);
 						break;
+					}
+					FirstToken = FALSE;
+					state = STATE_DOC_STRING;
+					commentaryCounter = 1;
+					break;
 				}
 				else if (currentChar == '+')
 				{
@@ -1096,9 +1101,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					break;
 				}
 
-				if ((currentChar == '\n' || currentChar == '#' || currentChar == '\"') && FirstToken == TRUE)
+				if ((currentChar == '\n' || currentChar == '#' || currentChar == EOF) && FirstToken == TRUE)
 				{
 					currentIndent = 0;
+					currentIndent_static = 0;
 					ungetc(currentChar, stdin);
 					state = STATE_START;
 					break;
@@ -1266,6 +1272,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				if (commentaryCounter == 3)
 				{
 					newToken->type = TOKEN_STRING;
+					StaticPrevChar = 'y';
 					ungetc(currentChar, stdin);
 					return TOKEN_OK;
 				}

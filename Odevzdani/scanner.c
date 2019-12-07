@@ -887,8 +887,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else
 				{
-					/*freeMemory(newToken, indent_stack);
-					return LEX_ERROR;*/
 					if (previousChar == 'e' || previousChar == 'E' || previousChar == '+' || previousChar == '-')
 					{
 						freeMemory(newToken, indent_stack);
@@ -1098,7 +1096,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					break;
 				}
 
-				if ((currentChar == '\n' || currentChar == '#' || currentChar == '\"') && FirstToken == TRUE)
+				if ((currentChar == '\n' || currentChar == '#' || currentChar == '\"' || currentChar == EOF) && FirstToken == TRUE)
 				{
 					currentIndent = 0;
 					ungetc(currentChar, stdin);

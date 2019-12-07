@@ -1,0 +1,18 @@
+'adasdsadas'
+'newline:\nText \t tabbed \'string\'\\\\'
+'start:\x10\x0ahey'
+'start:\Z nothing \T \x0ahey'
+
+"""Block
+
+comment
+
+"""
+
+"""Block comment with escape : \n \t \r \x "" \"""
+ "" "" " ' '''' \"""
+\""""
+
+'various escapes \x12 LF\x0aend'
+
+'testing all escapes \" \' LF\ntab\t\\'
