@@ -1,3 +1,3 @@
-a = '\xFF12'
+a = '\xZZ12'
 
 print(a)

@@ -1062,28 +1062,19 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 				if (isdigit(currentChar) || (currentChar >= (char)65 && currentChar <= (char)70) || (currentChar >= (char)97 && currentChar <= (char)102))
 				{
-						char tmp[2];
-						tmp[0] = StaticPrevChar;
-						tmp[1] = currentChar;
+					char tmp[2];
+					tmp[0] = StaticPrevChar;
+					tmp[1] = currentChar;
 
-						int tmpToChar = (int)strtol(tmp, NULL, 16);
+					int tmpToChar = (int)strtol(tmp, NULL, 16);
 
-						if(updateDynamicString((char)tmpToChar, newToken))
-						{
-							freeMemory(newToken, indent_stack);
-							return INTERNAL_ERROR;
-						}
-
-						currentChar = getc(stdin);
-
-						if(currentChar != '\'' && currentChar != ' ')
-						{
-							freeMemory(newToken, indent_stack);
-							return LEX_ERROR;
-						}
-						ungetc(currentChar, stdin);
-						state = STATE_STRING;
-						break;
+					if(updateDynamicString((char)tmpToChar, newToken))
+					{
+						freeMemory(newToken, indent_stack);
+						return INTERNAL_ERROR;
+					}
+					state = STATE_STRING;
+					break;
 				}
 				else
 				{

@@ -273,16 +273,21 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 				else if (currentChar == '#')
 				{
-
 					state = STATE_COMMENTARY;
 					break;
 				}
 				else if (currentChar == '\"' && previousChar != '\\')
 				{
-						FirstToken = FALSE;
-						state = STATE_DOC_STRING;
-						commentaryCounter = 1;
+					if (currentIndent_static != (*indent_stack)->value && FirstToken == TRUE)
+					{
+						state = STATE_DEDENT;
+						ungetc(currentChar, stdin);
 						break;
+					}
+					FirstToken = FALSE;
+					state = STATE_DOC_STRING;
+					commentaryCounter = 1;
+					break;
 				}
 				else if (currentChar == '+')
 				{
@@ -1057,28 +1062,19 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 				if (isdigit(currentChar) || (currentChar >= (char)65 && currentChar <= (char)70) || (currentChar >= (char)97 && currentChar <= (char)102))
 				{
-						char tmp[2];
-						tmp[0] = StaticPrevChar;
-						tmp[1] = currentChar;
+					char tmp[2];
+					tmp[0] = StaticPrevChar;
+					tmp[1] = currentChar;
 
-						int tmpToChar = (int)strtol(tmp, NULL, 16);
+					int tmpToChar = (int)strtol(tmp, NULL, 16);
 
-						if(updateDynamicString((char)tmpToChar, newToken))
-						{
-							freeMemory(newToken, indent_stack);
-							return INTERNAL_ERROR;
-						}
-
-						currentChar = getc(stdin);
-
-						if(currentChar != '\'' && currentChar != ' ')
-						{
-							freeMemory(newToken, indent_stack);
-							return LEX_ERROR;
-						}
-						ungetc(currentChar, stdin);
-						state = STATE_STRING;
-						break;
+					if(updateDynamicString((char)tmpToChar, newToken))
+					{
+						freeMemory(newToken, indent_stack);
+						return INTERNAL_ERROR;
+					}
+					state = STATE_STRING;
+					break;
 				}
 				else
 				{
@@ -1096,9 +1092,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					break;
 				}
 
-				if ((currentChar == '\n' || currentChar == '#' || currentChar == '\"' || currentChar == EOF) && FirstToken == TRUE)
+				if ((currentChar == '\n' || currentChar == '#' || currentChar == EOF) && FirstToken == TRUE)
 				{
 					currentIndent = 0;
+					currentIndent_static = 0;
 					ungetc(currentChar, stdin);
 					state = STATE_START;
 					break;
@@ -1266,6 +1263,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				if (commentaryCounter == 3)
 				{
 					newToken->type = TOKEN_STRING;
+					StaticPrevChar = 'y';
 					ungetc(currentChar, stdin);
 					return TOKEN_OK;
 				}
