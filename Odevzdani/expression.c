@@ -124,13 +124,13 @@ int expression(htab_item_t* htab_symbol)
     result = pushTokenStack(Stack, TOKEN_DOLLAR, I_DOLLAR, NULL);
     if (result != SYNTAX_OK)
     {
-    	fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", result);
+    	fprintf(stderr, "EXPRESSION ERROR 1, CODE: %d\n", result);
     	return result;
     }
 
     if (Stack->top->token_type == I_DOLLAR && get_prec_table_index(token_ptr->type) == I_DOLLAR)
     {
-    	fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SYNTAX_ERROR);
+    	fprintf(stderr, "EXPRESSION ERROR 2, CODE: %d\n", SYNTAX_ERROR);
     	return SYNTAX_ERROR;
     }
 
@@ -145,7 +145,7 @@ int expression(htab_item_t* htab_symbol)
 			if(result != SYNTAX_OK)
 			{
 				// TODO FREE
-				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", result);
+				fprintf(stderr, "EXPRESSION ERROR 3, CODE: %d\n", result);
 				return result;
 			}
 
@@ -155,7 +155,7 @@ int expression(htab_item_t* htab_symbol)
 			result = pushTokenStack(Stack, TOKEN_RIGHT_BRACKET, I_RIGHT_BRACKET, NULL);
 			if (result != SYNTAX_OK)
     		{
-    			fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", result);
+    			fprintf(stderr, "EXPRESSION ERROR 4, CODE: %d\n", result);
     			return result;
     		}
 
@@ -172,7 +172,7 @@ int expression(htab_item_t* htab_symbol)
 			if(result != SYNTAX_OK)
 			{
 				// TODO FREE
-				fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", result);
+				fprintf(stderr, "EXPRESSION ERROR 5, CODE: %d\n", result);
 				return result;
 			}
 
@@ -185,7 +185,7 @@ int expression(htab_item_t* htab_symbol)
 			}
 
 			// TODO FREE
-			fprintf(stderr, "EXPRESSION ERROR, CODE: %d\n", SYNTAX_ERROR);
+			fprintf(stderr, "EXPRESSION ERROR 6, CODE: %d\n", SYNTAX_ERROR);
 			return SYNTAX_ERROR;
 
 			break;
@@ -269,7 +269,7 @@ int shift(TStackToken *stack)
 				token_ptr->type = TOKEN_IDENTIFIER;
 				break;
 			default:
-				return SYNTAX_ERROR;
+				// return SYNTAX_ERROR;
 				break;
 		}
 	}
@@ -478,7 +478,6 @@ int reduce(TStackToken *stack)
 
 			return SYNTAX_OK;
 		}
-
 		gen_rule = test_rule(count, op1, op2, op3);
 	}
 
@@ -537,6 +536,17 @@ int reduce(TStackToken *stack)
     		return result;
     	}
 	}
+
+	// tmpitem = op1;
+ //    		printf("TOKENY NA STACKU: ");
+ //    		while(tmpitem->token_type != I_DOLLAR)
+ //    		{
+ //    			printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
+ //    			tmpitem = tmpitem->next_token;
+ //    		}
+ //    		printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
+ //    		printf("\n");
+
 
 	return SYNTAX_OK;
 }
@@ -754,10 +764,11 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 			{
-				htab_symbol->type = FLOAT;
-				*final_token_type = TOKEN_NONTERM_DOUBLE;
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 			}
+
+			htab_symbol->type = FLOAT;
+			*final_token_type = TOKEN_NONTERM_DOUBLE;
 
 			generate_instr(&list, DIV, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 
@@ -767,7 +778,7 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 
 			if (op1->data_type == TOKEN_NONTERM_IDENTIFIER || op3->data_type == TOKEN_NONTERM_IDENTIFIER)
 			{
-				htab_symbol->type = UNKNOWN;
+				htab_symbol->type = INT;
 				*final_token_type = TOKEN_NONTERM_IDENTIFIER;
 				generate_instr(&list, IDIV, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 				break;
@@ -775,11 +786,11 @@ int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab
 
 			if (op1->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_STRING)
 			{
-				htab_symbol->type = FLOAT;
-				*final_token_type = TOKEN_NONTERM_INT;
 				return SEMANTIC_TYPE_COMPATIBILITY_ERROR;
 			}
 
+			htab_symbol->type = INT;
+			*final_token_type = TOKEN_NONTERM_INT;
 			generate_instr(&list, IDIV, 3, htab_symbol, op1->table_symbol, op3->table_symbol);
 
 			break;
@@ -847,25 +858,24 @@ Prec_rules_enum test_rule(int count, TStackTokenItem op1, TStackTokenItem op2, T
 
 
 			// TStackTokenItem tmpitem = op1;
-   //  		printf("TOKENY NA STACKU: ");
+   //  		printf("KONIEC TOKENY NA STACKU: ");
    //  		while(tmpitem->token_type != I_DOLLAR)
    //  		{
    //  			printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
    //  			tmpitem = tmpitem->next_token;
    //  		}
    //  		printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
+   //  		printf("   TOKEN: %s\n", token_ptr->dy);
    //  		printf("\n");
-
-
 
 		return NOT_A_RULE;
 
 	case 3:
 		// rule E -> (E)
-		if (op1->data_type == TOKEN_LEFT_BRACKET && (op2->data_type == TOKEN_NONTERM_INT || op2->data_type == TOKEN_NONTERM_DOUBLE ||op2->data_type == TOKEN_NONTERM_STRING || TOKEN_NONTERM_IDENTIFIER) && op3->data_type == TOKEN_RIGHT_BRACKET)
+		if (op1->data_type == TOKEN_LEFT_BRACKET && (op2->data_type == TOKEN_NONTERM_INT || op2->data_type == TOKEN_NONTERM_DOUBLE ||op2->data_type == TOKEN_NONTERM_STRING || op2->data_type == TOKEN_NONTERM_IDENTIFIER) && op3->data_type == TOKEN_RIGHT_BRACKET)
 			return LBR_NT_RBR;
 
-		if ((op1->data_type == TOKEN_NONTERM_INT || op1->data_type == TOKEN_NONTERM_DOUBLE ||op1->data_type == TOKEN_NONTERM_STRING || TOKEN_NONTERM_IDENTIFIER) && (op3->data_type == TOKEN_NONTERM_INT || op3->data_type == TOKEN_NONTERM_DOUBLE ||op3->data_type == TOKEN_NONTERM_STRING || TOKEN_NONTERM_IDENTIFIER))
+		if ((op1->data_type == TOKEN_NONTERM_INT || op1->data_type == TOKEN_NONTERM_DOUBLE ||op1->data_type == TOKEN_NONTERM_STRING || op1->data_type == TOKEN_NONTERM_IDENTIFIER || op1->data_type == TOKEN_NONE) && (op3->data_type == TOKEN_NONTERM_INT || op3->data_type == TOKEN_NONTERM_DOUBLE ||op3->data_type == TOKEN_NONTERM_STRING || op3->data_type == TOKEN_NONTERM_IDENTIFIER || op3->data_type == TOKEN_NONE))
 		{
 			switch (op2->data_type)
 			{
