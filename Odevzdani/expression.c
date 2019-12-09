@@ -2,7 +2,7 @@
  * Předmět:  IFJ
  * Projekt:  Implementace překladače imperativního jazyka IFJ19
  * Varianta: Tým 018, varianta II
- * Soubor:   semantic.c
+ * Soubor:   expression.c - vyhodnocovanie výrazov
  *
  *
  * Datum:    30.11.2019
@@ -28,7 +28,10 @@
 int name_counter = 0;
 
 
-// Precedence table
+/**
+ * Precedenčná tabuľka
+ */
+
 int prec_table[TAB_SIZE][TAB_SIZE] =
 {
 //	(S < SHIFT) (E = EQUAL) (R > REDUCE) (N # ERROR)
@@ -36,14 +39,14 @@ int prec_table[TAB_SIZE][TAB_SIZE] =
 	{ R , S , S , R , S , R , S , R }, /// +-
 	{ R , R , R , R , S , R , S , R }, /// */
 	{ R , S , R , R , S , R , S , R }, /// \ /
-	{ S , S , S , N , S , R , S , R }, /// r (realtion operators) = !> <= < >= >
+	{ S , S , S , N , S , R , S , R }, /// r (relačné operátory) = !> <= < >= >
 	{ S , S , S , S , S , E , S , N }, /// (
 	{ R , R , R , R , N , R , N , R }, /// )
 	{ R , R , R , R , N , R , N , R }, /// i (id, int, double, string)
 	{ S , S , S , S , S , N , S , N }  /// $
 };
 
-// konvertuje symbol na index do tabulky
+
 Prec_table_index_enum get_prec_table_index(TokenTYPE symbol)
 {
 	switch (symbol)
@@ -103,11 +106,11 @@ Prec_table_index_enum get_prec_table_index(TokenTYPE symbol)
 	}
 }
 
+// počítadlo riadkov
 extern int currentLine;
 
 int expression(htab_item_t* htab_symbol)
 {
-    // printf("expression\n");
     int result;
     bool success = FALSE;
     int count;
@@ -124,38 +127,33 @@ int expression(htab_item_t* htab_symbol)
     result = pushTokenStack(Stack, TOKEN_DOLLAR, I_DOLLAR, NULL);
     if (result != SYNTAX_OK)
     {
-    	fprintf(stderr, "EXPRESSION ERROR 1, CODE: %d\n", result);
     	return result;
     }
 
     if (Stack->top->token_type == I_DOLLAR && get_prec_table_index(token_ptr->type) == I_DOLLAR)
     {
-    	fprintf(stderr, "EXPRESSION ERROR 2, CODE: %d\n", SYNTAX_ERROR);
     	return SYNTAX_ERROR;
     }
 
+    // cyklus, ktorý sa opakuje, kým sa nevyhodnotí výraz
     do
     {
-
     	switch(prec_table[Stack->top->token_type][get_prec_table_index(token_ptr->type)])
     	{
-		case S:
+		case S: // Shift
 			result = shift(Stack);
 
 			if(result != SYNTAX_OK)
 			{
-				// TODO FREE
-				fprintf(stderr, "EXPRESSION ERROR 3, CODE: %d\n", result);
 				return result;
 			}
 
 			break;
 
-		case E:
+		case E:	// Equal
 			result = pushTokenStack(Stack, TOKEN_RIGHT_BRACKET, I_RIGHT_BRACKET, NULL);
 			if (result != SYNTAX_OK)
     		{
-    			fprintf(stderr, "EXPRESSION ERROR 4, CODE: %d\n", result);
     			return result;
     		}
 
@@ -166,31 +164,28 @@ int expression(htab_item_t* htab_symbol)
 
 			break;
 
-		case R:
+		case R:	// Reduce
 			result = reduce(Stack);
 
 			if(result != SYNTAX_OK)
 			{
-				// TODO FREE
-				fprintf(stderr, "EXPRESSION ERROR 5, CODE: %d\n", result);
 				return result;
 			}
 
 			break;
 
-		case N:
+		case N:	// Error
 			if (Stack->top->next_token->data_type == TOKEN_DOLLAR && get_prec_table_index(token_ptr->type) == I_DOLLAR)
 			{
 				success = TRUE;
 			}
 
-			// TODO FREE
-			fprintf(stderr, "EXPRESSION ERROR 6, CODE: %d\n", SYNTAX_ERROR);
 			return SYNTAX_ERROR;
 
 			break;
 		}
 
+		// ak je kontrola úspešná, cyklus je ukončený a výraz je zredukovaný
 		count = totalCountTokenStack(Stack);
     	if (count == 1 && get_prec_table_index(token_ptr->type) == I_DOLLAR)
     	{
@@ -200,10 +195,7 @@ int expression(htab_item_t* htab_symbol)
     } while(success == FALSE);
 
 
-
 	*htab_symbol = *(Stack->top->table_symbol);
-
-    // printf("END OF EXPRESSION, final data type: %d\n", htab_symbol->type);
 
     destroyTokenStack(Stack);
 
@@ -221,7 +213,6 @@ int shift(TStackToken *stack)
 
 	if (get_prec_table_index(token_ptr->type) == I_DATA || get_prec_table_index(token_ptr->type) == I_LEFT_BRACKET)
 	{
-		// printf("PUSHUJEM: TOKEN_STOP\n");
 		result = pushTokenStack(stack, TOKEN_STOP, I_STOP, NULL);
 		if (result != SYNTAX_OK)
     	{
@@ -229,7 +220,8 @@ int shift(TStackToken *stack)
     	}
 	}
 
-	if (token_ptr->type == TOKEN_IDENTIFIER)
+	// kontrola typu tokenu
+	if (token_ptr->type == TOKEN_IDENTIFIER)	// ak je to identifikátor, musí byť v niektorej tabuľke symbolov, inak error
 	{
 		if (localSymtable != NULL)
 		{
@@ -269,7 +261,6 @@ int shift(TStackToken *stack)
 				token_ptr->type = TOKEN_IDENTIFIER;
 				break;
 			default:
-				// return SYNTAX_ERROR;
 				break;
 		}
 	}
@@ -323,6 +314,7 @@ int shift(TStackToken *stack)
 		}
 	}
 
+	// na zásobník sa "pushne" token s parametrami získanýmy kontrolami vyššie 
 	result = pushTokenStack(stack, token_ptr->type, get_prec_table_index(token_ptr->type), htab_symbol);
 	if (result != SYNTAX_OK)
     {
@@ -352,7 +344,7 @@ int reduce(TStackToken *stack)
     htab_item_t* htab_symbol = NULL;
 
 
-
+    // špecialné situácia, keď je na vrchole zásobníku pravá zátvorka
 	if (stack->top->token_type == I_RIGHT_BRACKET)
 	{
 		if (stack->top->next_token->token_type == I_DOLLAR || stack->top->next_token->next_token->token_type == I_DOLLAR)
@@ -378,14 +370,14 @@ int reduce(TStackToken *stack)
 	}
 
 
-
+	// ak je na zásobníku jeden token pred tokenom STOP
 	if (count == 1)
 	{
 		op1 = stack->top;
 
 		if ((op1->data_type >= TOKEN_NONTERM && op1->data_type <= TOKEN_NONTERM_BOOL) || op1->data_type == TOKEN_NONE)
 		{
-			if (op1->next_token->token_type == I_STOP)
+			if (op1->next_token->token_type == I_STOP) // odstránenie tokenu STOP
 			{
 				tmpitem = op1->next_token;
 				op1->next_token = tmpitem->next_token;
@@ -394,9 +386,7 @@ int reduce(TStackToken *stack)
 				change = TRUE;
 			}
 
-
 			count = countTokenStack(stack);
-
 
 			if (count == 3)
 			{
@@ -433,7 +423,7 @@ int reduce(TStackToken *stack)
 				change = TRUE;
 			}
 
-			if (change == FALSE)
+			if (change == FALSE)	// ak nastalo zacyklenie, nastala chyba s nesprávnym počtom zátvoriek
 			{
 				return SYNTAX_ERROR;
 			}
@@ -447,12 +437,14 @@ int reduce(TStackToken *stack)
 
 	}
 
+	// ak sú na zásobníku tri tokeny pred tokenom STOP
 	else if (count == 3)
 	{
 		op1 = stack->top->next_token->next_token;
 		op2 = stack->top->next_token;
 		op3 = stack->top;
 
+		// podmienka kvôli priorite operátorov
 		if (prec_table[op2->token_type][get_prec_table_index(token_ptr->type)] == S)
 		{
 
@@ -475,13 +467,12 @@ int reduce(TStackToken *stack)
 				return result;
 			}
 
-
 			return SYNTAX_OK;
 		}
 		gen_rule = test_rule(count, op1, op2, op3);
 	}
 
-
+	// ak na zásobníku pred tokenom STOP nie je jeden alebo tri tokeny, je to chyba
 	else
 	{
 		return SYNTAX_ERROR;
@@ -495,7 +486,7 @@ int reduce(TStackToken *stack)
 	{
 		htab_symbol = op1->table_symbol;
 
-		if (count == 3)
+		if (count == 3)	// vytvorenie pomocnej premennej pre výsledok redukcie
 		{
 			char* constant_name = get_name();
 			if (constant_name == NULL)
@@ -503,32 +494,31 @@ int reduce(TStackToken *stack)
 				return INTERNAL_ERROR;
 			}
 
-			if (localSymtable != NULL)
+			if (localSymtable != NULL)	// vloženie do lokálnej tabuľky symbolov
 			{
 				htab_symbol = make_var(constant_name, UNKNOWN, LF);
 				generate_before_whiles(&list, htab_symbol);
 			}
-			else
-			{
+			else 	// vloženie do hlobálnej tabuľky symbolov
+			{ 
 				htab_symbol = make_var(constant_name, UNKNOWN, GF);
 				generate_before_whiles(&list, htab_symbol);
 			}
 
 		}
 
-
+		// sémantická kontrola a generovanie kódu
 		result = semantic(op1, op2, op3, htab_symbol, gen_rule, &final_token_type);
 		if (result != SYNTAX_OK)
 		{
 			return result;
 		}
 
+		// "popne" sa určitý počet tokenov (1 alebo 3) a nahradia sa výsledným tokenom
 		for (int i = 0; i < count; i++)
 		{
 			popTokenStack(stack);
 		}
-
-
 
 		result = pushTokenStack(stack, final_token_type, I_DATA, htab_symbol);
 		if (result != SYNTAX_OK)
@@ -537,26 +527,15 @@ int reduce(TStackToken *stack)
     	}
 	}
 
-	// tmpitem = op1;
- //    		printf("TOKENY NA STACKU: ");
- //    		while(tmpitem->token_type != I_DOLLAR)
- //    		{
- //    			printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
- //    			tmpitem = tmpitem->next_token;
- //    		}
- //    		printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
- //    		printf("\n");
-
-
 	return SYNTAX_OK;
 }
 
 
 int semantic(TStackTokenItem op1, TStackTokenItem op2, TStackTokenItem op3, htab_item_t* htab_symbol, Prec_rules_enum rule, TokenTYPE *final_token_type)
 {
-	switch (rule)
+	switch (rule)	// podľa pravidla sa vyberie akcia a prebehnú sémantické kontroly a generovanie kódu
 	{
-		case OPERAND:
+		case OPERAND:	// operand je potrebné zredukovať na NONTERMINAL
 			switch (op1->data_type)
 			{
 				case TOKEN_INT:
@@ -856,18 +835,6 @@ Prec_rules_enum test_rule(int count, TStackTokenItem op1, TStackTokenItem op2, T
 			return OPERAND;
 		}
 
-
-			// TStackTokenItem tmpitem = op1;
-   //  		printf("KONIEC TOKENY NA STACKU: ");
-   //  		while(tmpitem->token_type != I_DOLLAR)
-   //  		{
-   //  			printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
-   //  			tmpitem = tmpitem->next_token;
-   //  		}
-   //  		printf("%d|%d ", tmpitem->data_type, tmpitem->token_type);
-   //  		printf("   TOKEN: %s\n", token_ptr->dy);
-   //  		printf("\n");
-
 		return NOT_A_RULE;
 
 	case 3:
@@ -964,8 +931,6 @@ int totalCountTokenStack(TStackToken *stack)
 
 	return count;
 }
-
-
 
 
 void initTokenStack(TStackToken *stack)
