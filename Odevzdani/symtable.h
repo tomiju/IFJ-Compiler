@@ -39,11 +39,12 @@
 #define FUNC 6
 #define TYPE_NAME 7
 
+// hash table
 struct htab{
-	struct htab_item* ptr[SIZE];
+	struct htab_item* ptr[SIZE];	// pole odkazov a položky
 };
 
-// položky
+// hash table item
 typedef struct htab_item {
 	int ival;
 	double dval;
@@ -56,14 +57,15 @@ typedef struct htab_item {
 	struct htab_item *next;		// ďalšia položka (synonymum)
 	int reviewed;
 	bool defined;
-	struct htab* local_vars;	// symtable pre lokálne premenné
+	struct htab* local_vars;	// hash-table pre lokálne premenné
 } htab_item_t;
 
-// tabuľka
+// hash table
 typedef struct htab htab_t;
 
 // vloží vstavané funkcie do hash table
-void htab_insert_default_functions(htab_t *htab);
+// vracia INTERNAL_ERROR pri chybe alokácie, ináč 0
+int htab_insert_default_functions(htab_t *htab);
 
 // hashovacia funkcia, vracia index do tabuľky
 unsigned int htab_hash_function(char *str);
@@ -78,8 +80,7 @@ htab_item_t* htab_find(htab_t *t, char *key);
 
 // ak sa v tabuľke prvok s kľúčom key nenachádza
 // vloží do tabuľky t prvok s klúčom key, hodnotou val
-// typom, príznakom isConst a isLabel a defined
-// ak sa nachádza, zmení jeho hodnoty
+// typom, rámcom(GF/LF), príznakom isConst a isLabel a defined
 // pri úspechu vracia 0, pri chybe INTERNAL_ERROR
 int htab_insert(htab_t *t, char *key, int type, int frame, bool isConst, bool isLabel, bool defined);
 
