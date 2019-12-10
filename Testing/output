@@ -6,14 +6,14 @@ DEFVAR LF@%retval
 MOVE LF@%retval nil@nil 
 TYPE GF@%type_control LF@%0 
 EQ GF@%type_control GF@%type_control string@string 
-JUMPIFEQ $if1 GF@%type_control bool@true 
-JUMP $else1 
-LABEL $if1 
+JUMPIFEQ $if0 GF@%type_control bool@true 
+JUMP $else0 
+LABEL $if0 
 STRLEN LF@%retval LF@%0 
-JUMP $if_end1 
-LABEL $else1 
+JUMP $$if_end0 
+LABEL $else0 
 EXIT int@4 
-LABEL $if_end1 
+LABEL $$if_end0 
 POPFRAME 
 RETURN 
 LABEL $ord 
@@ -22,22 +22,22 @@ DEFVAR LF@%retval
 MOVE LF@%retval nil@nil 
 TYPE GF@%type_control LF@%0 
 EQ GF@%type_control GF@%type_control string@string 
+JUMPIFEQ $if1 GF@%type_control bool@true 
+JUMP $else1 
+LABEL $if1 
+TYPE GF@%type_control LF@%1 
+EQ GF@%type_control GF@%type_control string@int 
 JUMPIFEQ $if2 GF@%type_control bool@true 
 JUMP $else2 
 LABEL $if2 
-TYPE GF@%type_control LF@%1 
-EQ GF@%type_control GF@%type_control string@int 
-JUMPIFEQ $if3 GF@%type_control bool@true 
-JUMP $else3 
-LABEL $if3 
-JUMP $if_end3 
-LABEL $else3 
-EXIT int@4 
-LABEL $if_end3 
-JUMP $if_end2 
+JUMP $$if_end2 
 LABEL $else2 
 EXIT int@4 
-LABEL $if_end2 
+LABEL $$if_end2 
+JUMP $$if_end1 
+LABEL $else1 
+EXIT int@4 
+LABEL $$if_end1 
 DEFVAR LF@dlzka 
 CREATEFRAME 
 DEFVAR TF@%0 
@@ -61,24 +61,24 @@ DEFVAR LF@prava
 DEFVAR LF@lava 
 TYPE GF@%type_control LF@%0 
 EQ GF@%type_control GF@%type_control string@int 
-JUMPIFEQ $if4 GF@%type_control bool@true 
-JUMP $else4 
-LABEL $if4 
+JUMPIFEQ $if3 GF@%type_control bool@true 
+JUMP $else3 
+LABEL $if3 
 GT LF@prava LF@%0 int@255 
 LT LF@lava LF@%0 int@0 
 EQ GF@%type_control LF@lava LF@prava 
-JUMPIFEQ $if5 GF@%type_control bool@true 
-JUMP $else5 
-LABEL $if5 
+JUMPIFEQ $if4 GF@%type_control bool@true 
+JUMP $else4 
+LABEL $if4 
 INT2CHAR LF@%retval LF@%0 
-JUMP $if_end5 
-LABEL $else5 
-EXIT int@4 
-LABEL $if_end5 
-JUMP $if_end4 
+JUMP $$if_end4 
 LABEL $else4 
 EXIT int@4 
-LABEL $if_end4 
+LABEL $$if_end4 
+JUMP $$if_end3 
+LABEL $else3 
+EXIT int@4 
+LABEL $$if_end3 
 POPFRAME 
 RETURN 
 LABEL $substr 
@@ -87,32 +87,33 @@ DEFVAR LF@%retval
 MOVE LF@%retval nil@nil 
 TYPE GF@%type_control LF@%0 
 EQ GF@%type_control GF@%type_control string@string 
+JUMPIFEQ $if5 GF@%type_control bool@true 
+JUMP $else5 
+LABEL $if5 
+TYPE GF@%type_control LF@%1 
+EQ GF@%type_control GF@%type_control string@int 
 JUMPIFEQ $if6 GF@%type_control bool@true 
 JUMP $else6 
 LABEL $if6 
-TYPE GF@%type_control LF@%1 
+TYPE GF@%type_control LF@%2 
 EQ GF@%type_control GF@%type_control string@int 
 JUMPIFEQ $if7 GF@%type_control bool@true 
 JUMP $else7 
 LABEL $if7 
-TYPE GF@%type_control LF@%2 
-EQ GF@%type_control GF@%type_control string@int 
-JUMPIFEQ $if8 GF@%type_control bool@true 
-JUMP $else8 
-LABEL $if8 
-JUMP $if_end8 
-LABEL $else8 
-EXIT int@4 
-LABEL $if_end8 
-JUMP $if_end7 
+JUMP $$if_end7 
 LABEL $else7 
 EXIT int@4 
-LABEL $if_end7 
-JUMP $if_end6 
+LABEL $$if_end7 
+JUMP $$if_end6 
 LABEL $else6 
 EXIT int@4 
-LABEL $if_end6 
-MOVE LF@%retval string@ 
+LABEL $$if_end6 
+JUMP $$if_end5 
+LABEL $else5 
+EXIT int@4 
+LABEL $$if_end5 
+DEFVAR LF@%tmp_str 
+MOVE LF@%tmp_str string@ 
 DEFVAR LF@dlzka 
 CREATEFRAME 
 DEFVAR TF@%0 
@@ -132,13 +133,14 @@ EQ LF@podmienky LF@%2 int@0
 JUMPIFEQ $end LF@podmienky bool@true 
 DEFVAR LF@char 
 DEFVAR LF@index 
-MOVE LF@index LF@%1 
 DEFVAR LF@last_idx 
+MOVE LF@index LF@%1 
 ADD LF@last_idx LF@%1 LF@%2 
 LABEL $loop 
 GETCHAR LF@char LF@%0 LF@index 
-CONCAT LF@%retval LF@%retval LF@char 
+CONCAT LF@%tmp_str LF@%tmp_str LF@char 
 ADD LF@index LF@index int@1 
+MOVE LF@%retval LF@%tmp_str 
 EQ LF@podmienky LF@index LF@last_idx 
 JUMPIFEQ $end LF@podmienky bool@true 
 LT LF@podmienky LF@index LF@dlzka 
@@ -182,13 +184,13 @@ DEFVAR GF@%type1
 DEFVAR GF@%type2 
 DEFVAR GF@%tmp2 
 EQ GF@%type_control int@0 int@0 
-JUMPIFEQ $if9 GF@%type_control bool@true 
-JUMP $else9 
-LABEL $if9 
+JUMPIFEQ $if8 GF@%type_control bool@true 
+JUMP $else8 
+LABEL $if8 
 EXIT int@9 
-JUMP $if_end9 
-LABEL $else9 
+JUMP $$if_end8 
+LABEL $else8 
 IDIV GF@%tmp2 int@5 int@0 
-LABEL $if_end9 
+LABEL $$if_end8 
 DEFVAR GF@a 
 MOVE GF@a GF@%tmp2 
