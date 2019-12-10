@@ -20,35 +20,48 @@
 #include "symtable.h"
 #include "generator.h"
 
-iStack indent_stack; //required by scanner
-TokenPTR token_ptr; //pointer to the token
-TokenPTR next_token;
-htab_t *globalSymtable;//global table of symbols
-htab_t *localSymtable;//local active table of symbols
-tList list;
+iStack indent_stack; //
+TokenPTR token_ptr; //pointer na aktualni token
+TokenPTR next_token; ////pointer na token po aktualnim tokenu
+htab_t *globalSymtable;//globalni tabulka symbolu
+htab_t *localSymtable;//lokalni tabulka symbolu
+tList list;//seznam instrukci
 
-int statList();
 
+//simulace neterminalu <paramList2>
 int param();
 
+//simulace neterminalu <paramList2>
 int paramList2();
 
+//simulace neterminalu <paramList>
 int paramList();
 
+//simulace neterminalu <funcCall>
 int funcCall();
 
+//simulace neterminalu <assignment>
 int assigment();
 
+//simulace neterminalu <statWithId>
 int statWithId();
 
+//simulace neterminalu <stat>
 int stat();
 
+
+//simulace neterminalu <statList>
 int funcDef();
 
+
+//simulace neterminalu <statList>
 int statList();
 
+//simulace neterminalu <program>
 int program();
 
+//vstupni bod parseru
 int parse();
 
 #endif
+
