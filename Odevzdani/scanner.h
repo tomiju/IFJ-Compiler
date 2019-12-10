@@ -5,7 +5,7 @@
  * Soubor:   scanner.h
  *
  *
- * Datum:    30.11.2019
+ * Datum:    10.12.2019
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -61,57 +61,57 @@ typedef enum
 {
 	TOKEN_DEFAULT,
 	// global
-	TOKEN_EOF,
-	TOKEN_EOL,
-	TOKEN_IDENTIFIER,
-	TOKEN_KEYWORD,
+	TOKEN_EOF, // EOF
+	TOKEN_EOL, // EOL
+	TOKEN_IDENTIFIER, // ID
+	TOKEN_KEYWORD, // KEYWORD
 
 	// datové typy
-	TOKEN_INT,
-	TOKEN_DOUBLE,
-	TOKEN_STRING,
-	TOKEN_NONE,//
+	TOKEN_INT, // INT
+	TOKEN_DOUBLE, // DOUBLE
+	TOKEN_STRING, // STRING
+	TOKEN_NONE, // NONE
 
 	// operátory
-	TOKEN_PLUS,
-	TOKEN_MINUS, 	//10
-	TOKEN_MUL,
-	TOKEN_DIV,
-	TOKEN_IDIV, // celočíselné dělení
+	TOKEN_PLUS, // +
+	TOKEN_MINUS, // -
+	TOKEN_MUL, // *
+	TOKEN_DIV, // /
+	TOKEN_IDIV, // //
 
-	TOKEN_LESS_THAN,
-	TOKEN_MORE_THAN,
-	TOKEN_LESS_THAN_OR_EQUAL,
-	TOKEN_MORE_THAN_OR_EQUAL,
+	TOKEN_LESS_THAN, // <
+	TOKEN_MORE_THAN, // >
+	TOKEN_LESS_THAN_OR_EQUAL, // <=
+	TOKEN_MORE_THAN_OR_EQUAL, // >=
 	TOKEN_NOT_EQUAL, // !=
 	TOKEN_EQUAL, // ==
-	TOKEN_ASSIGN, // =     20
+	TOKEN_ASSIGN, // =
 
 	// ostatní
-	TOKEN_INDENT,
-	TOKEN_DEDENT,
-	TOKEN_NO_INDENT_OR_DEDENT, // stejná úroveň zanoření
-	TOKEN_LEFT_BRACKET,
-	TOKEN_RIGHT_BRACKET,
-	TOKEN_COMMA,
-	TOKEN_COLON, // " : "
+	TOKEN_INDENT, // ' '
+	TOKEN_DEDENT, // ' '
+	TOKEN_NO_INDENT_OR_DEDENT, // NOT USED
+	TOKEN_LEFT_BRACKET, // (
+	TOKEN_RIGHT_BRACKET, // )
+	TOKEN_COMMA, // ,
+	TOKEN_COLON, // :
 
 	// keywords
-	KEYWORD_DEFAULT,//
-	KEYWORD_IF,
-	KEYWORD_ELSE,		//  30
+	KEYWORD_DEFAULT, //
+	KEYWORD_IF, //
+	KEYWORD_ELSE, //
 	KEYWORD_RETURN,
 	KEYWORD_DEF, // def (definování funkce)
 	KEYWORD_NONE,
 	KEYWORD_WHILE,
-	KEYWORD_INPUTS,//
-	KEYWORD_INPUTI,//
-	KEYWORD_INPUTF,//
-	KEYWORD_PRINT,//
-	KEYWORD_LEN,//
-	KEYWORD_SUBSTR,//   40
-	KEYWORD_ORD,//
-	KEYWORD_CHR,//
+	KEYWORD_INPUTS, // NOT USED
+	KEYWORD_INPUTI, // NOT USED
+	KEYWORD_INPUTF, // NOT USED
+	KEYWORD_PRINT, // NOT USED
+	KEYWORD_LEN, // NOT USED
+	KEYWORD_SUBSTR, // NOT USED
+	KEYWORD_ORD, // NOT USED
+	KEYWORD_CHR, // NOT USED
 	KEYWORD_PASS,
 
 	// semantic
@@ -121,7 +121,7 @@ typedef enum
 	TOKEN_NONTERM_INT,
 	TOKEN_NONTERM_DOUBLE,
 	TOKEN_NONTERM_STRING,
-	TOKEN_NONTERM_IDENTIFIER, //   50
+	TOKEN_NONTERM_IDENTIFIER,
 	TOKEN_NONTERM_BOOL
 
 }TokenTYPE;
@@ -157,11 +157,6 @@ FILE* source_f;
 **********************/
 
 /**
- * Funkce nastaví zdrojový soubor
-**/
-void setSourceFile(FILE *f);
-
-/**
  * Funkce vytvoří nový token a uloží do pointeru "token"
 **/
 TokenPTR makeToken(TokenPTR* token);
@@ -178,7 +173,7 @@ int getToken(TokenPTR* token, iStack* indent_stack);
 int preloadToken(TokenPTR* token, iStack* indent_stack);
 
 /**
- * Funkce uvolní všechny alokované prostředky
+ * Funkce uvolní všechny scannerem alokované prostředky
 **/
 void freeMemory(TokenPTR token, iStack* indent_stack);
 

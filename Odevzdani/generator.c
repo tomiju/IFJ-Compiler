@@ -5,7 +5,7 @@
  * Soubor:   generator.c
  *
  *
- * Datum:    30.11.2019
+ * Datum:    10.12.2019
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -50,7 +50,7 @@ unsigned par_count = 0;
 int while_label_idx = -1;
 
 /************************ MAKRO ***********************/
-// vytvorí pole stringov na výpis inštrukcií poďla indexu 
+// vytvorí pole stringov na výpis inštrukcií poďla indexu
 // ktorí je zadaný rovnomenným enumom
 static const char* INSTR_STRING[] = {
     INSTR(GENERATE_STRING)
@@ -266,7 +266,7 @@ int tPopStackNum(tStackNum** stack){
 /******************** BLABLA *********************/
 
 htab_item_t* generate_var(tList* list, char* name, int type, int frame){
-	// vyhľadá premennú v tabuľke 
+	// vyhľadá premennú v tabuľke
 	htab_item_t* var = htab_find(htab_built_in, name);
 
 	if(var == NULL){
@@ -289,7 +289,7 @@ htab_item_t* generate_var(tList* list, char* name, int type, int frame){
 }
 
 htab_item_t* make_var(char* name, int type, int frame){
-	// vyhľadá premennú v tabuľke 
+	// vyhľadá premennú v tabuľke
 	htab_item_t* var = htab_find(htab_built_in, name);
 
 	if(var == NULL){
@@ -321,7 +321,7 @@ htab_item_t* make_const(char* name, int type){
 htab_item_t* make_label(char* name){
 	// vyhľadá label v tabuľke
 	htab_item_t* label = htab_find(htab_built_in, name);
-	
+
 	if(label != NULL){
 		return label;
 	} else{
@@ -388,7 +388,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 	error_9->ival = 9;
 
 	// vytvorenie konštant typov pre porovnávanie
-	htab_item_t* type_int = make_const("type_int", STRING); 
+	htab_item_t* type_int = make_const("type_int", STRING);
 	htab_item_t* type_float = make_const("type_float", STRING);
 	htab_item_t* type_nil = make_const("type_nil", STRING);
 	htab_item_t* type_bool = make_const("type_bool", STRING);
@@ -417,7 +417,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 	const_int_zero->ival = 0;
 	const_float_zero->dval = 0.0;
 
-	// pomocné premenné a ukladanie dátových typov premenných 
+	// pomocné premenné a ukladanie dátových typov premenných
 	htab_item_t* type1 = htab_find(htab_built_in, "%type1");
 	htab_item_t* type2 = htab_find(htab_built_in, "%type2");
 
@@ -433,7 +433,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 	if(type_control == NULL || type_convert1 == NULL || type_convert2 == NULL){
 		return 2;
 	}
- 
+
 	// konštanty true/false na náhradu za iné dátové typy ((0 || None || '') == FALSE, ináč TRUE ...)
 	htab_item_t* con_true = make_const("const_true", BOOL);
 	htab_item_t* con_false = make_const("const_false", BOOL);
@@ -461,15 +461,15 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			if(args[1]->type != UNKNOWN && (args[1]->type == args[2]->type)){
 				// ak ide o typ NIL a nejde o inštrukciu EQ, vygeneruje sa chybové ukončenie
 				if(args[1]->type == NIL){
-					if(instr_enum != EQ){		
+					if(instr_enum != EQ){
 						if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
 					}
 				}
 				break;
 			// aspoň jeden je NIL
-			} else if(args[1]->type == NIL || args[2]->type == NIL){	
+			} else if(args[1]->type == NIL || args[2]->type == NIL){
 				// NIE EQ => nemôže byť NIL, ukončenie
-				if(instr_enum != EQ){		
+				if(instr_enum != EQ){
 					if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
 				}
 			// ak je jeden INT a druhý float
@@ -485,14 +485,14 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 				if(generate_instr_no(list, INT2FLOAT, 2, type_convert2, args[2]) == ERR) return ERR;
 				if(generate_instr_no(list, instr_enum, 3, args[0], args[1], type_convert2) == ERR) return ERR;
 			// aspoň jeden operand je UNKNOWN
-			} else if(args[1]->type == UNKNOWN || args[2]->type == UNKNOWN){	
+			} else if(args[1]->type == UNKNOWN || args[2]->type == UNKNOWN){
 				converted = true;
-			
+
 				// skontroluje sa, či ide o rovnaké typy
 				if(start_if_else(list) == ERR) return ERR;
 				if(generate_instr_no(list, TYPE, 2, type1, args[1]) == ERR) return ERR;
 				if(generate_instr_no(list, TYPE, 2, type2, args[2]) == ERR) return ERR;
-				if(generate_instr_no(list, EQ, 3, type_control, type1, type2) == ERR) return ERR;	
+				if(generate_instr_no(list, EQ, 3, type_control, type1, type2) == ERR) return ERR;
 				if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 				generate_if(list);
 
@@ -653,8 +653,8 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			} else {
 				if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
 			}
-			break; 
-		
+			break;
+
 		case ADD: case SUB: case MUL:
 			// oba sú int, nedeje sa nič
 			if(args[1]->type == INT && args[2]->type == INT){
@@ -675,18 +675,18 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			// ak je aspoň jeden UNKNOWN
 			} else if(args[1]->type == UNKNOWN || args[2]->type == UNKNOWN){
 				converted = true;
-			
+
 				// skontrujeme či ide o rovnaké typy
 				if(start_if_else(list) == ERR) return ERR;
 				if(generate_instr_no(list, TYPE, 2, type1, args[1]) == ERR) return ERR;
 				if(generate_instr_no(list, TYPE, 2, type2, args[2]) == ERR) return ERR;
-				if(generate_instr_no(list, EQ, 3, type_control, type1, type2) == ERR) return ERR;	
+				if(generate_instr_no(list, EQ, 3, type_control, type1, type2) == ERR) return ERR;
 				if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 				generate_if(list);
 
-					// ak sú oba INT, nageneruje sa inštrukcia 
+					// ak sú oba INT, nageneruje sa inštrukcia
 					if(start_if_else(list) == ERR) return ERR;
-					if(generate_instr_no(list, EQ, 3, type_control, type1, type_int) == ERR) return ERR;	
+					if(generate_instr_no(list, EQ, 3, type_control, type1, type_int) == ERR) return ERR;
 					if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 					generate_if(list);
 
@@ -696,7 +696,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 					generate_else(list);
 
 						if(start_if_else(list) == ERR) return ERR;
-						if(generate_instr_no(list, EQ, 3, type_control, type1, type_float) == ERR) return ERR;	
+						if(generate_instr_no(list, EQ, 3, type_control, type1, type_float) == ERR) return ERR;
 						if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 						generate_if(list);
 
@@ -708,7 +708,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 							// ak ide o inštrukciu ADD
 							if(instr_enum == ADD){
 								if(start_if_else(list) == ERR) return ERR;
-								if(generate_instr_no(list, EQ, 3, type_control, type1, type_string) == ERR) return ERR;		
+								if(generate_instr_no(list, EQ, 3, type_control, type1, type_string) == ERR) return ERR;
 								if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 								generate_if(list);
 
@@ -725,7 +725,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 							} else {
 								if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
 							}
-							
+
 						end_if_else(list);
 
 					end_if_else(list);
@@ -777,7 +777,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 
 							generate_else(list);
 
-								// ináč chyba 
+								// ináč chyba
 								if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
 
 							end_if_else(list);
@@ -797,8 +797,8 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 				if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
 			}
 			break;
-		
-		case DIV: 
+
+		case DIV:
 			converted = true;
 
 			// oba FLOAT
@@ -806,12 +806,12 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 				if(start_if_else(list) == ERR) return ERR;
 
 				// skontroluje sa delenie 0
-				if(generate_instr_no(list, EQ, 3, type_control, args[2], const_float_zero) == ERR) return ERR;	
+				if(generate_instr_no(list, EQ, 3, type_control, args[2], const_float_zero) == ERR) return ERR;
 				if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 				generate_if(list);
 
 					// delenie nulou vedie na chybu
-					if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;	
+					if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;
 
 				generate_else(list);
 
@@ -824,12 +824,12 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			} else if(args[1]->type == INT && args[2]->type == FLOAT){
 				// skontroluje sa delenie nulou
 				if(start_if_else(list) == ERR) return ERR;
-				if(generate_instr_no(list, EQ, 3, type_control, args[2], const_float_zero) == ERR) return ERR;	
+				if(generate_instr_no(list, EQ, 3, type_control, args[2], const_float_zero) == ERR) return ERR;
 				if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 				generate_if(list);
 
 					// delenie nulou vedie na chybu
-					if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;	
+					if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;
 
 				generate_else(list);
 
@@ -842,12 +842,12 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			} else if(args[1]->type == FLOAT && args[2]->type == INT){
 				// skontroluje sa delenie nulou
 				if(start_if_else(list) == ERR) return ERR;
-				if(generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero) == ERR) return ERR;		
+				if(generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero) == ERR) return ERR;
 				if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 				generate_if(list);
 
 					// delenie nulou vedie na chybu
-					if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;	
+					if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;
 
 				generate_else(list);
 
@@ -860,12 +860,12 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			} else if(args[1]->type == INT && args[2]->type == INT){
 				// kontrola delenia nulou
 				if(start_if_else(list) == ERR) return ERR;
-				if(generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero) == ERR) return ERR;		
+				if(generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero) == ERR) return ERR;
 				if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 				generate_if(list);
 
 					// pri delení 0 sa generuje chyba
-					if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;	
+					if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;
 
 				generate_else(list);
 
@@ -876,28 +876,28 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 
 				end_if_else(list);
 			// aspoň jeden je unknown
-			} else if(args[1]->type == UNKNOWN || args[2]->type == UNKNOWN){	
-				// skontroluje sa, či sú rovnaké typy		
+			} else if(args[1]->type == UNKNOWN || args[2]->type == UNKNOWN){
+				// skontroluje sa, či sú rovnaké typy
 				if(start_if_else(list) == ERR) return ERR;
 				if(generate_instr_no(list, TYPE, 2, type1, args[1]) == ERR) return ERR;
 				if(generate_instr_no(list, TYPE, 2, type2, args[2]) == ERR) return ERR;
-				if(generate_instr_no(list, EQ, 3, type_control, type1, type2) == ERR) return ERR;	
+				if(generate_instr_no(list, EQ, 3, type_control, type1, type2) == ERR) return ERR;
 				if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 				generate_if(list);
 
 					// ak áno, skontrolujeme či sú oba INT
 					if(start_if_else(list) == ERR) return ERR;
-					if(generate_instr_no(list, EQ, 3, type_control, type1, type_int) == ERR) return ERR;		
+					if(generate_instr_no(list, EQ, 3, type_control, type1, type_int) == ERR) return ERR;
 					if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 					generate_if(list);
 
 						// skontrolujeme delenie nulou
 						if(start_if_else(list) == ERR) return ERR;
-						if(generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero) == ERR) return ERR;		
+						if(generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero) == ERR) return ERR;
 						if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 						generate_if(list);
 
-							if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;	
+							if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;
 
 						generate_else(list);
 
@@ -911,22 +911,22 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 					generate_else(list);
 
 						if(start_if_else(list) == ERR) return ERR;
-						if(generate_instr_no(list, EQ, 3, type_control, type1, type_float) == ERR) return ERR;	
+						if(generate_instr_no(list, EQ, 3, type_control, type1, type_float) == ERR) return ERR;
 						if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 						generate_if(list);
 
 							// kontrola delenia nulou
 							if(start_if_else(list) == ERR) return ERR;
-							if(generate_instr_no(list, EQ, 3, type_control, args[2], const_float_zero) == ERR) return ERR;	
+							if(generate_instr_no(list, EQ, 3, type_control, args[2], const_float_zero) == ERR) return ERR;
 							if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 							generate_if(list);
 
 								if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;
-								
+
 							generate_else(list);
 
 								if(generate_instr_no(list, instr_enum, 3, args[0], args[1], args[2]) == ERR) return ERR;
-							
+
 							end_if_else(list);
 
 						// ináč chyba
@@ -954,11 +954,11 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 
 							// skontrolujeme delenie nulou
 							if(start_if_else(list) == ERR) return ERR;
-							if(generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero) == ERR) return ERR;	
+							if(generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero) == ERR) return ERR;
 							if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 							generate_if(list);
 
-								if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;	
+								if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;
 
 							generate_else(list);
 
@@ -971,7 +971,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 						generate_else(list);
 
 							if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
-							
+
 						end_if_else(list);
 
 					// skontrolujeme či je prvý INT
@@ -990,11 +990,11 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 
 								// kontrola delenia nulou
 								if(start_if_else(list) == ERR) return ERR;
-								if(generate_instr_no(list, EQ, 3, type_control, args[2], const_float_zero) == ERR) return ERR;	
+								if(generate_instr_no(list, EQ, 3, type_control, args[2], const_float_zero) == ERR) return ERR;
 								if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 								generate_if(list);
 
-									if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;		
+									if(generate_instr_no(list, EXIT, 1, error_9) == ERR) return ERR;
 
 								generate_else(list);
 
@@ -1006,7 +1006,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 							// ak je prvý FLOAT a druhý nie je INT -> chyba
 							generate_else(list);
 
-								if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;		
+								if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
 
 							end_if_else(list);
 
@@ -1032,7 +1032,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			if(args[1]->type == INT && args[2]->type == INT){
 				// kontrola delenia nulou
 				if(start_if_else(list) == ERR) return ERR;
-				if(generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero) == ERR) return ERR;		
+				if(generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero) == ERR) return ERR;
 				if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 				generate_if(list);
 
@@ -1049,19 +1049,19 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 				if(start_if_else(list) == ERR) return ERR;
 				if(generate_instr_no(list, TYPE, 2, type1, args[1]) == ERR) return ERR;
 				if(generate_instr_no(list, TYPE, 2, type2, args[2]) == ERR) return ERR;
-				if(generate_instr_no(list, EQ, 3, type_control, type1, type2) == ERR) return ERR;		
+				if(generate_instr_no(list, EQ, 3, type_control, type1, type2) == ERR) return ERR;
 				if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 				generate_if(list);
 
 					// ak sú INT
 					if(start_if_else(list) == ERR) return ERR;
-					if(generate_instr_no(list, EQ, 3, type_control, type1, type_int) == ERR) return ERR;		
+					if(generate_instr_no(list, EQ, 3, type_control, type1, type_int) == ERR) return ERR;
 					if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 					generate_if(list);
 
 						// kontrola delenia 0
 						if(start_if_else(list) == ERR) return ERR;
-						if(generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero) == ERR) return ERR;	
+						if(generate_instr_no(list, EQ, 3, type_control, args[2], const_int_zero) == ERR) return ERR;
 						if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 						generate_if(list);
 
@@ -1103,7 +1103,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			} else if(args[1]->type == INT){
 				// pre 0 generujeme FALSE, ináč 1
 				if(start_if_else(list) == ERR) return ERR;
-				if(generate_instr_no(list, EQ, 3, type_control, args[1], const_int_zero) == ERR) return ERR;		
+				if(generate_instr_no(list, EQ, 3, type_control, args[1], const_int_zero) == ERR) return ERR;
 				if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 				generate_if(list);
 
@@ -1118,7 +1118,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			} else if(args[1]->type == FLOAT){
 				// pre 0 generujeme FALSE, ináč 1
 				if(start_if_else(list) == ERR) return ERR;
-				if(generate_instr_no(list, EQ, 3, type_control, args[1], const_float_zero) == ERR) return ERR;		
+				if(generate_instr_no(list, EQ, 3, type_control, args[1], const_float_zero) == ERR) return ERR;
 				if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 				generate_if(list);
 
@@ -1133,7 +1133,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			} else if(args[1]->type == STRING){
 				// prázdny STRING '' -> FALSE ináč TRUE
 				if(start_if_else(list) == ERR) return ERR;
-				if(generate_instr_no(list, EQ, 3, type_control, args[1], empty_string) == ERR) return ERR;	
+				if(generate_instr_no(list, EQ, 3, type_control, args[1], empty_string) == ERR) return ERR;
 				if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 				generate_if(list);
 
@@ -1152,7 +1152,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 				// ak je bool
 				if(start_if_else(list) == ERR) return ERR;
 				if(generate_instr_no(list, TYPE, 2, type_control, args[1]) == ERR) return ERR;
-				if(generate_instr_no(list, EQ, 3, type_control, type_control, type_bool) == ERR) return ERR;		
+				if(generate_instr_no(list, EQ, 3, type_control, type_control, type_bool) == ERR) return ERR;
 				if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 				generate_if(list);
 
@@ -1166,12 +1166,12 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 					if(start_if_else(list) == ERR) return ERR;
 					if(generate_instr_no(list, TYPE, 2, type_control, args[1]) == ERR) return ERR;
 					if(generate_instr_no(list, EQ, 3, type_control, type_control, type_int) == ERR) return ERR;
-					if(generate_condition_check(list, type_control, false) == ERR) return ERR;	
+					if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 					generate_if(list);
 
 						// ak 0 tak FALSE ináč TRUE
 						if(start_if_else(list) == ERR) return ERR;
-						if(generate_instr_no(list, EQ, 3, type_control, args[1], const_int_zero) == ERR) return ERR;	
+						if(generate_instr_no(list, EQ, 3, type_control, args[1], const_int_zero) == ERR) return ERR;
 						if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 						generate_if(list);
 
@@ -1194,7 +1194,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 
 							// ak 0 tak FALSE ináč TRUE
 							if(start_if_else(list) == ERR) return ERR;
-							if(generate_instr_no(list, EQ, 3, type_control, args[1], const_float_zero) == ERR) return ERR;	
+							if(generate_instr_no(list, EQ, 3, type_control, args[1], const_float_zero) == ERR) return ERR;
 							if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 							generate_if(list);
 
@@ -1212,12 +1212,12 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 							// ak '' tak FALSE ináč TRUE
 							if(start_if_else(list) == ERR) return ERR;
 							if(generate_instr_no(list, TYPE, 2, type_control, args[1]) == ERR) return ERR;
-							if(generate_instr_no(list, EQ, 3, type_control, type_control, type_string) == ERR) return ERR;		
+							if(generate_instr_no(list, EQ, 3, type_control, type_control, type_string) == ERR) return ERR;
 							if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 							generate_if(list);
 
 								if(start_if_else(list) == ERR) return ERR;
-								if(generate_instr_no(list, EQ, 3, type_control, args[1], empty_string) == ERR) return ERR;		
+								if(generate_instr_no(list, EQ, 3, type_control, args[1], empty_string) == ERR) return ERR;
 								if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 								generate_if(list);
 
@@ -1396,7 +1396,7 @@ int start_if_else(tList* list){
 
 int generate_condition_check(tList* list, htab_item_t* podmienka, bool isWhile){
 	htab_item_t* con_true = make_const("const_true", BOOL);
-	
+
 	if(con_true == NULL){
 		return ERR;
 	}
@@ -1416,7 +1416,7 @@ int generate_condition_check(tList* list, htab_item_t* podmienka, bool isWhile){
 	} else {
 		htab_item_t* label_else = get_string_with_index("else", tTopStackNum(if_num_stack));
 		htab_item_t* label_if = get_string_with_index("if", tTopStackNum(if_num_stack));
-		
+
 		if(label_else == NULL || label_if == NULL){
 			return ERR;
 		}
@@ -1607,7 +1607,7 @@ int generate_save_return_value(tList* list, htab_item_t* var){
 }
 
 void send_param(htab_item_t* par){
-	// pridá ďalší parameter pre funkciu do poľa 
+	// pridá ďalší parameter pre funkciu do poľa
 	params[param_idx++] = par;
 }
 
@@ -1621,7 +1621,7 @@ int func_call(tList* list, htab_item_t* func){
 	htab_item_t* type_control = htab_find(htab_built_in, "%type_control");
 	htab_item_t* type_nil = make_const("type_nil", STRING);
 	htab_item_t* string_none = make_const("string_none", STRING);
-	
+
 	if(space_const == NULL || new_line_const == NULL || type_control == NULL || type_nil == NULL || string_none == NULL){
 		return ERR;
 	}
@@ -1659,7 +1659,7 @@ int func_call(tList* list, htab_item_t* func){
 			// ak ide o NIL, nageneruje sa string None
 			if(start_if_else(list) == ERR) return ERR;
 			if(generate_instr_no(list, TYPE, 2, type_control, val_to_copy) == ERR) return ERR;
-			if(generate_instr_no(list, EQ, 3, type_control, type_control, type_nil) == ERR) return ERR;		
+			if(generate_instr_no(list, EQ, 3, type_control, type_control, type_nil) == ERR) return ERR;
 			if(generate_condition_check(list, type_control, false) == ERR) return ERR;
 			generate_if(list);
 
@@ -1835,7 +1835,7 @@ int generate_len(tList* list){
 	generate_else(list);
 
 		if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
-	
+
 	end_if_else(list);
 	if(generate_func_end(list) == ERR) return ERR;
 
@@ -1849,7 +1849,7 @@ int generate_ord(tList* list){
 
 	htab_item_t* type_control = htab_find(htab_built_in, "%type_control");
 	htab_item_t* type_string = make_const("type_string", STRING);
-	htab_item_t* type_int = make_const("type_int", STRING); 
+	htab_item_t* type_int = make_const("type_int", STRING);
 
 	htab_item_t* error_4 = make_const("err4", INT);
 
@@ -1886,14 +1886,14 @@ int generate_ord(tList* list){
 		generate_else(list);
 
 			if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
-		
+
 		end_if_else(list);
 
 	// ak nie je prvý argument string, chyba
 	generate_else(list);
 
 		if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
-	
+
 	end_if_else(list);
 
 	htab_item_t* dlzka = generate_var(list, "dlzka", INT, LF);
@@ -1944,7 +1944,7 @@ int generate_chr(tList* list){
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
 
 	htab_item_t* type_control = htab_find(htab_built_in, "%type_control");
-	htab_item_t* type_int = make_const("type_int", STRING); 
+	htab_item_t* type_int = make_const("type_int", STRING);
 
 	htab_item_t* error_4 = make_const("err4", INT);
 	htab_item_t* zero = make_const("zero", INT);
@@ -1955,7 +1955,7 @@ int generate_chr(tList* list){
 	if(func == NULL || retval == NULL || type_control == NULL || type_int == NULL || error_4 == NULL || zero == NULL || int_255 == NULL || param0 == NULL){
 		return ERR;
 	}
-	
+
 	type_int->sval = "int";
 
 	zero->ival = 0;
@@ -1998,7 +1998,7 @@ int generate_chr(tList* list){
 	generate_else(list);
 
 		if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
-	
+
 	end_if_else(list);
 
 	if(generate_func_end(list) == ERR) return ERR;
@@ -2012,10 +2012,10 @@ int generate_substr(tList* list){
 	htab_item_t* retval = htab_find(htab_built_in, "%retval");
 
 	htab_item_t* type_control = htab_find(htab_built_in, "%type_control");
-	htab_item_t* type_int = make_const("type_int", STRING); 
+	htab_item_t* type_int = make_const("type_int", STRING);
 	htab_item_t* type_string = make_const("type_string", STRING);
 
-	htab_item_t* error_4 = make_const("err4", INT);	
+	htab_item_t* error_4 = make_const("err4", INT);
 
 	htab_item_t* param0 = get_param(0);
 	htab_item_t* param1 = get_param(1);
@@ -2058,19 +2058,19 @@ int generate_substr(tList* list){
 			generate_else(list);
 
 				if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
-			
+
 			end_if_else(list);
 
 		generate_else(list);
 
 			if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
-		
+
 		end_if_else(list);
 
 	generate_else(list);
 
 		if(generate_instr_no(list, EXIT, 1, error_4) == ERR) return ERR;
-	
+
 	end_if_else(list);
 
 	htab_item_t* con = generate_var(list, "%tmp_str", STRING, LF);
@@ -2079,7 +2079,7 @@ int generate_substr(tList* list){
 	if(con == NULL || empty_string == NULL){
 		return ERR;
 	}
-	
+
 	con->sval = "";
 	empty_string->sval = "";
 
@@ -2107,7 +2107,7 @@ int generate_substr(tList* list){
 	if(podmienky == NULL || con_zero == NULL || con_one == NULL || con_true == NULL){
 		return ERR;
 	}
-	
+
 	con_zero->ival = 0;
 	con_one->ival = 1;
 	con_true->sval = "true";
@@ -2177,7 +2177,7 @@ int generate_print(tList* list){
 		return ERR;
 	}
 
-	// vypíše jeden argument 
+	// vypíše jeden argument
 	if(generate_func_start(list, func) == ERR) return ERR;
 	if(generate_instr_no(list, WRITE, 1, param) == ERR) return ERR;
 	if(generate_func_end(list) == ERR) return ERR;
@@ -2191,7 +2191,7 @@ int generator_start(tList* list){
 
 	// premenné
 	if(htab_insert(htab_built_in, "%retval", UNKNOWN, LF, false, false, true) == ERR) return ERR;
-	
+
 	// funkcia main
 	if(htab_insert(htab_built_in, "$main", FUNC, GF, false, true, true) == ERR) return ERR;
 	htab_item_t* main_func = htab_find(htab_built_in, "$main");
@@ -2206,11 +2206,11 @@ int generator_start(tList* list){
 	if(htab_insert(htab_built_in, "int", TYPE_NAME, GF, false, true, true) == ERR) return ERR;
 	if(htab_insert(htab_built_in, "float", TYPE_NAME, GF, false, true, true) == ERR) return ERR;
 	if(htab_insert(htab_built_in, "string", TYPE_NAME, GF, false, true, true) == ERR) return ERR;
-	
+
 	htab_item_t* item_int = htab_find(htab_built_in, "int");
 	htab_item_t* item_float = htab_find(htab_built_in, "float");
 	htab_item_t* item_string = htab_find(htab_built_in, "string");
-		
+
 	if(item_int == NULL || item_float == NULL || item_string == NULL){
 		return ERR;
 	}
@@ -2220,7 +2220,7 @@ int generator_start(tList* list){
 	item_string->sval = "string";
 
 	// skok a label na main
-	if(generate_instr_no(list, JUMP, 1, main_func) == ERR) return ERR;	
+	if(generate_instr_no(list, JUMP, 1, main_func) == ERR) return ERR;
 	if(generate_instr_no(list, LABEL, 1, main_func) == ERR) return ERR;
 	main_func_node = list->last;
 
@@ -2299,11 +2299,11 @@ int printInstructions(tList* list){
 	tInstr instr;
 
 	while(Active(list)){
-		Copy(list, &instr); 
+		Copy(list, &instr);
 
 		char* repl;
 
-		printf("%s ", INSTR_STRING[instr.type]); 
+		printf("%s ", INSTR_STRING[instr.type]);
 
 		// pre každý operand inštrukcie
 		for(int i = 0; i < 3; i++){
@@ -2320,7 +2320,7 @@ int printInstructions(tList* list){
 					switch(instr.param[i]->type){
 						case INT: printf("int@%d ", instr.param[i]->ival); break;
 						case FLOAT: printf("float@%a ", instr.param[i]->dval); break;
-						case STRING: 
+						case STRING:
 							repl = replace_by_escape(instr.param[i]->sval);
 
 							if(repl == NULL){

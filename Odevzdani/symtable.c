@@ -5,7 +5,7 @@
  * Soubor:   symtable.c
  *
  *
- * Datum:    30.11.2019
+ * Datum:    10.12.2019
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -19,7 +19,7 @@
 #include "errors.h"
 
 htab_item_t* htab_find(htab_t *t, char *key){
-	// index do tabuľky 
+	// index do tabuľky
 	unsigned idx = htab_hash_function(key);
 
 	htab_item_t *actual;
@@ -99,7 +99,7 @@ int htab_insert_default_functions(htab_t *htab){
 	htab_item_t* chr = htab_find(htab, "chr");
 	htab_item_t* print = htab_find(htab, "print");
 
-	// kontrola 
+	// kontrola
 	if(inputs == NULL || inputi == NULL || inputf == NULL || len == NULL || substr == NULL || ord == NULL || chr == NULL || print == NULL){
 		return INTERNAL_ERROR;
 	}
@@ -157,7 +157,7 @@ void htab_clear(htab_t* t){
 					item = item_next;
 					item_next = item->next;
 
-					//uvoľní položky z tabuľky 
+					//uvoľní položky z tabuľky
 					htab_free(item->local_vars);
 					free(item->key);
 					free(item);
@@ -170,7 +170,7 @@ void htab_clear(htab_t* t){
 }
 
 void htab_free(htab_t* t){
-	// uvoľní tabuľku 
+	// uvoľní tabuľku
 	if(t != NULL){
 		htab_clear(t);
 		free(t);

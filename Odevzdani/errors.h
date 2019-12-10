@@ -5,7 +5,7 @@
  * Soubor:   errors.h
  *
  *
- * Datum:    30.11.2019
+ * Datum:    10.12.2019
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -14,8 +14,8 @@
  */
 
 
-#define LEX_ERROR 1
-#define SYNTAX_ERROR 2
+#define LEX_ERROR 1 // lexikální chyba (scanner)
+#define SYNTAX_ERROR 2 // syntaktická chyba (parser)
 #define SEMANTIC_UNDEF_VALUE_ERROR 3 // nedefinovaná funkce/proměnná, pokus o redefinici funkce
 #define SEMANTIC_TYPE_COMPATIBILITY_ERROR 4 // chyba typové kompatibility v aritmetických/řetězcových operacích
 #define SEMANTIC_WRONG_PARAMETER_NUMBER_ERROR 5 // špatný počet parametrů u volání funkcí

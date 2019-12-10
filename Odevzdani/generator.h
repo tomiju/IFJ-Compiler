@@ -5,7 +5,7 @@
  * Soubor:   generator.h
  *
  *
- * Datum:    30.11.2019
+ * Datum:    10.12.2019
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -211,7 +211,7 @@ htab_item_t* make_const(char* name, int type);
 // pri neúspechu vracia NULL
 htab_item_t* generate_var(tList* list, char* name, int type, int frame);
 
-// ak ešte neexistuje, vytvorí premennú a vráti ukazateľ do tabuľky symbolov 
+// ak ešte neexistuje, vytvorí premennú a vráti ukazateľ do tabuľky symbolov
 // pri neúspechu vracia NULL
 htab_item_t* make_var(char* name, int type, int frame);
 

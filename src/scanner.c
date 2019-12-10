@@ -5,7 +5,7 @@
  * Soubor:   scanner.c
  *
  *
- * Datum:    30.11.2019
+ * Datum:    10.12.2019
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -15,34 +15,9 @@
 
 #include "scanner.h"
 
-TokenPTR makeToken(TokenPTR* token) // vytvoří nový token a alokuje paměť
-{
-	TokenPTR newToken = (TokenPTR) malloc(sizeof(struct Token));
-
-	if (newToken == NULL)
-	{
-		return NULL;
-	}
-
-	*token = newToken;
-
-	newToken->dynamic_value = (char*) malloc(DYNAMIC_STRING_DEFAULT);
-
-	if (newToken->dynamic_value == NULL)
-	{
-		free(newToken);
-		return NULL;
-	}
-
-	newToken->number_value = 0.0;
-	newToken->size = 0;
-	newToken->allocated_size = DYNAMIC_STRING_DEFAULT;
-	newToken->dynamic_value[newToken->size] = '\0';
-	newToken->type = TOKEN_DEFAULT;
-
-	return newToken;
-}
-
+/**
+ * Pomocné funkce pro práci se stackem odsazení
+**/
 iStack initStack()
 {
 	iStack newStack = (iStack) malloc(sizeof(struct indentStack));
@@ -102,6 +77,37 @@ void destroyStack(iStack* indent_stack)
 
         temp = temp->link;
     }
+}
+
+/**
+ * Funkce pro práci s tokeny
+**/
+TokenPTR makeToken(TokenPTR* token) // vytvoří nový token a alokuje paměť
+{
+	TokenPTR newToken = (TokenPTR) malloc(sizeof(struct Token));
+
+	if (newToken == NULL)
+	{
+		return NULL;
+	}
+
+	*token = newToken;
+
+	newToken->dynamic_value = (char*) malloc(DYNAMIC_STRING_DEFAULT);
+
+	if (newToken->dynamic_value == NULL)
+	{
+		free(newToken);
+		return NULL;
+	}
+
+	newToken->number_value = 0.0;
+	newToken->size = 0;
+	newToken->allocated_size = DYNAMIC_STRING_DEFAULT;
+	newToken->dynamic_value[newToken->size] = '\0';
+	newToken->type = TOKEN_DEFAULT;
+
+	return newToken;
 }
 
 int updateDynamicString(char currentChar, TokenPTR token)
@@ -190,15 +196,18 @@ void debugToken(TokenPTR* token, iStack* indent_stack)
     printf("indent stack level: %d\n", (*indent_stack)->level );
 }
 
+/**
+ * Hlavní funkce pro vytváření finálního token (FSM = final state machine)
+**/
 int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 {
 	int state = STATE_START; // stav automatu
-	int commentaryCounter; // pomocné počítadlo pro začátek / konec dokumentačního řetězce
+	int docStringCounter; // pomocné počítadlo pro začátek / konec dokumentačního řetězce
 	int dedentFound; // TRUE = na stacku byla hodnota zanoření (při DEDENT), FALSE = na stacku nebyla -> error
 	int currentIndent = 0; // aktuální zanoření pro indent/dedent
-	static int currentIndent_static; // pomocná proměnná, která si pamatuje aktuální zanoření z minulého volání
 	char currentChar, previousChar, firstNumber; // pomocné proměnné
-	static char StaticPrevChar; // pro \n v řetězci
+	static int currentIndent_static; // pomocná proměnná, která si pamatuje aktuální zanoření z minulého volání
+	static char previousChar_static; // pro \n v řetězci
 	static int FirstToken = TRUE; // rozhodnutí, zda se bude generovat indent/dedent nebo ne
 
 	TokenPTR newToken = makeToken(token);
@@ -286,7 +295,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					FirstToken = FALSE;
 					state = STATE_DOC_STRING;
-					commentaryCounter = 1;
+					docStringCounter = 1;
 					break;
 				}
 				else if (currentChar == '+')
@@ -300,7 +309,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					newToken->type = TOKEN_PLUS;
 					FirstToken = FALSE;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
@@ -320,7 +329,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					newToken->type = TOKEN_MINUS;
 					FirstToken = FALSE;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
@@ -340,13 +349,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					newToken->type = TOKEN_MUL;
 					FirstToken = FALSE;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					return TOKEN_OK;
 				}
 				else if (currentChar == '<')
@@ -360,13 +369,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					state = STATE_LESS_THAN;
 					FirstToken = FALSE;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					break;
 				}
 				else if (currentChar == '>')
@@ -380,13 +389,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					state = STATE_MORE_THAN;
 					FirstToken = FALSE;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					break;
 				}
 				else if (currentChar == '!')
@@ -400,13 +409,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					state = STATE_NOT_EQUAL;
 					FirstToken = FALSE;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					break;
 				}
 				else if (currentChar == '=')
@@ -420,13 +429,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					state = STATE_ASSIGN;
 					FirstToken = FALSE;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					break;
 				}
 				else if (currentChar == '/')
@@ -437,16 +446,16 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						ungetc(currentChar, stdin);
 						break;
 					}
-					
+
 					state = STATE_DIV;
 					FirstToken = FALSE;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					break;
 				}
 				else if (currentChar == '(')
@@ -457,15 +466,15 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						ungetc(currentChar, stdin);
 						break;
 					}
-					
+
 					newToken->type = TOKEN_LEFT_BRACKET;
 					FirstToken = FALSE;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
-					
+
 					}
 
 					return TOKEN_OK;
@@ -481,13 +490,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					newToken->type = TOKEN_RIGHT_BRACKET;
 					FirstToken = FALSE;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					return TOKEN_OK;
 				}
 				else if (currentChar == ',')
@@ -501,13 +510,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					newToken->type = TOKEN_COMMA;
 					FirstToken = FALSE;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					return TOKEN_OK;
 				}
 				else if (currentChar == ':')
@@ -521,13 +530,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					newToken->type = TOKEN_COLON;
 					FirstToken = FALSE;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					return TOKEN_OK;
 				}
 				else if (isalpha(currentChar) || currentChar == '_')
@@ -541,13 +550,13 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					state = STATE_IDENTIFIER;
 					FirstToken = FALSE;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					break;
 				}
 				else if (isdigit(currentChar))
@@ -558,18 +567,18 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						ungetc(currentChar, stdin);
 						break;
 					}
-					
+
 					state = STATE_NUMBER_INT;
 					previousChar = currentChar;
 					firstNumber = currentChar;
 					FirstToken = FALSE;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					break;
 				}
 				else if (currentChar == ' ' && FirstToken == TRUE) // indent
@@ -601,7 +610,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				break;
 
 			case(STATE_LESS_THAN):
-				
+
 				if (currentChar != '=')
 				{
 					ungetc(currentChar, stdin); // tento znak už není součástí tohoto tokenu, tudíž se vrátím zpět a zpracuji ho znova
@@ -623,7 +632,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				break;
 
 			case(STATE_MORE_THAN):
-				
+
 				if (currentChar != '=')
 				{
 					ungetc(currentChar, stdin); // tento znak už není součástí tohoto tokenu, tudíž se vrátím zpět a zpracuji ho znova
@@ -637,7 +646,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					newToken->type = TOKEN_MORE_THAN_OR_EQUAL;
 					return TOKEN_OK;
 				}
@@ -645,7 +654,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				break;
 
 			case(STATE_NOT_EQUAL):
-				
+
 				if (currentChar == '=')
 				{
 					if(updateDynamicString(currentChar, newToken))
@@ -653,7 +662,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					newToken->type = TOKEN_NOT_EQUAL;
 					return TOKEN_OK;
 				}
@@ -684,11 +693,11 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					newToken->type = TOKEN_ASSIGN;
 					return TOKEN_OK;
 				}
-				
+
 				break;
 
 			case(STATE_DIV):
-				
+
 				if (currentChar == '/')
 				{
 					if(updateDynamicString(currentChar, newToken))
@@ -706,7 +715,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					newToken->type = TOKEN_DIV;
 					return TOKEN_OK;
 				}
-				
+
 				break;
 
 			case(STATE_NUMBER_INT):
@@ -731,7 +740,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				{
 					state = STATE_NUMBER_DOUBLE;
 					previousChar = currentChar;
-					
+
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
@@ -747,10 +756,10 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					state = STATE_NUMBER_EXPONENT;
 					previousChar = currentChar;
-					
+
 					break;
 				}
 				else if (!isdigit(currentChar)) // když není číslo, tak konec tokenu
@@ -767,7 +776,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					ungetc(currentChar, stdin);
 					return TOKEN_OK;
 				}
-				
+
 				break;
 
 			case(STATE_NUMBER_DOUBLE):
@@ -785,7 +794,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					state = STATE_NUMBER_EXPONENT;
 					previousChar = currentChar;
 					break;
@@ -797,7 +806,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					break;
 				}
 				else if (currentChar == '\n' || currentChar == ' ' || currentChar == '\v' || currentChar == '\t' || currentChar == EOF || currentChar == '\r' || currentChar == '\f')
@@ -828,9 +837,9 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				}
 
 				break;
-			
+
 			case(STATE_NUMBER_EXPONENT):
-				
+
 				if ((currentChar == '+' || currentChar == '-') && (previousChar == 'e' || previousChar == 'E')) // volitelný unární znak +,-
 				{
 					previousChar = 'y';
@@ -889,11 +898,11 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					ungetc(currentChar, stdin);
 					return TOKEN_OK;
 				}
-				
+
 				break;
 
 			case(STATE_IDENTIFIER):
-				
+
 				if (currentChar == '_')
 				{
 					if(updateDynamicString(currentChar, newToken))
@@ -901,7 +910,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					break;
 				}
 				else if (isalnum(currentChar))
@@ -911,7 +920,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					break;
 				}
 				else
@@ -926,77 +935,77 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					newToken->type = TOKEN_IDENTIFIER;
 					return TOKEN_OK;
 				}
-				
+
 				break;
 
 			case(STATE_STRING):
 
-				if (currentChar == 'n' && StaticPrevChar == '\\') // zpracování escape sekvencí s pomocí statické proměnné
+				if (currentChar == 'n' && previousChar_static == '\\') // zpracování escape sekvencí s pomocí statické proměnné
 				{
 					if(updateDynamicString('\n', newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
-					StaticPrevChar = currentChar;
+
+					previousChar_static = currentChar;
 					break;
 				}
 
-				if (currentChar == '\"' && StaticPrevChar == '\\') // zpracování escape sekvencí s pomocí statické proměnné
+				if (currentChar == '\"' && previousChar_static == '\\') // zpracování escape sekvencí s pomocí statické proměnné
 				{
 					if(updateDynamicString('\"', newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
-					StaticPrevChar = currentChar;
+
+					previousChar_static = currentChar;
 					break;
 				}
 
-				if (currentChar == '\'' && StaticPrevChar == '\\') // zpracování escape sekvencí s pomocí statické proměnné
+				if (currentChar == '\'' && previousChar_static == '\\') // zpracování escape sekvencí s pomocí statické proměnné
 				{
 					if(updateDynamicString('\'', newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
-					StaticPrevChar = currentChar;
+
+					previousChar_static = currentChar;
 					break;
 				}
 
-				if (currentChar == 't' && StaticPrevChar == '\\') // zpracování escape sekvencí s pomocí statické proměnné
+				if (currentChar == 't' && previousChar_static == '\\') // zpracování escape sekvencí s pomocí statické proměnné
 				{
 					if(updateDynamicString('\t', newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
-					StaticPrevChar = currentChar;
+
+					previousChar_static = currentChar;
 					break;
 				}
 
-				if (currentChar == '\\' && StaticPrevChar == '\\') // zpracování escape sekvencí s pomocí statické proměnné
+				if (currentChar == '\\' && previousChar_static == '\\') // zpracování escape sekvencí s pomocí statické proměnné
 				{
 					if(updateDynamicString('\\', newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
-					StaticPrevChar = 'y'; // kvůli situaci "\\\" atd.
+
+					previousChar_static = 'y'; // kvůli situaci "\\\" atd.
  					break;
 				}
 
-				if (currentChar == 'x' && StaticPrevChar == '\\') // zpracování hexadecimálního tvaru escape sekvence
+				if (currentChar == 'x' && previousChar_static == '\\') // zpracování hexadecimálního tvaru escape sekvence
 				{
 					currentChar = (char) getc(stdin);
 					if (isdigit(currentChar) || (currentChar >= (char)65 && currentChar <= (char)70) || (currentChar >= (char)97 && currentChar <= (char)102))
 					{
-						StaticPrevChar = currentChar;
+						previousChar_static = currentChar;
 						state = STATE_ESCAPE_SEQUENCE;
 						break;
 					}
@@ -1007,7 +1016,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 				}
 
-				if (currentChar == '\'' && StaticPrevChar != '\\')
+				if (currentChar == '\'' && previousChar_static != '\\')
 				{
 					newToken->type = TOKEN_STRING;
 					return TOKEN_OK;
@@ -1020,12 +1029,12 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				else if (currentChar == '\\')
 				{
 					previousChar = currentChar;
-					StaticPrevChar = currentChar;
+					previousChar_static = currentChar;
 					break;
 				}
 				else
 				{
-					if (StaticPrevChar == '\\')
+					if (previousChar_static == '\\')
 				 	{
 						if(updateDynamicString('\\', newToken))
 						{
@@ -1037,9 +1046,9 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 							freeMemory(newToken, indent_stack);
 							return INTERNAL_ERROR;
 						}
-						
+
 						previousChar = currentChar;
- 						StaticPrevChar = currentChar;
+ 						previousChar_static = currentChar;
 					 	break;
 					}
 					if(updateDynamicString(currentChar, newToken))
@@ -1047,14 +1056,14 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					previousChar = currentChar;
-					StaticPrevChar = currentChar;
+					previousChar_static = currentChar;
 					break;
 				}
-				
+
 				previousChar = currentChar;
-				StaticPrevChar = currentChar;
+				previousChar_static = currentChar;
 				break;
 
 			case(STATE_ESCAPE_SEQUENCE):
@@ -1062,7 +1071,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				if (isdigit(currentChar) || (currentChar >= (char)65 && currentChar <= (char)70) || (currentChar >= (char)97 && currentChar <= (char)102))
 				{
 					char tmp[2];
-					tmp[0] = StaticPrevChar;
+					tmp[0] = previousChar_static;
 					tmp[1] = currentChar;
 
 					int tmpToChar = (int)strtol(tmp, NULL, 16); // uložím si ASCII hodnotu znaku z hexadecimálního tvaru
@@ -1072,7 +1081,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
+
 					state = STATE_STRING; // a pokračování do stavu STRING
 					break;
 				}
@@ -1081,7 +1090,6 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
-
 
 			case(STATE_INDENT):
 
@@ -1124,7 +1132,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 							newToken->type = TOKEN_DEDENT;
 							ungetc(currentChar, stdin);
 							currentIndent_static = currentIndent;
-							
+
 							if ((*indent_stack)->value == currentIndent) // když najdu hodnotu aktuálního zanoření ve stacku, tak je to ok
 							{
 								FirstToken = FALSE;
@@ -1177,7 +1185,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 				if ((*indent_stack)->value != currentIndent_static) // to samé, ale jen pro dedent a za pomoci statické proměnné, protože se generuje více tokenů naráz
 				{
-					if ((*indent_stack)->level == 1 && currentIndent_static != 0)
+					if ((*indent_stack)->level == 1 && currentIndent_static != 0) // špatné odsazení
 					{
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
@@ -1187,14 +1195,14 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					newToken->type = TOKEN_DEDENT;
 					ungetc(currentChar, stdin);
 
-					if ((*indent_stack)->value == currentIndent_static)
+					if ((*indent_stack)->value == currentIndent_static) // pokud najdu aktuální zanoření na stacku, zpracoval jsem aktuální dedenty
 					{
 						FirstToken = FALSE;
 						dedentFound = TRUE;
 					}
 
 					if (dedentFound == FALSE && (*indent_stack)->value != currentIndent_static && (*indent_stack)->level == 1 && currentIndent_static != 0)
-					{
+					{ // nenašel jsem aktuální zanoření, stack je prázdný - chyba
 						freeMemory(newToken, indent_stack);
 						return LEX_ERROR;
 					}
@@ -1208,7 +1216,7 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					currentIndent_static = 0;
 				}
 
-				if (dedentFound == FALSE)
+				if (dedentFound == FALSE) // pokud při dedentech nenajdu aktuální zanoření na stacku - error
 				{
 					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
@@ -1224,14 +1232,14 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 				break;
 
 			case(STATE_DOC_STRING):
-				
+
 				if (currentChar == EOF)
 				{
 					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
 
-				if (commentaryCounter == 3) // pokud jsou 3x ", začátek stringu
+				if (docStringCounter == 3) // pokud jsou 3x ", začátek stringu
 				{
 					if (currentChar == EOF)
 					{
@@ -1241,30 +1249,30 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 
 					state = STATE_DOC_STRING_END;
 					ungetc(currentChar, stdin);
-					commentaryCounter = 0;
+					docStringCounter = 0;
 					break;
 				}
-				if (currentChar == '\"' && previousChar != '\\') // pokud předchozí znak není \, připočítat 
+				if (currentChar == '\"' && previousChar != '\\') // pokud předchozí znak není \, připočítat
 				{
-					if (commentaryCounter < 3)
+					if (docStringCounter < 3)
 					{
-						commentaryCounter++;
+						docStringCounter++;
 					}
 				}
-				else if(currentChar != '\"' && commentaryCounter < 3) // když je v začátku dok. řetězce jiný znak než ", error
+				else if(currentChar != '\"' && docStringCounter < 3) // když je v začátku dok. řetězce jiný znak než ", error
 				{
 					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
-				
+
 				break;
 
 			case(STATE_DOC_STRING_END):
 
-				if (commentaryCounter == 3) // konec stringu
+				if (docStringCounter == 3) // konec stringu
 				{
 					newToken->type = TOKEN_STRING;
-					StaticPrevChar = 'y';
+					previousChar_static = 'y';
 					ungetc(currentChar, stdin);
 					return TOKEN_OK;
 				}
@@ -1273,14 +1281,14 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					freeMemory(newToken, indent_stack);
 					return LEX_ERROR;
 				}
-				if (currentChar == '\"' && commentaryCounter < 3 && StaticPrevChar != '\\') // " = pom +1
+				if (currentChar == '\"' && docStringCounter < 3 && previousChar_static != '\\') // " = pom +1
 				{
-					commentaryCounter++;
+					docStringCounter++;
 				}
-				else if (currentChar != '\"' && commentaryCounter < 3) // nějaký jiný znak restartuje počítadlo
+				else if (currentChar != '\"' && docStringCounter < 3) // nějaký jiný znak restartuje počítadlo
 				{
-					commentaryCounter = 0;
-					if (StaticPrevChar == '\"')
+					docStringCounter = 0;
+					if (previousChar_static == '\"')
 					{
 						if(updateDynamicString('\"', newToken))
 						{
@@ -1290,25 +1298,25 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 				}
 
-				if(currentChar == '\"' && StaticPrevChar == '\\') // ošetření situace:  """ te " st \""""
+				if(currentChar == '\"' && previousChar_static == '\\') // ošetření situace:  """ te " st \""""
 				{
 					if(updateDynamicString(currentChar, newToken))
 					{
 						freeMemory(newToken, indent_stack);
 						return INTERNAL_ERROR;
 					}
-					
-					StaticPrevChar = currentChar;
+
+					previousChar_static = currentChar;
 					break;
 				}
 				else if (currentChar != '\"')
 				{
 					if (currentChar == '\\')
 					{
-						StaticPrevChar = currentChar;
+						previousChar_static = currentChar;
 						break;
 					}
-					if (StaticPrevChar == '\\')
+					if (previousChar_static == '\\')
 					{
 						if(updateDynamicString('\\', newToken))
 						{
@@ -1323,11 +1331,11 @@ int getToken(TokenPTR* token, iStack* indent_stack) // + odkaz na stack?
 					}
 				}
 
-				StaticPrevChar = currentChar;
+				previousChar_static = currentChar;
 				break;
 
 			case(STATE_ERROR): // k tomuto by asi nemělo dojít, ale jistota je jistota
-				
+
 				freeMemory(newToken, indent_stack);
 				return LEX_ERROR;
 				break;

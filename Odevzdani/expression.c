@@ -5,7 +5,7 @@
  * Soubor:   expression.c - vyhodnocovanie výrazov
  *
  *
- * Datum:    30.11.2019
+ * Datum:    10.12.2019
  *
  * Autoři:   Matej Hockicko  <xhocki00@stud.fit.vutbr.cz>
  *           Tomáš Julina    <xjulin08@stud.fit.vutbr.cz>
@@ -314,7 +314,7 @@ int shift(TStackToken *stack)
 		}
 	}
 
-	// na zásobník sa "pushne" token s parametrami získanýmy kontrolami vyššie 
+	// na zásobník sa "pushne" token s parametrami získanýmy kontrolami vyššie
 	result = pushTokenStack(stack, token_ptr->type, get_prec_table_index(token_ptr->type), htab_symbol);
 	if (result != SYNTAX_OK)
     {
@@ -500,7 +500,7 @@ int reduce(TStackToken *stack)
 				generate_before_whiles(&list, htab_symbol);
 			}
 			else 	// vloženie do hlobálnej tabuľky symbolov
-			{ 
+			{
 				htab_symbol = make_var(constant_name, UNKNOWN, GF);
 				generate_before_whiles(&list, htab_symbol);
 			}
