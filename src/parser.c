@@ -124,12 +124,12 @@ int param(){
         identifier = htab_find(localSymtable,token_ptr->dynamic_value);
         
         //definice lokalni promenne
-        generate_instr(&list, DEFVAR,1,identifier);
+        if(generate_instr(&list, DEFVAR,1,identifier) == INTERNAL_ERROR)return INTERNAL_ERROR;
         
         //propojeni lokalni promenne s odpovidajicim parametrem
         htab_item_t* param = get_param(paramCount-1);
         if(param == NULL)return INTERNAL_ERROR;
-        generate_instr(&list,MOVE,2,identifier,param);
+        if(generate_instr(&list,MOVE,2,identifier,param)==INTERNAL_ERROR)return INTERNAL_ERROR;
 
         result = getToken(&token_ptr, &indent_stack );
         return result;
@@ -363,7 +363,7 @@ int funcCall(){
     if(token_ptr->type != TOKEN_RIGHT_BRACKET)return SYNTAX_ERROR;
 
     //ukonceni volani funkce v generatoru
-    func_call(&list,funcInGlobalTable);
+    if(func_call(&list,funcInGlobalTable)==INTERNAL_ERROR)return INTERNAL_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
@@ -453,12 +453,18 @@ int assignment(){
         }
         if(inFunDef){
             varInLocalTable->type = expressionResult.type;
-            if(created)generate_before_if(&list,varInLocalTable);//vytvoreni promenne
-            generate_instr(&list,MOVE,2,varInLocalTable, &expressionResult);//prirazeni hodnoty
+            if(created){
+                //vytvoreni promenne
+                if(generate_before_if(&list,varInLocalTable)==INTERNAL_ERROR)return INTERNAL_ERROR;
+            }
+            if(generate_instr(&list,MOVE,2,varInLocalTable, &expressionResult)==INTERNAL_ERROR)return INTERNAL_ERROR;//prirazeni hodnoty
         }else{
             varInGlobalTable->type = expressionResult.type;
-            if(created)generate_before_if(&list,varInGlobalTable);//vytvoreni promenne
-            generate_instr(&list,MOVE,2,varInGlobalTable, &expressionResult);//prirazeni hodnoty
+            if(created){
+                //vytvoreni promenne
+                if(generate_before_if(&list,varInGlobalTable)==INTERNAL_ERROR)return INTERNAL_ERROR;
+            }
+            if(generate_instr(&list,MOVE,2,varInGlobalTable, &expressionResult)==INTERNAL_ERROR)return INTERNAL_ERROR;//prirazeni hodnoty
         }
         return result;
     }else{
@@ -469,12 +475,18 @@ int assignment(){
             result = funcCall();
             if(inFunDef){
                 varInLocalTable->type = UNKNOWN;
-                if(created)generate_before_if(&list,varInLocalTable);//vytvoreni promenne
-                generate_save_return_value(&list, varInLocalTable);//prirazeni navratove hodnoty
+                if(created){
+                    //vytvoreni promenne
+                    if(generate_before_if(&list,varInLocalTable)==INTERNAL_ERROR)return INTERNAL_ERROR;
+                }
+                if(generate_save_return_value(&list, varInLocalTable)==INTERNAL_ERROR)return INTERNAL_ERROR;//prirazeni navratove hodnoty                
             }else{
                 varInGlobalTable->type = UNKNOWN;
-                if(created)generate_before_if(&list,varInGlobalTable);//vytvoreni promenne
-                generate_save_return_value(&list, varInGlobalTable);//prirazeni navratove hodnoty
+                if(created){
+                    //vytvoreni promenne
+                    if(generate_before_if(&list,varInGlobalTable)==INTERNAL_ERROR)return INTERNAL_ERROR;
+                }
+                if(generate_save_return_value(&list, varInGlobalTable)==INTERNAL_ERROR)return INTERNAL_ERROR;//prirazeni navratove hodnoty
             }
             return result;
         }else{
@@ -487,12 +499,18 @@ int assignment(){
             }
             if(inFunDef){
                 varInLocalTable->type = expressionResult.type;
-                 if(created)generate_before_if(&list,varInLocalTable);//vytvoreni promenne
-                 generate_instr(&list,MOVE,2,varInLocalTable, &expressionResult);//prirazeni hodnoty
+                 if(created){
+                //vytvoreni promenne
+                if(generate_before_if(&list,varInLocalTable)==INTERNAL_ERROR)return INTERNAL_ERROR;
+            }
+            if(generate_instr(&list,MOVE,2,varInLocalTable, &expressionResult)==INTERNAL_ERROR)return INTERNAL_ERROR;//prirazeni hodnoty
             }else{
                 varInGlobalTable->type = expressionResult.type;
-                if(created)generate_before_if(&list,varInGlobalTable);//vytvoreni promenne
-                generate_instr(&list,MOVE,2,varInGlobalTable, &expressionResult);//prirazeni hodnoty
+                if(created){
+                //vytvoreni promenne
+                if(generate_before_if(&list,varInGlobalTable)==INTERNAL_ERROR)return INTERNAL_ERROR;
+            }
+            if(generate_instr(&list,MOVE,2,varInGlobalTable, &expressionResult)==INTERNAL_ERROR)return INTERNAL_ERROR;//prirazeni hodnoty
             }
             return result;
         }
@@ -586,14 +604,14 @@ int stat(){
             if(result != TOKEN_OK)return result;
 
             //nagenerovani pocatku cyklu
-            generate_while_start(&list);
+            if(generate_while_start(&list)==INTERNAL_ERROR)return INTERNAL_ERROR;
             
 
             result = expression(&expressionResult);
             if(result != TOKEN_OK)return result;
             
             //nagenerovani podminky
-            generate_condition_check(&list, &expressionResult,1);
+            if(generate_condition_check(&list, &expressionResult,1)==INTERNAL_ERROR)return INTERNAL_ERROR;
 
             if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
 
@@ -635,13 +653,13 @@ int stat(){
             if(result != TOKEN_OK)return result;
 
             //nagenerovani pocatku if
-            start_if_else(&list);
+            if(start_if_else(&list)==INTERNAL_ERROR)return INTERNAL_ERROR;
 
             result = expression(&expressionResult);
             if(result != TOKEN_OK)return result;
 
             //nagenerovani kontroly podminky
-            generate_condition_check(&list, &expressionResult,0);
+            if(generate_condition_check(&list, &expressionResult,0)==INTERNAL_ERROR)return INTERNAL_ERROR;
 
             if(token_ptr->type != TOKEN_COLON)return SYNTAX_ERROR;
 
@@ -729,14 +747,14 @@ int stat(){
                 //return
                 if(token_ptr->type == TOKEN_DEDENT || token_ptr->type == TOKEN_EOF){
                     //nagenerovani return
-                    generate_return(&list);
+                    if(generate_return(&list)==INTERNAL_ERROR)return INTERNAL_ERROR;
                     return TOKEN_OK;
                 }
 
 
                 if(token_ptr->type == TOKEN_EOL){
                     //nagenerovani return
-                    generate_return(&list);
+                    if(generate_return(&list)==INTERNAL_ERROR)return INTERNAL_ERROR;
 
                     result = getToken(&token_ptr, &indent_stack );
                     if(result != TOKEN_OK)return result;
@@ -749,9 +767,9 @@ int stat(){
                 if(result != TOKEN_OK)return result;
 
                 //ulozi vysledek vyrazu do navratove hodnoty funkce
-                generate_save_to_return(&list,&expressionResult);
+                if(generate_save_to_return(&list,&expressionResult)==INTERNAL_ERROR)return INTERNAL_ERROR;
                 //nagenerovani return
-                generate_return(&list);
+                if(generate_return(&list)==INTERNAL_ERROR)return INTERNAL_ERROR;
 
                 if(token_ptr->type == TOKEN_DEDENT)return TOKEN_OK;
                 if(token_ptr->type == TOKEN_EOF)return TOKEN_OK;
@@ -819,7 +837,7 @@ int funcDef(){
         localSymtable = func->local_vars;
 
     //zacatek funkce v generatoru
-    generate_func_start(&list, func);
+    if(generate_func_start(&list, func)==INTERNAL_ERROR)return INTERNAL_ERROR;
 
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
@@ -880,7 +898,7 @@ int funcDef(){
     result = getToken(&token_ptr, &indent_stack );
     if(result != TOKEN_OK)return result;
 
-    generate_func_end(&list);
+    if(generate_func_end(&list)==INTERNAL_ERROR)return INTERNAL_ERROR;
 
     inFunDef = 0;
     localSymtable = NULL;
@@ -993,7 +1011,7 @@ int parse(){
     localSymtable = NULL;
 
     InitList(&list);
-    generator_start(&list);
+    if(generator_start(&list)==INTERNAL_ERROR)return INTERNAL_ERROR;
 
 
     //nahraje prvni token
