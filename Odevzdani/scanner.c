@@ -15,6 +15,10 @@
 
 #include "scanner.h"
 
+static int FirstToken = TRUE; // rozhodnutí, zda se bude generovat indent/dedent nebo ne
+static int currentIndent_static; // pomocná proměnná, která si pamatuje aktuální zanoření z minulého volání
+static char previousChar_static; // pro \n v řetězci
+
 /**
  * Pomocné funkce pro práci se stackem odsazení
 **/
@@ -208,7 +212,6 @@ int getToken(TokenPTR* token, iStack* indent_stack)
 	char currentChar, previousChar, firstNumber; // pomocné proměnné
 	static int currentIndent_static; // pomocná proměnná, která si pamatuje aktuální zanoření z minulého volání
 	static char previousChar_static; // pro \n v řetězci
-	static int FirstToken = TRUE; // rozhodnutí, zda se bude generovat indent/dedent nebo ne
 
 	TokenPTR newToken = makeToken(token);
 
@@ -1350,10 +1353,19 @@ int getToken(TokenPTR* token, iStack* indent_stack)
 
 int preloadToken(TokenPTR* token, iStack* stack)
 {
+	int FirstToken_backup = FirstToken;
+	int currentIndent_static_backup = currentIndent_static;
+	char previousChar_static_backup = previousChar_static;
+
 	fpos_t position;
 	fgetpos(stdin, &position);
 	int result = getToken(token , stack);
 	fsetpos(stdin, &position);
+
+	FirstToken = FirstToken_backup;
+	currentIndent_static = currentIndent_static_backup;
+	previousChar_static = previousChar_static_backup;
+	
 	return  result;
 }
 

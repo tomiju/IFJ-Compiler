@@ -30,6 +30,8 @@ tNode* main_func_node;	// ukazateľ na main v liste inštrukcií
 
 tNode* before_while = NULL; // ukazateľ na inštrukciu pred while (vkladanie DEFVAR pred while)
 
+tNode* before_everything = NULL;
+
 // stacky pre vnorené if-else a while
 tStack* while_nodes = NULL;
 tStack* before_if_jumps = NULL;
@@ -457,6 +459,18 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 	// kontrola na základe konkrétnej inštrukcie
 	switch(instr_enum){
 		case LT: case GT: case EQ:
+			if(before_while != NULL){
+				if(args[1]->isConst){
+					if(args[2]->isConst){
+						//pass
+					} else{
+						args[2]->type = UNKNOWN;
+					}
+				} else {
+					args[1]->type = UNKNOWN;
+				}
+			}
+
 			// oba majú rovnaký typ (NIE UNKNOWN), preskočí,, nejde o konverziu
 			if(args[1]->type != UNKNOWN && (args[1]->type == args[2]->type)){
 				// ak ide o typ NIL a nejde o inštrukciu EQ, vygeneruje sa chybové ukončenie
@@ -656,6 +670,18 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			break;
 
 		case ADD: case SUB: case MUL:
+			if(before_while != NULL){
+				if(args[1]->isConst){
+					if(args[2]->isConst){
+						//pass
+					} else{
+						args[2]->type = UNKNOWN;
+					}
+				} else {
+					args[1]->type = UNKNOWN;
+				}
+			}
+
 			// oba sú int, nedeje sa nič
 			if(args[1]->type == INT && args[2]->type == INT){
 				break;
@@ -799,6 +825,18 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			break;
 
 		case DIV:
+			if(before_while != NULL){
+				if(args[1]->isConst){
+					if(args[2]->isConst){
+						//pass
+					} else{
+						args[2]->type = UNKNOWN;
+					}
+				} else {
+					args[1]->type = UNKNOWN;
+				}
+			}
+
 			converted = true;
 
 			// oba FLOAT
@@ -1026,6 +1064,18 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			}
 			break;
 		case IDIV:
+			if(before_while != NULL){
+				if(args[1]->isConst){
+					if(args[2]->isConst){
+						//pass
+					} else{
+						args[2]->type = UNKNOWN;
+					}
+				} else {
+					args[1]->type = UNKNOWN;
+				}
+			}
+
 			converted = true;
 
 			// ak sú oba INT
@@ -1092,6 +1142,7 @@ int check_types(tList* list, enum INSTR_ENUM instr_enum, htab_item_t** args){
 			}
 			break;
 		case JUMPIFEQ: case JUMPIFNEQ:
+
 			converted = true;
 
 			// ak je podmienka typu BOOL je to OK
@@ -1473,6 +1524,8 @@ int generate_before_if(tList* list, htab_item_t* item){
 	tNode* temp = list->active;
 	tNode* before_jump = tTopStack(before_if_jumps);
 
+	before_jump = before_everything;
+
 	// ak je nejaké if, nastaví aktivitu, nageneruje definíciu premennej pred if a vráti aktivitu listu
 	if(before_jump != NULL){
 		SetActive(list, before_jump);
@@ -1553,6 +1606,8 @@ int generate_func_start(tList* list, htab_item_t* label){
 	if(generate_instr(list, LABEL, 1, label) == ERR) return ERR;
 	if(generate_instr(list, PUSHFRAME, 0) == ERR) return ERR;
 
+	before_everything = list->active;
+
 	// vytovrí návratovú hodnotu a nastaví na NIL
 	if(generate_return_variable(list) == ERR) return ERR;
 
@@ -1587,6 +1642,7 @@ int generate_func_end(tList* list){
 
 	// nastaví aktivitu v liste na koniec (funkcie sa generujú pred main)
 	Last(list);
+	before_everything = main_func_node;
 
 	return 0;
 }
@@ -2223,6 +2279,7 @@ int generator_start(tList* list){
 	if(generate_instr_no(list, JUMP, 1, main_func) == ERR) return ERR;
 	if(generate_instr_no(list, LABEL, 1, main_func) == ERR) return ERR;
 	main_func_node = list->last;
+	before_everything = main_func_node;
 
 	// pomocné premenné na kontrolu typov
 	if(generate_var(list, "%type_control", BOOL, GF) == NULL) return ERR;

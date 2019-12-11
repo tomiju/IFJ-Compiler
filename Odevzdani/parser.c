@@ -124,7 +124,8 @@ int param(){
         identifier = htab_find(localSymtable,token_ptr->dynamic_value);
         
         //definice lokalni promenne
-        if(generate_instr(&list, DEFVAR,1,identifier) == INTERNAL_ERROR)return INTERNAL_ERROR;
+        //if(generate_instr(&list, DEFVAR,1,identifier) == INTERNAL_ERROR)return INTERNAL_ERROR;
+        if(generate_before_whiles(&list, identifier) == INTERNAL_ERROR)return INTERNAL_ERROR;
         
         //propojeni lokalni promenne s odpovidajicim parametrem
         htab_item_t* param = get_param(paramCount-1);
@@ -950,7 +951,7 @@ int program(){
     int result;
    
     switch(token_ptr->type){
-        //pravidlo:     <rogram> -> eof
+        //pravidlo:     <program> -> eof
         case TOKEN_EOF:
             if(checkAllDefinitions(globalSymtable)){
                 return TOKEN_OK;
